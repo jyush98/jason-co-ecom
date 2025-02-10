@@ -1,3 +1,5 @@
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 export const fetchProducts = async (filters: { name?: string; minPrice?: number; maxPrice?: number; category?: string }) => {
     const queryParams = new URLSearchParams();
     if (filters.name) queryParams.append("name", filters.name);
@@ -6,7 +8,7 @@ export const fetchProducts = async (filters: { name?: string; minPrice?: number;
     if (filters.category) queryParams.append("category", filters.category);
 
     try {
-        const response = await fetch(`http://127.0.0.1:8000/products?${queryParams.toString()}`);
+        const response = await fetch(`${API_BASE_URL}?${queryParams.toString()}`);
         if (!response.ok) {
             throw new Error("Failed to fetch products");
         }
@@ -16,8 +18,6 @@ export const fetchProducts = async (filters: { name?: string; minPrice?: number;
         return [];
     }
 };
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export const fetchUser = async (clerkId: string) => {
     try {
