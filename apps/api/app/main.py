@@ -16,7 +16,10 @@ app.include_router(user_router, prefix="/api", tags=["User"])
 # CORS settings to allow frontend to communicate with backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:3000",
+        "https://jason-co-ecom-production.up.railway.app"
+        ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
