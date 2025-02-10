@@ -17,4 +17,18 @@ export const fetchProducts = async (filters: { name?: string; minPrice?: number;
     }
 };
 
+export const fetchUser = async (clerkId: string) => {
+    try {
+        const response = await fetch(`http://127.0.0.1:8000/api/user/${clerkId}`);
+        if (!response.ok) {
+            throw new Error("User not found");
+        }
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching user data:", error);
+        return null;
+    }
+};
+
+
 
