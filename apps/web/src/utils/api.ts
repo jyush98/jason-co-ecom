@@ -8,7 +8,7 @@ export const fetchProducts = async (filters: { name?: string; minPrice?: number;
     if (filters.category) queryParams.append("category", filters.category);
 
     try {
-        const response = await fetch(`${API_BASE_URL}?${queryParams.toString()}`);
+        const response = await fetch(`${API_BASE_URL}/products?${queryParams.toString()}`);
         if (!response.ok) {
             throw new Error("Failed to fetch products");
         }

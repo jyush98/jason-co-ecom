@@ -21,20 +21,34 @@ const ProductList = () => {
     const [minPrice, setMinPrice] = useState<number | undefined>();
     const [maxPrice, setMaxPrice] = useState<number | undefined>();
     const [category, setCategory] = useState<string>("All");
+    const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
         const getProducts = async () => {
-            const filters = {
-                name: search,
-                minPrice,
-                maxPrice,
-                category: category !== "All" ? category : undefined,
-            };
-            const data = await fetchProducts(filters);
-            setProducts(data);
+            try {
+                setLoading(true);
+                const filters = {
+                    name: search,
+                    minPrice,
+                    maxPrice,
+                    category: category !== "All" ? category : undefined,
+                };
+                const data = await fetchProducts(filters);
+                console.log("API Response:", data); // Debug the response
+                setProducts(Array.isArray(data) ? data : []);
+            } catch (error) {
+                console.error("Error fetching products:", error);
+                setProducts([]);
+            } finally {
+                setLoading(false);
+            }
         };
         getProducts();
     }, [search, minPrice, maxPrice, category]);
+
+    if (loading) {
+        return <div className="text-center">Loading...</div>;
+    }
 
     return (
         <div className="container mx-auto p-8">
