@@ -17,9 +17,11 @@ export const fetchProducts = async (filters: { name?: string; minPrice?: number;
     }
 };
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 export const fetchUser = async (clerkId: string) => {
     try {
-        const response = await fetch(`http://127.0.0.1:8000/api/user/${clerkId}`);
+        const response = await fetch(`${API_BASE_URL}/api/user/${clerkId}`);
         if (!response.ok) {
             throw new Error("User not found");
         }
@@ -29,6 +31,7 @@ export const fetchUser = async (clerkId: string) => {
         return null;
     }
 };
+
 
 
 
