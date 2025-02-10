@@ -6,8 +6,10 @@ from app.core.db import get_db
 from app.models.product import Product
 from app.schemas.product import ProductSchema
 from typing import List, Optional
+from app.routes.clerk_webhooks import router as clerk_webhook_router
 
 app = FastAPI()
+app.include_router(clerk_webhook_router, prefix="/webhooks", tags=["Clerk Webhooks"])
 
 # CORS settings to allow frontend to communicate with backend
 app.add_middleware(

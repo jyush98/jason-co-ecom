@@ -1,12 +1,13 @@
 import { clerkMiddleware } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 
-export default clerkMiddleware();
+export default clerkMiddleware((auth, req) => {
+  const url = req.nextUrl; // Access nextUrl from the request
 
-export const config = {
-  matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
-    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-    // Always run for API routes
-    '/(api|trpc)(.*)',
-  ],
-};
+  // Check if the request is for /sign-up/continue and redirect it to /dashboard
+  if (url.pathname === "/sign-up/continue") {
+    return NextResponse.redirect(new URL("/dashboard", url.origin));
+  }
+});
+
+export const config = { matcher: ["/((?!_next).*)"] };
