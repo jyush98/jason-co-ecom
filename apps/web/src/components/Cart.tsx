@@ -8,7 +8,11 @@ import { getCart, removeFromCart, addToCart } from "../utils/cart";
 interface CartItem {
     product_id: number;
     product: {
+        id: number;
         name: string;
+        price: number;
+        description?: string;
+        image_url?: string;
     };
     quantity: number;
 }
@@ -18,6 +22,7 @@ export default function Cart() {
     const [cart, setCart] = useState<CartItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [totalPrice, setTotalPrice] = useState<number>(0);
 
     useEffect(() => {
         const fetchCart = async () => {
@@ -25,9 +30,10 @@ export default function Cart() {
                 const token = await getToken();
                 if (token) {
                     const cartData = await getCart(token);
-                    console.log("Cart Data:", cartData); // Log the data
+                    // console.log("Cart Data:", cartData); // Log the data
                     if (Array.isArray(cartData)) {
                         setCart(cartData);
+                        calculateTotal(cartData);
                     } else {
                         setCart([]); // Set to empty array if cartData is not an array
                     }
@@ -43,30 +49,30 @@ export default function Cart() {
         fetchCart();
     }, []);
 
+    const calculateTotal = (cartItems: CartItem[]) => {
+        const total = cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+        setTotalPrice(total);
+    };
+
     const updateQuantity = async (productId: number, newQuantity: number) => {
         const token = await getToken();
         if (token) {
-            try {
-                await addToCart(productId, newQuantity, token); // Reuse addToCart API for updates
-                const updatedCart = cart.map((item) =>
-                    item.product_id === productId ? { ...item, quantity: newQuantity } : item
-                );
-                setCart(updatedCart);
-            } catch (err) {
-                console.error("Failed to update quantity:", err);
-            }
+            await addToCart(productId, newQuantity, token);
+            const updatedCart = cart.map((item) =>
+                item.product_id === productId ? { ...item, quantity: newQuantity } : item
+            );
+            setCart(updatedCart);
+            calculateTotal(updatedCart);
         }
     };
 
     const handleRemove = async (productId: number) => {
         const token = await getToken();
         if (token) {
-            try {
-                await removeFromCart(productId, token);
-                setCart(cart.filter((item) => item.product_id !== productId));
-            } catch (err) {
-                console.error("Failed to remove item:", err);
-            }
+            await removeFromCart(productId, token);
+            const updatedCart = cart.filter((item) => item.product_id !== productId);
+            setCart(updatedCart);
+            calculateTotal(updatedCart);
         }
     };
 
@@ -84,34 +90,39 @@ export default function Cart() {
             {cart.length === 0 ? (
                 <p>Your cart is empty.</p>
             ) : (
-                <ul className="space-y-4">
-                    {cart.map((item) => (
-                        <li key={item.product_id} className="flex items-center justify-between border-b pb-2">
-                            <span>{item.product.name} - {item.quantity}</span>
-                            <div className="flex items-center space-x-2">
-                                <button 
-                                    onClick={() => updateQuantity(item.product_id, item.quantity + 1)} 
-                                    className="px-2 py-1 bg-green-500 text-white rounded"
-                                >
-                                    +
-                                </button>
-                                <button 
-                                    onClick={() => updateQuantity(item.product_id, item.quantity - 1)} 
-                                    className="px-2 py-1 bg-yellow-500 text-white rounded"
-                                    disabled={item.quantity <= 1}
-                                >
-                                    -
-                                </button>
-                                <button 
-                                    onClick={() => handleRemove(item.product_id)} 
-                                    className="px-2 py-1 bg-red-500 text-white rounded"
-                                >
-                                    Remove
-                                </button>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
+                <>
+                    <ul className="space-y-4">
+                        {cart.map((item) => (
+                            <li key={item.product_id} className="flex items-center justify-between border-b pb-2">
+                                <span>{item.product.name} - {item.quantity}</span>
+                                <div className="flex items-center space-x-2">
+                                    <button
+                                        onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
+                                        className="px-2 py-1 bg-green-500 text-white rounded"
+                                    >
+                                        +
+                                    </button>
+                                    <button
+                                        onClick={() => updateQuantity(item.product_id, item.quantity - 1)}
+                                        className="px-2 py-1 bg-yellow-500 text-white rounded"
+                                        disabled={item.quantity <= 1}
+                                    >
+                                        -
+                                    </button>
+                                    <button
+                                        onClick={() => handleRemove(item.product_id)}
+                                        className="px-2 py-1 bg-red-500 text-white rounded"
+                                    >
+                                        Remove
+                                    </button>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                    <div className="text-right mt-4 text-lg font-bold">
+                        Total: ${totalPrice.toFixed(2)}
+                    </div>
+                </>
             )}
         </div>
     );
