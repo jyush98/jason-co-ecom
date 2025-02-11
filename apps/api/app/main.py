@@ -10,20 +10,22 @@ from app.routes.clerk_webhooks import router as clerk_webhook_router
 from app.routes.user import router as user_router
 
 app = FastAPI()
-app.include_router(clerk_webhook_router, prefix="/webhooks", tags=["Clerk Webhooks"])
-app.include_router(user_router, prefix="/api", tags=["User"])
 
 # CORS settings to allow frontend to communicate with backend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
-        "https://jason-co-ecom-production.up.railway.app"
+        "https://jason-co-ecom-production.up.railway.app",
         ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+app.include_router(clerk_webhook_router, prefix="/webhooks", tags=["Clerk Webhooks"])
+app.include_router(user_router, prefix="/api", tags=["User"])
 
 @app.get("/")
 def root():

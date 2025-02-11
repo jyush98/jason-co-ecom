@@ -1,3 +1,7 @@
+"use-client";
+
+import { useAuth } from "@clerk/nextjs";
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export const fetchProducts = async (filters: { name?: string; minPrice?: number; maxPrice?: number; category?: string }) => {
@@ -19,18 +23,25 @@ export const fetchProducts = async (filters: { name?: string; minPrice?: number;
     }
 };
 
-export const fetchUser = async (clerkId: string) => {
+export const fetchUser = async (clerkId: string, token: string) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/user/${clerkId}`);
+        const response = await fetch(`${API_BASE_URL}/api/user/${clerkId}`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
         if (!response.ok) {
-            throw new Error("User not found");
+            throw new Error("User not found or unauthorized");
         }
+
         return await response.json();
     } catch (error) {
         console.error("Error fetching user data:", error);
         return null;
     }
 };
+
 
 
 

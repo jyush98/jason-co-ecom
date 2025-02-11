@@ -6,3 +6,5 @@ alembic
 psycopg2
 python-dotenv
 requests
+pyjwt
+cryptography
