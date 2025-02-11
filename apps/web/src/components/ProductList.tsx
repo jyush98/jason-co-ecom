@@ -1,7 +1,9 @@
-"use client"
+"use client";
 
 import { useEffect, useState } from "react";
 import { fetchProducts } from "../utils/api";
+import { addToCart } from "../utils/cart"; // ✅ Import cart function
+import { useAuth } from "@clerk/nextjs";
 import { motion } from "framer-motion";
 
 interface Product {
@@ -16,6 +18,7 @@ interface Product {
 const categories = ["All", "Necklaces", "Bracelets", "Rings"];
 
 const ProductList = () => {
+    const { getToken } = useAuth();
     const [products, setProducts] = useState<Product[]>([]);
     const [search, setSearch] = useState("");
     const [minPrice, setMinPrice] = useState<number | undefined>();
@@ -34,7 +37,6 @@ const ProductList = () => {
                     category: category !== "All" ? category : undefined,
                 };
                 const data = await fetchProducts(filters);
-                console.log("API Response:", data); // Debug the response
                 setProducts(Array.isArray(data) ? data : []);
             } catch (error) {
                 console.error("Error fetching products:", error);
@@ -45,6 +47,14 @@ const ProductList = () => {
         };
         getProducts();
     }, [search, minPrice, maxPrice, category]);
+
+    const handleAddToCart = async (productId: number) => {
+        const token = await getToken();
+        if (token) {
+            await addToCart(productId, 1, token);
+            alert("Item added to cart!"); // ✅ Basic confirmation
+        }
+    };
 
     if (loading) {
         return <div className="text-center">Loading...</div>;
@@ -97,6 +107,12 @@ const ProductList = () => {
                         <img src={product.image_url} alt={product.name} className="w-full h-56 object-cover" />
                         <h2 className="text-lg font-semibold">{product.name}</h2>
                         <p>${product.price.toFixed(2)}</p>
+                        <button 
+                            onClick={() => handleAddToCart(product.id)}
+                            className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        >
+                            Add to Cart
+                        </button>
                     </motion.div>
                 ))}
             </div>

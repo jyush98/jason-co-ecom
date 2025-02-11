@@ -27,6 +27,7 @@ export default function Dashboard() {
         <div>
             <h1>Welcome, {user.fullName}!</h1>
             {userData && <p>Email from FastAPI: {userData.email}</p>}
+            <GetJWT />
         </div>
     );
 }

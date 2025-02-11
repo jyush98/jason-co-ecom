@@ -1,6 +1,6 @@
 import { ClerkProvider } from '@clerk/nextjs';
 import './globals.css';
-import { AuthButtons } from '../components/AuthButtons';
+import Navbar from '@/components/Navbar';
 
 export default function RootLayout({
   children,
@@ -14,7 +14,7 @@ export default function RootLayout({
       <html lang="en">
         <body>
           <header>
-            <AuthButtons />
+            <Navbar />
           </header>
           {children}
         </body>
