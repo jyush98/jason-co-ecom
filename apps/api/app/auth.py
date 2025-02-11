@@ -20,13 +20,8 @@ def get_token(authorization: str = Header(None)):
 def verify_clerk_token(token: str = Depends(get_token)):
     """Verifies the Clerk JWT using the public JWKS, skipping `aud` validation."""
     try:
-        print(f"🔹 Fetching JWKS from: {CLERK_JWKS_URL}")  # ✅ Debugging Output
         jwks_client = PyJWKClient(CLERK_JWKS_URL)
         signing_key = jwks_client.get_signing_key_from_jwt(token)
-
-        # ✅ Match issuer exactly as seen in the token
-        expected_issuer = f"{CLERK_FRONTEND_API}"
-        print(f"🔹 Expected Issuer: {expected_issuer}")
 
         # ✅ Skip `audience` check since it doesn’t exist in Clerk’s token
         payload = jwt.decode(
@@ -36,7 +31,6 @@ def verify_clerk_token(token: str = Depends(get_token)):
             issuer=f"{os.getenv('CLERK_FRONTEND_API')}",
         )
 
-        print(f"✅ Token verified: {payload}")  # Debug Output
         return payload  # Returns user details
 
     except jwt.ExpiredSignatureError:
