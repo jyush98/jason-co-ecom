@@ -37,16 +37,12 @@ def create_checkout_session(
     
     """Creates a Stripe checkout session"""
     try:
-        print("HERE 1")
-        print("User:", user)
         # Fetch full user details from Clerk using `sub`
         user_details = get_user_details(user['sub'])
-        print("HERE 2")
         # Extract email from user details
         email = user_details.get("email_addresses", [{}])[0].get("email_address")
         if not email:
             raise HTTPException(status_code=400, detail="Email address not found")
-        print("HERE 3")
         line_items = []
         for item in cart.items:
             # Extract product information from the 'product' field
@@ -70,8 +66,6 @@ def create_checkout_session(
                 },
                 "quantity": quantity,
             })
-
-        print("Line Items:", line_items)
 
         # Create Stripe Checkout Session
         checkout_session = stripe.checkout.Session.create(

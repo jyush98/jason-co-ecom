@@ -13,4 +13,4 @@ class Product(Base):
     image_url = Column(String, nullable=True)
     category = Column(String, nullable=True)
     
-    cart_items = relationship("CartItem")
+    cart_items = relationship("CartItem", back_populates="product")
