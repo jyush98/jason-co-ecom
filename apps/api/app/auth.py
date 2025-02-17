@@ -12,7 +12,6 @@ if not CLERK_JWKS_URL:
 
 def get_token(authorization: str = Header(None)):
     """Extracts the Bearer token from the request."""
-    print(f"🔹 Received Auth Header: {authorization}")  # ✅ Debugging Output
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Missing or invalid token")
     return authorization.split(" ")[1]

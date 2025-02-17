@@ -9,6 +9,7 @@ from typing import List, Optional
 from app.routes.clerk_webhooks import router as clerk_webhook_router
 from app.routes.user import router as user_router
 from app.routes.cart import router as cart_router
+from app.routes.checkout import router as checkout_router
 
 app = FastAPI()
 
@@ -28,6 +29,7 @@ app.add_middleware(
 app.include_router(clerk_webhook_router, prefix="/webhooks", tags=["Clerk Webhooks"])
 app.include_router(user_router, prefix="/api", tags=["User"])
 app.include_router(cart_router, prefix="/cart", tags=["Cart"])
+app.include_router(checkout_router, prefix="/checkout", tags=["Checkout"])
 
 @app.get("/")
 def root():

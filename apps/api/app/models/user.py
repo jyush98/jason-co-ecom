@@ -10,5 +10,5 @@ class User(Base):
     email = Column(String, unique=True, nullable=False)
     first_name = Column(String, nullable=True)
     last_name = Column(String, nullable=True)
-
-    cart_items = relationship("CartItem", back_populates="user")
+    
+    cart_items = relationship("CartItem")

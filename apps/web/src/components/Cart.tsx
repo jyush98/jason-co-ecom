@@ -6,15 +6,18 @@ import { getCart, removeFromCart, addToCart } from "../utils/cart";
 
 // Define the type for a cart item
 interface CartItem {
+    id: number;
+    user_id: string;
     product_id: number;
+    quantity: number;
     product: {
         id: number;
         name: string;
         price: number;
         description?: string;
         image_url?: string;
+        category?: string;
     };
-    quantity: number;
 }
 
 export default function Cart() {
@@ -30,7 +33,6 @@ export default function Cart() {
                 const token = await getToken();
                 if (token) {
                     const cartData = await getCart(token);
-                    // console.log("Cart Data:", cartData); // Log the data
                     if (Array.isArray(cartData)) {
                         setCart(cartData);
                         calculateTotal(cartData);
@@ -75,6 +77,32 @@ export default function Cart() {
             calculateTotal(updatedCart);
         }
     };
+
+    const handleCheckout = async () => {
+        const token = await getToken();
+    
+        const requestBody = JSON.stringify({
+            items: cart,  // Pass the cart data to your backend
+            // totalPrice: totalPrice,
+        });
+    
+        console.log("Request Body:", requestBody);  // Log the request body for debugging
+    
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/checkout/session`, {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+            body: requestBody,
+        });
+    
+        const data = await response.json();
+        if (data.url) {
+            window.location.href = data.url;  // Redirect to Stripe Checkout
+        }
+    };
+    
 
     if (loading) {
         return <p>Loading cart...</p>;
@@ -124,6 +152,12 @@ export default function Cart() {
                     </div>
                 </>
             )}
+            <button
+                onClick={handleCheckout}
+                className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+                Checkout with Stripe
+            </button>
         </div>
     );
 }
