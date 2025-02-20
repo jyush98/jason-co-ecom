@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.models.order import Order, OrderItem
 from app.models.cart import CartItem
 
+router = APIRouter()
 
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
