@@ -6,7 +6,7 @@ from app.models.user import User
 
 router = APIRouter()
 
-@router.post("/clerk-webhook")
+@router.post("/webhooks/clerk")
 async def clerk_webhook(request: Request, db: Session = Depends(get_db)):
     payload = await request.json()
     print("\n🔹 Clerk Webhook Payload:\n", json.dumps(payload, indent=2))  # ✅ Log payload

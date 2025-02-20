@@ -1,13 +1,14 @@
 import os
-from typing import List
+from typing import List, Optional
 import stripe
 import requests
 from fastapi import APIRouter, HTTPException, Depends
 from app.auth import verify_clerk_token
 from dotenv import load_dotenv
-
+from sqlalchemy.orm import Session
+from app.core.db import get_db
 from ..schemas.cart import CartSchema
-from ..schemas.cartItem import CartItemSchema  # Keep CartSchema to validate basic fields like product_id and quantity
+from ..models.order import Order, OrderItem
 
 load_dotenv()  # Load the .env file variables
 
@@ -29,52 +30,60 @@ def get_user_details(user_sub: str):
     return response.json()
 
 @router.post("/session")
-def create_checkout_session(
-    #cart: List[CartItemSchema],  # CartSchema expects the basic fields, the product info will be extracted in the backend
-    cart: CartSchema,
-    user=Depends(verify_clerk_token)
-):
-    
+def create_checkout_session(cart: CartSchema, user=Depends(verify_clerk_token), db: Session = Depends(get_db)):
     """Creates a Stripe checkout session"""
+    print("🔍 Inside checkout_session function")
+    
+    # Step 1: Create the Order in DB first
+    # user_details = get_user_details(user["sub"])
+    # email = user_details.get("email_addresses", [{}])[0].get("email_address", "guest@yourstore.com")
+    
+    user_id = user["sub"]
+
+    order = Order(user_id=user_id, total_price=0, status="pending")  # Placeholder total_price
+    db.add(order)
+    db.commit()
+
+    line_items = []
+    total_price = 0
+
     try:
-        # Fetch full user details from Clerk using `sub`
-        user_details = get_user_details(user['sub'])
-        # Extract email from user details
-        email = user_details.get("email_addresses", [{}])[0].get("email_address")
-        if not email:
-            raise HTTPException(status_code=400, detail="Email address not found")
-        line_items = []
         for item in cart.items:
-            # Extract product information from the 'product' field
-            product_name = item.product.name
-            product_price = item.product.price
-            product_image_url = item.product.image_url
-            quantity = item.quantity
 
-            if not all([product_name, product_price, quantity]):
-                raise HTTPException(status_code=400, detail="Missing product information")
+            order_item = OrderItem(
+                order_id=order.id,
+                product_id=item.product.id,
+                product_name=item.product.name,
+                unit_price=item.product.price,
+                quantity=item.quantity,
+            )
+            db.add(order_item)
 
-            # Create the line item for Stripe checkout
+            # Prepare Stripe line item
             line_items.append({
                 "price_data": {
                     "currency": "usd",
                     "product_data": {
-                        "name": product_name,
-                        "images": [product_image_url],
+                        "name": item.product.name,
+                        "images": [item.product.image_url],
                     },
-                    "unit_amount": int(product_price * 100),  # Stripe expects the price in cents
+                    "unit_amount": int(item.product.price * 100),
                 },
-                "quantity": quantity,
+                "quantity": item.quantity,
             })
+
+            total_price += item.product.price * item.quantity
+
+        db.commit()
 
         # Create Stripe Checkout Session
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=["card"],
             mode="payment",
             line_items=line_items,  # Use dynamic line items from the cart
-            success_url="http://localhost:3000/success",  # Your success URL
+            metadata={"order_id": str(order.id), "user_id": user_id},
+            success_url="http://localhost:3000",  # Your success URL
             cancel_url="http://localhost:3000/cart",    # Your cancel URL
-            customer_email=email,
         )
 
         return {"url": checkout_session.url}

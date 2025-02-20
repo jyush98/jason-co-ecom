@@ -37,10 +37,7 @@ def get_cart(user=Depends(verify_clerk_token), db: Session = Depends(get_db)):
     """Fetches the user's cart."""
     cart_items = db.query(CartItem).filter(CartItem.user_id == user["sub"]).all()
     for item in cart_items:
-        # Fetch the associated product for each cart item
         item.product = db.query(Product).filter(Product.id == item.product_id).first()
-        # item.user_id = CartItem.user_id  # Include user_id in the response
-        # item.id = CartItem.id  # Include id in the response
     return cart_items
 
 @router.delete("/remove/{product_id}")

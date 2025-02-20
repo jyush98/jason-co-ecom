@@ -80,14 +80,10 @@ export default function Cart() {
 
     const handleCheckout = async () => {
         const token = await getToken();
-    
         const requestBody = JSON.stringify({
-            items: cart,  // Pass the cart data to your backend
-            // totalPrice: totalPrice,
+            items: cart,  // Pass the cart data to backend
         });
-    
-        console.log("Request Body:", requestBody);  // Log the request body for debugging
-    
+
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/checkout/session`, {
             method: "POST",
             headers: {
@@ -96,13 +92,14 @@ export default function Cart() {
             },
             body: requestBody,
         });
-    
+
         const data = await response.json();
         if (data.url) {
             window.location.href = data.url;  // Redirect to Stripe Checkout
-        }
+        } else {
+        alert("Failed to start checkout. Please try again.");
+    }
     };
-    
 
     if (loading) {
         return <p>Loading cart...</p>;

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, Query
+from fastapi import FastAPI, Depends, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Depends
 from sqlalchemy.orm import Session
@@ -7,6 +7,7 @@ from app.models.product import Product
 from app.schemas.product import ProductSchema
 from typing import List, Optional
 from app.routes.clerk_webhooks import router as clerk_webhook_router
+from app.routes.stripe_webhooks import router as stripe_webhook_router
 from app.routes.user import router as user_router
 from app.routes.cart import router as cart_router
 from app.routes.checkout import router as checkout_router
@@ -19,6 +20,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "https://jason-co-ecom-production.up.railway.app",
+        "*"
         ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -26,7 +28,8 @@ app.add_middleware(
 )
 
 
-app.include_router(clerk_webhook_router, prefix="/webhooks", tags=["Clerk Webhooks"])
+app.include_router(clerk_webhook_router, tags=["Clerk Webhooks"])
+app.include_router(stripe_webhook_router, tags=["Stripe Webhooks"])
 app.include_router(user_router, prefix="/api", tags=["User"])
 app.include_router(cart_router, prefix="/cart", tags=["Cart"])
 app.include_router(checkout_router, prefix="/checkout", tags=["Checkout"])
@@ -36,6 +39,12 @@ def root():
     return {"message": "Welcome to the Jewelry API"}
 
 # Include API routes here (once created)
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    print(f"🔍 Incoming request: {request.method} {request.url}")
+    response = await call_next(request)
+    return response
 
 @app.get("/products", response_model=List[ProductSchema])
 def get_products(
