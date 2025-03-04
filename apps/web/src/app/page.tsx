@@ -1,8 +1,10 @@
+import Hero from "../components/Hero";
 import ProductList from "../components/ProductList";
 
 export default function Home() {
     return (
-        <main className="min-h-screen bg-gray-100 p-8">
+        <main className="min-h-screen p-8">
+            <Hero />
             <ProductList />
         </main>
     );

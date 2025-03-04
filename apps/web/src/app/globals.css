@@ -1,21 +1,30 @@
+/* filepath: /Users/jonathan/Desktop/Projects/jason-co-ecom/apps/web/src/app/globals.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  @apply bg-gradient-to-b from-gray-900 to-black text-white;
+}
+
+html, body {
+  min-height: 100vh;  /* Ensures full-page height */
+  margin: 0;
+  padding: 0;
+}
+
+.text-gold-500 {
+    color: #d4af37;
+}
+
+.text-gold-400 {
+    color: #e8c764;
+}
+
+.bg-gold-500 {
+    background-color: #d4af37;
+}
+
+.bg-gold-600 {
+    background-color: #b8860b;
 }

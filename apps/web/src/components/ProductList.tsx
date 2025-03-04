@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { fetchProducts } from "../utils/api";
-import { addToCart } from "../utils/cart"; // ✅ Import cart function
+import { addToCart } from "../utils/cart"; 
 import { useAuth } from "@clerk/nextjs";
 import { motion } from "framer-motion";
 
@@ -17,7 +17,7 @@ interface Product {
 
 const categories = ["All", "Necklaces", "Bracelets", "Rings"];
 
-const ProductList = () => {
+export default function ProductList() {
     const { getToken } = useAuth();
     const [products, setProducts] = useState<Product[]>([]);
     const [search, setSearch] = useState("");
@@ -52,43 +52,45 @@ const ProductList = () => {
         const token = await getToken();
         if (token) {
             await addToCart(productId, 1, token);
-            alert("Item added to cart!"); // ✅ Basic confirmation
+            alert("Item added to cart!");
         }
     };
 
     if (loading) {
-        return <div className="text-center">Loading...</div>;
+        return <div className="text-center text-gold-400 text-xl">Loading...</div>;
     }
 
     return (
-        <div className="container mx-auto p-8">
-            <h1 className="text-3xl font-bold text-center mb-8 text-gray-900">Featured Jewelry</h1>
+        <div className="container mx-auto py-12">
+            <h2 className="text-4xl font-serif text-center text-gold-400 uppercase tracking-wider">
+                Exclusive Jewelry
+            </h2>
 
-            {/* Filter Section */}
-            <div className="flex flex-wrap gap-4 justify-center mb-6">
+            {/* Filters */}
+            <div className="flex flex-wrap gap-4 justify-center mt-6 mb-10">
                 <input
                     type="text"
-                    placeholder="Search for jewelry..."
-                    className="px-4 py-2 border rounded-lg w-64 focus:outline-none"
+                    placeholder="Search..."
+                    className="px-4 py-2 border border-gold-400 bg-black text-white rounded-lg w-64 focus:outline-none"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                 />
                 <input
                     type="number"
                     placeholder="Min Price"
-                    className="px-4 py-2 border rounded-lg w-32 focus:outline-none"
+                    className="px-4 py-2 border border-gold-400 bg-black text-white rounded-lg w-32 focus:outline-none"
                     value={minPrice || ""}
                     onChange={(e) => setMinPrice(e.target.value ? parseFloat(e.target.value) : undefined)}
                 />
                 <input
                     type="number"
                     placeholder="Max Price"
-                    className="px-4 py-2 border rounded-lg w-32 focus:outline-none"
+                    className="px-4 py-2 border border-gold-400 bg-black text-white rounded-lg w-32 focus:outline-none"
                     value={maxPrice || ""}
                     onChange={(e) => setMaxPrice(e.target.value ? parseFloat(e.target.value) : undefined)}
                 />
                 <select
-                    className="px-4 py-2 border rounded-lg focus:outline-none"
+                    className="px-4 py-2 border border-gold-400 bg-black text-white rounded-lg focus:outline-none"
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
                 >
@@ -101,23 +103,32 @@ const ProductList = () => {
             </div>
 
             {/* Product Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">
                 {products.map((product) => (
-                    <motion.div key={product.id} className="bg-white rounded-xl shadow-lg p-4">
-                        <img src={product.image_url} alt={product.name} className="w-full h-56 object-cover" />
-                        <h2 className="text-lg font-semibold">{product.name}</h2>
-                        <p>${product.price.toFixed(2)}</p>
-                        <button 
-                            onClick={() => handleAddToCart(product.id)}
-                            className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                        >
-                            Add to Cart
-                        </button>
+                    <motion.div 
+                        key={product.id} 
+                        className="relative bg-black border border-gold-500 rounded-lg overflow-hidden shadow-lg transform hover:scale-105 transition"
+                    >
+                        <img 
+                            src={product.image_url} 
+                            alt={product.name} 
+                            className="w-full h-80 object-cover rounded-t-lg"
+                        />
+                        <div className="p-4 text-center">
+                            <h3 className="text-xl font-semibold text-gold-400">
+                                {product.name}
+                            </h3>
+                            <p className="text-lg text-white">${product.price.toFixed(2)}</p>
+                            <button 
+                                onClick={() => handleAddToCart(product.id)}
+                                className="mt-4 px-6 py-2 bg-gold-500 text-black rounded-lg text-lg hover:bg-gold-600 transition"
+                            >
+                                Add to Cart
+                            </button>
+                        </div>
                     </motion.div>
                 ))}
             </div>
         </div>
     );
-};
-
-export default ProductList;
+}

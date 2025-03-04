@@ -1,12 +1,16 @@
 import { UserButton, SignInButton, SignedIn, SignedOut } from "@clerk/nextjs";
 import Link from "next/link";
+import Image from "next/image";
 
 const Navbar = () => {
     return (
-        <nav className="p-4 bg-gray-800 text-white flex justify-between items-center">
-            <Link href="/" className="text-xl font-bold">Jason & Co.</Link>
-            <div className="flex items-center space-x-4">
-                <Link href="/cart" className="text-lg hover:underline">Cart</Link>
+        <nav className="p-6 bg-black text-white flex justify-between items-center border-b border-gray-800">
+            <Link href="/" className="text-3xl font-serif tracking-wide uppercase">
+                <Image src="/logo.jpg" alt="Jason & Co." width={240} height={120} priority />
+            </Link>
+            <div className="flex items-center space-x-6 text-lg">
+                <Link href="/collections" className="hover:text-gold-400 transition">Collections</Link>
+                <Link href="/cart" className="hover:text-gold-400 transition">🛒 Cart</Link>
                 <SignedOut>
                     <SignInButton />
                 </SignedOut>
