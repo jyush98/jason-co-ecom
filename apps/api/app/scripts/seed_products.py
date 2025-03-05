@@ -22,21 +22,24 @@ sample_products = [
         "description": "A beautiful 1.5-carat diamond necklace.",
         "price": 2999.99,
         "image_url": "https://themillenniumbride.com/cdn/shop/products/swarovski-crystal-luxury-flower-diamondcrystal-necklace-bridal-necklace-set-bridal-jewelry-statement-necklace-985099.jpg?v=1683824242",
-        "category": "necklaces"
+        "category": "necklaces",
+        "featured": True
     },
     {
         "name": "Gold Bracelet",
         "description": "Elegant 18K gold bracelet.",
         "price": 799.99,
         "image_url": "https://themillenniumbride.com/cdn/shop/products/swarovski-crystal-luxury-flower-diamondcrystal-necklace-bridal-necklace-set-bridal-jewelry-statement-necklace-985099.jpg?v=1683824242",
-        "category": "bracelets"
+        "category": "bracelets",
+        "featured": True
     },
     {
         "name": "Sapphire Ring",
         "description": "A stunning sapphire ring with a white gold band.",
         "price": 1999.99,
         "image_url": "https://themillenniumbride.com/cdn/shop/products/swarovski-crystal-luxury-flower-diamondcrystal-necklace-bridal-necklace-set-bridal-jewelry-statement-necklace-985099.jpg?v=1683824242",
-        "category": "rings"
+        "category": "rings",
+        "featured": True
     }
 ]
 

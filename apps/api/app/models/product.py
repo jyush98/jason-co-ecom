@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Text
+from sqlalchemy import Column, Integer, String, Float, Text, Boolean
 from app.core.db import Base  # Use the global Base
 from sqlalchemy.orm import relationship
 
@@ -12,5 +12,6 @@ class Product(Base):
     price = Column(Float, nullable=False)
     image_url = Column(String, nullable=True)
     category = Column(String, nullable=True)
+    featured = Column(Boolean, nullable=False, default=False)
     
     cart_items = relationship("CartItem", back_populates="product")

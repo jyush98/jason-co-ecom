@@ -8,6 +8,7 @@ class ProductSchema(BaseModel):
     price: float
     image_url: Optional[str]
     category: str
+    featured: bool
 
     class Config:
         from_attributes = True  # ✅ Allows conversion from SQLAlchemy models
