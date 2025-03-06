@@ -1,45 +1,44 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { fetchProducts } from "../utils/api";
-import { addToCart } from "../utils/cart";
-import { useAuth } from "@clerk/nextjs";
-import { motion } from "framer-motion";
 import { Product } from "../types/product";
-import ProductGrid from "./ProductGrid"; // ✅ Use ProductGrid here
+import ProductGrid from "./ProductGrid";
 
 const categories = ["All", "Necklaces", "Bracelets", "Rings"];
 
 export default function ProductList() {
-    const { getToken } = useAuth();
     const [products, setProducts] = useState<Product[]>([]);
     const [search, setSearch] = useState("");
     const [minPrice, setMinPrice] = useState<number | undefined>();
     const [maxPrice, setMaxPrice] = useState<number | undefined>();
-    const [category, setCategory] = useState<string>("All");
+    const [category, setCategory] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(true);
 
+    // Pagination & Sorting
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [sortBy, setSortBy] = useState("price");
+    const [sortOrder, setSortOrder] = useState("asc");
+
+    // Debounce Timer
+    const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+
+    // Fetch Products with Debouncing
+    const getProducts = useCallback(() => {
+        setLoading(true);
+        fetchProducts({ name: search, minPrice, maxPrice, category, page, pageSize, sortBy, sortOrder })
+            .then(setProducts)
+            .catch(() => setProducts([]))
+            .finally(() => setLoading(false));
+    }, [search, minPrice, maxPrice, category, page, pageSize, sortBy, sortOrder]);
+
     useEffect(() => {
-        const getProducts = async () => {
-            try {
-                setLoading(true);
-                const filters = {
-                    name: search,
-                    minPrice,
-                    maxPrice,
-                    category: category !== "All" ? category : undefined,
-                };
-                const data = await fetchProducts(filters);
-                setProducts(Array.isArray(data) ? data : []);
-            } catch (error) {
-                console.error("Error fetching products:", error);
-                setProducts([]);
-            } finally {
-                setLoading(false);
-            }
-        };
-        getProducts();
-    }, [search, minPrice, maxPrice, category]);
+        if (debounceTimer.current) clearTimeout(debounceTimer.current);
+        debounceTimer.current = setTimeout(() => {
+            getProducts();
+        }, 300); // Wait 300ms before triggering API call
+    }, [search, minPrice, maxPrice, category, page, pageSize, sortBy, sortOrder, getProducts]);
 
     if (loading) {
         return <div className="text-center text-gold-400 text-xl">Loading...</div>;
@@ -51,8 +50,23 @@ export default function ProductList() {
                 Shop All Jewelry
             </h2>
 
-            {/* Filters (Only in Shop Page) */}
-            <div className="flex flex-wrap gap-4 justify-center mt-6 mb-10">
+            {/* Sorting Options */}
+            <div className="flex justify-center gap-4 my-6">
+                <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}
+                    className="px-4 py-2 border border-white bg-black text-white rounded-lg">
+                    <option value="price">Sort by Price</option>
+                    <option value="name">Sort by Name</option>
+                </select>
+
+                <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}
+                    className="px-4 py-2 border border-white bg-black text-white rounded-lg">
+                    <option value="asc">Ascending</option>
+                    <option value="desc">Descending</option>
+                </select>
+            </div>
+
+            {/* Filters */}
+            <div className="flex flex-wrap gap-4 justify-center mt-4 mb-6">
                 <input
                     type="text"
                     placeholder="Search..."
@@ -87,8 +101,26 @@ export default function ProductList() {
                 </select>
             </div>
 
-            {/* Grid (Using ProductGrid) */}
+            {/* Product Grid */}
             <ProductGrid products={products} />
+
+            {/* Pagination Controls */}
+            <div className="flex justify-center mt-8">
+                <button
+                    onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                    className="px-4 py-2 bg-gray-700 text-white rounded-lg mx-2"
+                    disabled={page === 1}
+                >
+                    Previous
+                </button>
+                <span className="text-white text-lg mx-4">Page {page}</span>
+                <button
+                    onClick={() => setPage((prev) => prev + 1)}
+                    className="px-4 py-2 bg-gray-700 text-white rounded-lg mx-2"
+                >
+                    Next
+                </button>
+            </div>
         </div>
     );
 }

@@ -7,24 +7,45 @@ import { Order } from "../types/order";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-export const fetchProducts = async (filters: { name?: string; minPrice?: number; maxPrice?: number; category?: string }) => {
+const cache = new Map(); // Simple in-memory cache
+
+export const fetchProducts = async (filters: {
+    name?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    category?: string;
+    page?: number;
+    pageSize?: number;
+    sortBy?: string;
+    sortOrder?: string;
+}) => {
     const queryParams = new URLSearchParams();
     if (filters.name) queryParams.append("name", filters.name);
     if (filters.minPrice) queryParams.append("min_price", filters.minPrice.toString());
     if (filters.maxPrice) queryParams.append("max_price", filters.maxPrice.toString());
-    if (filters.category) queryParams.append("category", filters.category);
+    if (filters.category && filters.category != "All" && filters.category != "") queryParams.append("category", filters.category);
+    if (filters.page) queryParams.append("page", filters.page.toString());
+    if (filters.pageSize) queryParams.append("page_size", filters.pageSize.toString());
+    if (filters.sortBy) queryParams.append("sort_by", filters.sortBy);
+    if (filters.sortOrder) queryParams.append("sort_order", filters.sortOrder);
+
+    const cacheKey = queryParams.toString();
+    if (cache.has(cacheKey)) {
+        return cache.get(cacheKey); // ✅ Return cached response
+    }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/products?${queryParams.toString()}`);
-        if (!response.ok) {
-            throw new Error("Failed to fetch products");
-        }
-        return await response.json();
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/products?${cacheKey}`);
+        if (!response.ok) throw new Error("Failed to fetch products");
+        const data = await response.json();
+        cache.set(cacheKey, data); // ✅ Store response in cache
+        return data;
     } catch (error) {
         console.error("Error fetching products:", error);
         return [];
     }
 };
+
 
 export const fetchProduct = async (productId: number): Promise<Product | null> => {
     try {

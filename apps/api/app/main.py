@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Depends, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Depends
+from sqlalchemy import asc, desc
 from sqlalchemy.orm import Session
 from app.core.db import get_db
 from app.models.product import Product
@@ -53,6 +54,11 @@ def get_products(
     min_price: Optional[float] = Query(None, description="Minimum price"),
     max_price: Optional[float] = Query(None, description="Maximum price"),
     category: Optional[str] = Query(None, description="Filter by category"),
+    page: int = Query(1, ge=1, description="Page number (starts from 1)"),
+    page_size: int = Query(10, ge=1, le=100, description="Number of products per page"),
+    sort_by: Optional[str] = Query(None, description="Field to sort by (e.g., price, name)"),
+    sort_order: Optional[str] = Query("asc", description="Sort order (asc or desc)"),
+
 ):
     query = db.query(Product)
 
@@ -65,4 +71,13 @@ def get_products(
     if category:
         query = query.filter(Product.category.ilike(f"%{category}%"))
 
-    return query.all()
+    # Apply sorting
+    if sort_by in ["price", "name"]:
+        order = asc(getattr(Product, sort_by)) if sort_order == "asc" else desc(getattr(Product, sort_by))
+        query = query.order_by(order)
+
+     # Apply pagination
+    total_count = query.count()
+    products = query.offset((page - 1) * page_size).limit(page_size).all()
+
+    return products
