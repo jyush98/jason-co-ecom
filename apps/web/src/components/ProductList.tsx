@@ -7,12 +7,12 @@ import ProductGrid from "./ProductGrid";
 
 const categories = ["All", "Necklaces", "Bracelets", "Rings"];
 
-export default function ProductList() {
+export default function ProductList({ initialCategory }: { initialCategory?: string }) {
     const [products, setProducts] = useState<Product[]>([]);
     const [search, setSearch] = useState("");
     const [minPrice, setMinPrice] = useState<number | undefined>();
     const [maxPrice, setMaxPrice] = useState<number | undefined>();
-    const [category, setCategory] = useState<string>("");
+    const [category, setCategory] = useState<string>(initialCategory || "All");
     const [loading, setLoading] = useState<boolean>(true);
 
     // Pagination & Sorting
@@ -39,6 +39,10 @@ export default function ProductList() {
             getProducts();
         }, 300); // Wait 300ms before triggering API call
     }, [search, minPrice, maxPrice, category, page, pageSize, sortBy, sortOrder, getProducts]);
+
+    useEffect(() => {
+        setCategory(initialCategory || "All");
+    }, [initialCategory]);
 
     if (loading) {
         return <div className="text-center text-gold-400 text-xl">Loading...</div>;
