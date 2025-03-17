@@ -24,9 +24,9 @@ def add_to_cart(
     ).first()
 
     if existing_item:
-        existing_item.quantity = item.quantity
+        existing_item.quantity += item.quantity
     else:
-        cart_item = CartItem(user_id=user["sub"], product_id=item.product_id, quantity=item.quantity)
+        cart_item = CartItem(user_id=user["sub"], product_id=item.product_id, quantity=existing_item.quantity)
         db.add(cart_item)
 
     db.commit()
