@@ -61,7 +61,7 @@ export default function Cart() {
         if (token) {
             await addToCart(productId, newQuantity, token);
             const updatedCart = cart.map((item) =>
-                item.product_id === productId ? { ...item, quantity: newQuantity } : item
+                item.product_id === productId ? { ...item, quantity: item.quantity + newQuantity } : item
             );
             setCart(updatedCart);
             calculateTotal(updatedCart);
@@ -122,13 +122,13 @@ export default function Cart() {
                                 <span>{item.product.name} - {item.quantity}</span>
                                 <div className="flex items-center space-x-2">
                                     <button
-                                        onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
+                                        onClick={() => updateQuantity(item.product_id, 1)}
                                         className="px-2 py-1 bg-green-500 text-white rounded"
                                     >
                                         +
                                     </button>
                                     <button
-                                        onClick={() => updateQuantity(item.product_id, item.quantity - 1)}
+                                        onClick={() => updateQuantity(item.product_id, -1)}
                                         className="px-2 py-1 bg-yellow-500 text-white rounded"
                                         disabled={item.quantity <= 1}
                                     >
