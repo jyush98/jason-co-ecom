@@ -1,8 +1,9 @@
 "use client";
 
 import { useAuth } from "@clerk/nextjs";
+import { useState } from "react";
 import { addToCart } from "../utils/cart";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Product } from "../types/product";
 
 interface ProductGridProps {
@@ -11,12 +12,15 @@ interface ProductGridProps {
 
 export default function ProductGrid({ products }: ProductGridProps) {
     const { getToken } = useAuth();
+    const [addedToCartId, setAddedToCartId] = useState<number | null>(null);
 
     const handleAddToCart = async (productId: number) => {
         const token = await getToken();
         console.log(token);
         if (token) {
             await addToCart(productId, 1, token);
+            setAddedToCartId(productId);
+            setTimeout(() => setAddedToCartId(null), 2000);
         }
     };
 
@@ -25,7 +29,8 @@ export default function ProductGrid({ products }: ProductGridProps) {
             {products.map((product) => (
                 <motion.div
                     key={product.id}
-                    className="relative bg-gray-900 border border-gray-800 rounded-lg overflow-hidden shadow-lg transform hover:scale-105 transition">
+                    className="relative bg-gray-900 border border-gray-800 rounded-lg overflow-hidden shadow-lg transform hover:scale-105 transition"
+                >
                     <img src={product.image_url} alt={product.name} className="w-full h-80 object-cover rounded-t-lg" />
                     <div className="p-4 text-center">
                         <h3 className="text-xl font-semibold text-white">{product.name}</h3>
@@ -34,12 +39,30 @@ export default function ProductGrid({ products }: ProductGridProps) {
                             <button className="mt-4 px-6 py-2 bg-gray-400 text-white rounded-lg hover:bg-gold-600 transition shadow-md">
                                 View Details
                             </button>
-                            <button className="mt-4 px-6 py-2 bg-gray-400 text-white rounded-lg hover:bg-black transition shadow-md"
-                            onClick={() => handleAddToCart(product.id)}>
+                            <button
+                                className="mt-4 px-6 py-2 bg-gray-400 text-white rounded-lg hover:bg-black transition shadow-md"
+                                onClick={() => handleAddToCart(product.id)}
+                            >
                                 Add to Cart
                             </button>
                         </div>
                     </div>
+
+                    {/* ✅ Animated confirmation */}
+                    <AnimatePresence>
+                        {addedToCartId === product.id && (
+                            <motion.div
+                                key="added-msg"
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 10 }}
+                                transition={{ duration: 0.3 }}
+                                className="absolute bottom-24 right-4 bg-black text-white px-3 py-1 rounded-md text-sm shadow-lg border border-gold-500"
+                            >
+                                ✅ Added!
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </motion.div>
             ))}
         </div>
