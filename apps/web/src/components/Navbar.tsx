@@ -30,11 +30,11 @@ const Navbar = () => {
     };
 
     return (
-        <nav className="p-6 bg-black text-white flex justify-between items-center border-b border-gray-800 inter-semibold">
-            <Link href="/" className="text-3xl font-serif tracking-wide uppercase">
+        <nav className="p-6 bg-black text-white flex justify-between items-center">
+            <Link href="/" className="text-3xl font-serif tracking-wide">
                 <Image src="/logo.jpg" alt="Jason & Co." width={240} height={120} priority />
             </Link>
-            <div className="flex items-center z-50 space-x-6 text-lg font-serif uppercase">
+            <div className="flex items-center z-50 space-x-6 text-lg font-sans-serif">
             <div
                     className="relative"
                     onMouseEnter={handleMouseEnter}

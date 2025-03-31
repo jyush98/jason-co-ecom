@@ -23,6 +23,11 @@
   ],
   "dependencies": {
     "@clerk/nextjs": "^6.11.1",
+    "@fontsource/inter": "^5.2.5",
+    "@fontsource/unbounded": "^5.2.5",
+    "framer-motion": "^12.6.2",
+    "keen-slider": "^6.8.6",
+    "lucide-react": "^0.485.0",
     "postcss": "^8.5.3"
   }
 }

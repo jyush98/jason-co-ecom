@@ -1,3 +1,5 @@
+const { color } = require("framer-motion");
+
 // filepath: /path/to/tailwind.config.js
 module.exports = {
   content: [
@@ -8,7 +10,12 @@ module.exports = {
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
         serif: ['Playfair Display', 'serif'],
+
       },
+      colors: {
+        matte: '#0e0e0e',
+        gold: '#D4AF37',
+      }
     },
   },
   plugins: [],
