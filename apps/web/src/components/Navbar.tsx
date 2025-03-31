@@ -4,6 +4,9 @@ import { UserButton, SignInButton, SignedIn, SignedOut } from "@clerk/nextjs";
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useRef } from "react";
+import { Menu, ShoppingCart } from "lucide-react";
+import { useCart } from "@/lib/hooks/useCart";
+import { motion, AnimatePresence } from "framer-motion";
 
 const categories = [
     { name: "All Jewelry", path: "/shop" },
@@ -12,11 +15,23 @@ const categories = [
     { name: "Rings", path: "/shop?category=rings" },
 ];
 
+const collections = [
+    { name: "Iced Out", path: "/shop?collection=iced" },
+    { name: "Tennis Set", path: "/shop?collection=tennis" },
+    { name: "Classics", path: "/shop?collection=classics" },
+];
+
+const navHover = {
+    scale: 1.05,
+    textDecoration: "underline" as const
+};
 
 const Navbar = () => {
-
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    const { cart } = useCart();
+    const itemCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
     const handleMouseEnter = () => {
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -26,43 +41,132 @@ const Navbar = () => {
     const handleMouseLeave = () => {
         timeoutRef.current = setTimeout(() => {
             setIsDropdownOpen(false);
-        }, 200); // Delay before hiding submenu
+        }, 200);
+    };
+
+    const handleOtherNavHover = () => {
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        setIsDropdownOpen(false);
     };
 
     return (
-        <nav className="p-6 bg-black text-white flex justify-between items-center">
-            <Link href="/" className="text-3xl font-serif tracking-wide">
-                <Image src="/logo.jpg" alt="Jason & Co." width={240} height={120} priority />
-            </Link>
-            <div className="flex items-center z-50 space-x-6 text-lg font-sans-serif">
-            <div
+        <header className="fixed top-0 left-0 w-full bg-black z-50 text-white shadow-md">
+            {/* Top Row */}
+            <div className="flex justify-between items-center px-4 py-3 h-[85px]">
+                <Menu className="w-6 h-6" />
+                <Link href="/" className="mx-auto">
+                    <Image src="/logo.jpg" alt="Jason & Co." width={200} height={100} priority />
+                </Link>
+                <div className="flex items-center space-x-4">
+                    <Link href="/cart" className="relative">
+                        <ShoppingCart className="w-6 h-6" />
+                        {itemCount > 0 && (
+                            <span className="absolute -top-2 -right-2 bg-white text-black text-xs font-bold px-1.5 py-0.5 rounded-full">
+                                {itemCount}
+                            </span>
+                        )}
+                    </Link>
+                    <SignedOut>
+                        <SignInButton />
+                    </SignedOut>
+                    <SignedIn>
+                        <UserButton />
+                    </SignedIn>
+                </div>
+            </div>
+
+            {/* Bottom Nav */}
+            <nav
+                className="flex justify-center space-x-8 py-2 text-sm tracking-wide font-sans"
+                onMouseLeave={handleMouseLeave}
+            >
+                <div
                     className="relative"
                     onMouseEnter={handleMouseEnter}
-                    onMouseLeave={handleMouseLeave}
                 >
-                    <Link href="/shop" className="hover:text-gold-400 transition">Shop</Link>
-                    {/* Submenu */}
-                    {isDropdownOpen && (
-                        <div className="absolute left-0 mt-2 w-56 bg-black border border-gray-700 rounded-lg shadow-lg opacity-0 animate-fadeIn">
-                            {categories.map((category) => (
-                                <Link
-                                    key={category.name}
-                                    href={category.path}
-                                    className="block px-4 py-2 text-white hover:bg-gray-800 transition"
-                                >
-                                    {category.name}
-                                </Link>
-                            ))}
-                        </div>
-                    )}
+                    <motion.div whileHover={navHover} transition={{ duration: 0.2 }}>
+                        <Link href="/shop" className="nav-link">
+                            Shop
+                        </Link>
+                    </motion.div>
                 </div>
-                <Link href="/custom" className="hover:text-gold-400 transition">Custom Orders</Link>
-                <Link href="/about" className="hover:text-gold-400 transition">About</Link>
-                <Link href="/cart" className="hover:text-gold-400 transition">Cart</Link>
-                <SignedOut><SignInButton /></SignedOut>
-                <SignedIn><UserButton /></SignedIn>
-            </div>
-        </nav>
+                {[
+                    ["/gallery", "Gallery"],
+                    ["/custom", "Custom Orders"],
+                    ["/about", "About"],
+                    ["/contact", "Contact"]
+                ].map(([path, label]) => (
+                    <motion.div
+                        key={path}
+                        whileHover={navHover}
+                        transition={{ duration: 0.2 }}
+                        onMouseEnter={handleOtherNavHover}
+                    >
+                        <Link href={path} className="nav-link">
+                            {label}
+                        </Link>
+                    </motion.div>
+                ))}
+            </nav>
+
+            {/* Mega Menu */}
+            <AnimatePresence>
+                {isDropdownOpen && (
+                    <motion.div
+                        key="mega-menu"
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.3 }}
+                        className="absolute left-0 right-0 top-[125px] w-full bg-black text-white px-[15%] py-10 grid grid-cols-12 gap-8 shadow-lg"
+                        onMouseEnter={handleMouseEnter}
+                        onMouseLeave={handleMouseLeave}
+                    >
+                        <div className="col-span-3">
+                            <h3 className="text-sm font-semibold uppercase mb-4">Categories</h3>
+                            <ul className="space-y-2">
+                                {categories.map((category) => (
+                                    <li key={category.name}>
+                                        <Link href={category.path} className="hover:underline">
+                                            {category.name}
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                        <div className="col-span-3">
+                            <h3 className="text-sm font-semibold uppercase mb-4">Collections</h3>
+                            <ul className="space-y-2">
+                                {collections.map((collection) => (
+                                    <li key={collection.name}>
+                                        <Link href={collection.path} className="hover:underline">
+                                            {collection.name}
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                        <div className="col-span-6 flex space-x-4">
+                            <Image src="/cuban-link.webp" alt="Featured 1" width={200} height={200} className="object-cover rounded-lg" />
+                            <Image src="/cuban-link.webp" alt="Featured 2" width={200} height={200} className="object-cover rounded-lg" />
+                            <Image src="/cuban-link.webp" alt="Featured 3" width={200} height={200} className="object-cover rounded-lg" />
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <style jsx>{`
+                .nav-link {
+                    padding-bottom: 4px;
+                    font-weight: 400;
+                    transition: font-weight 0.3s ease;
+                }
+
+                .nav-link:hover {
+                    text-decoration: underline;
+                }
+            `}</style>
+        </header>
     );
 };
 

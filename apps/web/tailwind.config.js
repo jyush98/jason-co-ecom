@@ -15,7 +15,10 @@ module.exports = {
       colors: {
         matte: '#0e0e0e',
         gold: '#D4AF37',
-      }
+      },
+      spacing: {
+        navbar: '165px',
+      },
     },
   },
   plugins: [],

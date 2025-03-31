@@ -25,7 +25,7 @@ export default function Home() {
     }, []);
 
     return (
-        <main className="min-h-screen p-8">
+        <main className="min-h-screen p-8 pt-navbar">
             <Hero />
             <div className="container mx-auto py-12">
             <h2 className="text-4xl font-serif text-center text-gray-300 uppercase tracking-wide">
