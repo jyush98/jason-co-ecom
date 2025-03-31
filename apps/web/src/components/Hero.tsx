@@ -15,7 +15,7 @@ export default function Hero() {
                     Timeless Luxury
                 </h1>
                 <p className="mt-4 text-lg text-gray-300">
-                Handcrafted elegance, redefined.
+                Handcrafted elegance, <i>redefined.</i>
                 </p>
                 <button className="mt-6 px-6 py-3 bg-gray-500 text-white rounded-lg text-lg hover:bg-gray-600 transition"
                 onClick={() => window.location.href = "/shop"}>
