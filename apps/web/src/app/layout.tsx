@@ -2,6 +2,7 @@ import './globals.css';
 import { ClerkProvider } from '@clerk/nextjs';
 import Navbar from '@/components/Navbar';
 import Head from 'next/head';
+import Footer from '@/components/Footer';
 
 export default function RootLayout({
   children,
@@ -27,6 +28,9 @@ export default function RootLayout({
             <Navbar />
           </header>
           {children}
+          <footer>
+            <Footer/>
+          </footer>
         </body>
       </html>
     </ClerkProvider>

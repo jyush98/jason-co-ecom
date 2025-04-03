@@ -4,15 +4,17 @@ import { UserButton, SignInButton, SignedIn, SignedOut } from "@clerk/nextjs";
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useRef } from "react";
-import { Menu, ShoppingCart } from "lucide-react";
+import { Menu, X, ShoppingCart } from "lucide-react";
 import { useCart } from "@/lib/hooks/useCart";
 import { motion, AnimatePresence } from "framer-motion";
+import FullScreenMenu from "@/components/FullScreenMenu";
 
 const categories = [
     { name: "All Jewelry", path: "/shop" },
     { name: "Necklaces", path: "/shop?category=necklaces" },
     { name: "Bracelets", path: "/shop?category=bracelets" },
     { name: "Rings", path: "/shop?category=rings" },
+    { name: "Watches", path: "/shop?category=watches" },
 ];
 
 const collections = [
@@ -28,6 +30,8 @@ const navHover = {
 
 const Navbar = () => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [menuOpen, setMenuOpen] = useState(false);
+    const [hoverImage, setHoverImage] = useState("/default.jpg");
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const { cart } = useCart();
@@ -49,12 +53,19 @@ const Navbar = () => {
         setIsDropdownOpen(false);
     };
 
+    const toggleMenu = () => {
+        setMenuOpen(!menuOpen);
+        setHoverImage("/default.jpg");
+    };
+
     return (
         <header className="fixed top-0 left-0 w-full bg-black z-50 text-white shadow-md">
             {/* Top Row */}
             <div className="flex justify-between items-center px-4 py-3 h-[85px]">
-                <Menu className="w-6 h-6" />
-                <Link href="/" className="mx-auto">
+                <button onClick={toggleMenu}>
+                    {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                </button>
+                <Link href="/" className="mx-auto" onClick={() => setMenuOpen(false)}>
                     <Image src="/logo.jpg" alt="Jason & Co." width={200} height={100} priority />
                 </Link>
                 <div className="flex items-center space-x-4">
@@ -76,38 +87,36 @@ const Navbar = () => {
             </div>
 
             {/* Bottom Nav */}
-            <nav
-                className="flex justify-center space-x-8 py-2 text-sm tracking-wide font-sans"
-                onMouseLeave={handleMouseLeave}
-            >
-                <div
-                    className="relative"
-                    onMouseEnter={handleMouseEnter}
+            {!menuOpen && (
+                <nav
+                    className="flex justify-center space-x-8 py-2 text-sm tracking-wide font-sans"
+                    onMouseLeave={handleMouseLeave}
                 >
-                    <motion.div whileHover={navHover} transition={{ duration: 0.2 }}>
-                        <Link href="/shop" className="nav-link">
-                            Shop
-                        </Link>
-                    </motion.div>
-                </div>
-                {[
-                    ["/gallery", "Gallery"],
-                    ["/custom", "Custom Orders"],
-                    ["/about", "About"],
-                    ["/contact", "Contact"]
-                ].map(([path, label]) => (
-                    <motion.div
-                        key={path}
-                        whileHover={navHover}
-                        transition={{ duration: 0.2 }}
-                        onMouseEnter={handleOtherNavHover}
-                    >
-                        <Link href={path} className="nav-link">
-                            {label}
-                        </Link>
-                    </motion.div>
-                ))}
-            </nav>
+                    <div className="relative" onMouseEnter={handleMouseEnter}>
+                        <motion.div whileHover={navHover} transition={{ duration: 0.2 }}>
+                            <Link href="/shop" className="nav-link">
+                                Shop
+                            </Link>
+                        </motion.div>
+                    </div>
+                    {[
+                        ["/gallery", "Gallery"],
+                        ["/custom", "Custom Orders"],
+                        ["/about", "About"],
+                        ["/contact", "Contact"]
+                    ].map(([path, label]) => (
+                        <motion.div
+                            key={path}
+                            whileHover={navHover}
+                            transition={{ duration: 0.2 }}
+                            onMouseEnter={handleOtherNavHover}
+                        >
+                            <Link href={path} className="nav-link">
+                                {label}
+                            </Link>
+                        </motion.div>
+                    ))}
+                </nav>)}
 
             {/* Mega Menu */}
             <AnimatePresence>
@@ -149,11 +158,20 @@ const Navbar = () => {
                         <div className="col-span-6 flex space-x-4">
                             <Image src="/cuban-link.webp" alt="Featured 1" width={200} height={200} className="object-cover rounded-lg" />
                             <Image src="/cuban-link.webp" alt="Featured 2" width={200} height={200} className="object-cover rounded-lg" />
-                            <Image src="/cuban-link.webp" alt="Featured 3" width={200} height={200} className="object-cover rounded-lg" />
                         </div>
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* Fullscreen Menu */}
+            {menuOpen && (
+                <FullScreenMenu
+                    categories={categories}
+                    hoverImage={hoverImage}
+                    setHoverImage={setHoverImage}
+                    onClose={() => setMenuOpen(false)}
+                />
+            )}
 
             <style jsx>{`
                 .nav-link {
