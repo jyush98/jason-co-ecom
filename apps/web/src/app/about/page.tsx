@@ -1,25 +1,18 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { useKeenSlider } from 'keen-slider/react'
-import 'keen-slider/keen-slider.min.css'
 import Image from 'next/image'
+import MediaImage from './MediaImage'
 
 export default function AboutPage() {
-  const [sliderRef] = useKeenSlider<HTMLDivElement>({
-    loop: true,
-    mode: 'snap',
-    slides: { perView: 1, spacing: 15 },
-  })
-
   return (
     <div className="bg-black text-white font-sans">
       {/* HERO SECTION */}
       <section className="relative h-screen w-full overflow-hidden flex items-center justify-center">
         <div className="bg-gradient-to-b from-black to-matte absolute inset-0 z-0">
           <div
-            className="w-full h-full bg-cover bg-center opacity-30"
-            style={{ backgroundImage: 'url("/placeholders/hero.jpg")' }}
+            className="w-full h-full bg-cover bg-center opacity-40"
+            style={{ backgroundImage: 'url("/images/chrome-hearts-jesus/chain-sideways.png")' }}
           />
         </div>
         <motion.div
@@ -30,13 +23,6 @@ export default function AboutPage() {
         >
           <h1 className="text-5xl md:text-7xl font-sans-sans-serif font-extrabold tracking-tight">
             Jason & Co.
-            <motion.span
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
-              className="inline-block ml-2"
-            >
-            </motion.span>
           </h1>
           <p className="mt-4 text-lg md:text-2xl max-w-2xl mx-auto text-gray-200">
             Makers of natural diamond masterpieces — crafted for icons, not followers.
@@ -45,7 +31,7 @@ export default function AboutPage() {
       </section>
 
       {/* BRAND STORY */}
-      <section className="py-24 px-6 md:px-20 bg-matte text-white">
+      <section className="py-24 px-6 md:px-20 bg-gradient-to-b from-matte to-black text-white">
         <motion.div
           className="max-w-5xl mx-auto text-center"
           initial={{ opacity: 0, y: 30 }}
@@ -61,7 +47,7 @@ export default function AboutPage() {
         </motion.div>
       </section>
 
-      {/* MEDIA CAROUSEL */}
+      {/* MEDIA GRID */}
       <section className="px-6 md:px-20 pb-24">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -69,24 +55,22 @@ export default function AboutPage() {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <div ref={sliderRef} className="keen-slider rounded-xl overflow-hidden">
-            <div className="keen-slider__slide number-slide1">
-              <Image src="/placeholders/showcase1.jpg" alt="Custom piece" width={1200} height={800} className="w-full h-auto object-cover" />
-            </div>
-            <div className="keen-slider__slide number-slide2">
-              <video autoPlay loop muted className="w-full h-auto object-cover">
-                <source src="/placeholders/video1.mp4" type="video/mp4" />
+          <div className="flex justify-center gap-12">
+            <MediaImage image="/images/chrome-hearts-jesus/chain.jpg" alt="chain picture" />
+            <MediaImage image="/images/chrome-hearts-jesus/chain-zoom-1.jpg" alt="chain picture" />
+            <div className="relative aspect-[9/16] w-full lg:w-1/4 m-4">
+              <video autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover rounded-md">
+                <source src="/videos/chrome.mov" type="video/mp4" />
               </video>
             </div>
-            <div className="keen-slider__slide number-slide3">
-              <Image src="/placeholders/showcase2.jpg" alt="Details" width={1200} height={800} className="w-full h-auto object-cover" />
-            </div>
+            <MediaImage image="/images/chrome-hearts-jesus/chain-zoom-2.jpg" alt="chain picture" />
+            <MediaImage image="/images/chrome-hearts-jesus/full-piece.jpg" alt="chain picture" />
           </div>
         </motion.div>
       </section>
 
       {/* CLIENTS / CELEBRITY TRUST */}
-      <section className="bg-white text-black py-24 px-6 md:px-20">
+      <section className="bg-white text-black py-24 px-6 md:px-20 hidden">
         <motion.div
           className="max-w-5xl mx-auto text-center"
           initial={{ opacity: 0, y: 30 }}
@@ -108,7 +92,7 @@ export default function AboutPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-24 px-6 md:px-20 bg-gradient-to-b from-matte to-neutral-900 text-white">
+      <section className="py-24 px-6 md:px-20 bg-gradient-to-b from-black to-matte text-white">
         <motion.div
           className="max-w-4xl mx-auto text-center"
           initial={{ opacity: 0, y: 30 }}
@@ -118,13 +102,6 @@ export default function AboutPage() {
         >
           <h2 className="text-3xl md:text-4xl font-sans-serif font-bold mb-4">
             Your Vision. Our Craft.
-            <motion.span
-              initial={{ scale: 0.8, opacity: 0.7 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ repeat: Infinity, duration: 1.8, ease: 'easeInOut' }}
-              className="inline-block ml-2"
-            >
-            </motion.span>
           </h2>
           <p className="text-lg text-gray-300 mb-8">
             Whether you're chasing something never done before or refining a timeless piece — we got you.
