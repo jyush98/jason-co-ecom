@@ -43,3 +43,4 @@ env/
 *.pyo
 venv/
 instance/
+apps/web/public/videos/chrome.mov
