@@ -1,10 +1,14 @@
-"use client";
+'use client';
 
-import { useAuth } from "@clerk/nextjs";
-import { useState } from "react";
-import { addToCart } from "../utils/cart";
-import { motion, AnimatePresence } from "framer-motion";
-import { Product } from "../types/product";
+import { useState } from 'react';
+import { useAuth } from '@clerk/nextjs';
+import { Product } from '../types/product';
+import { addToCart } from '../utils/cart';
+import { useCartStore } from '@/app/store/cartStore';
+import AddToCartToast from './AddtoCartToast';
+import { motion } from 'framer-motion';
+import Link from 'next/link';
+
 
 interface ProductGridProps {
     products: Product[];
@@ -12,59 +16,60 @@ interface ProductGridProps {
 
 export default function ProductGrid({ products }: ProductGridProps) {
     const { getToken } = useAuth();
-    const [addedToCartId, setAddedToCartId] = useState<number | null>(null);
+    const incrementCartCount = useCartStore((state) => state.incrementCartCount);
+    const [addedProduct, setAddedProduct] = useState<{ name: string; image_url: string } | null>(null);
 
     const handleAddToCart = async (productId: number) => {
         const token = await getToken();
-        console.log(token);
-        if (token) {
-            await addToCart(productId, 1, token);
-            setAddedToCartId(productId);
-            setTimeout(() => setAddedToCartId(null), 2000);
+        if (!token) return;
+
+        await addToCart(productId, 1, token);
+        incrementCartCount();
+
+        const product = products.find((p) => p.id === productId);
+        if (product) {
+            setAddedProduct({ name: product.name, image_url: product.image_url });
+            setTimeout(() => setAddedProduct(null), 2000);
         }
     };
 
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10 mt-8">
-            {products.map((product) => (
-                <motion.div
-                    key={product.id}
-                    className="relative bg-gray-900 border border-gray-800 rounded-lg overflow-hidden shadow-lg transform hover:scale-105 transition"
-                >
-                    <img src={product.image_url} alt={product.name} className="w-full h-80 object-cover rounded-t-lg" />
-                    <div className="p-4 text-center">
-                        <h3 className="text-xl font-semibold text-white">{product.name}</h3>
-                        <p className="text-lg text-gray-300">${product.price.toFixed(2)}</p>
-                        <div className="flex justify-center space-x-4">
-                            <button className="mt-4 px-6 py-2 bg-gray-400 text-white rounded-lg hover:bg-gold-600 transition shadow-md">
-                                View Details
-                            </button>
-                            <button
-                                className="mt-4 px-6 py-2 bg-gray-400 text-white rounded-lg hover:bg-black transition shadow-md"
-                                onClick={() => handleAddToCart(product.id)}
-                            >
-                                Add to Cart
-                            </button>
-                        </div>
-                    </div>
+        <>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-6 p-4">
+                {products.map((product) => (
+                    <Link key={product.id} href={`/product/${product.id}`}>
+                    <motion.div
+                      className="relative border border-white/10 rounded-2xl overflow-hidden shadow-xl shadow-neutral-900/20 hover:shadow-2xl transition-shadow"
+                      whileHover={{ scale: 1.03 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <div className="-mt-4 -mx-4">
+                        <img
+                          src={product.image_url}
+                          alt={product.name}
+                          className="w-full h-48 object-cover object-top"
+                        />
+                      </div>
+                      <div className="px-4 pb-4 pt-2 bg-black">
+                        <h3 className="text-lg font-semibold font-sans-serif">{product.name}</h3>
+                        <p className="text-gray-600">${product.price.toFixed(2)}</p>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault(); // don't navigate when clicking the button
+                            handleAddToCart(product.id);
+                          }}
+                          className="absolute bottom-4 right-4 bg-black text-white px-3 py-1 text-sm rounded hover:bg-gray-800 transition"
+                        >
+                          Add to Cart
+                        </button>
+                      </div>
+                    </motion.div>
+                  </Link>
+                  
+                ))}
+            </div>
 
-                    {/* ✅ Animated confirmation */}
-                    <AnimatePresence>
-                        {addedToCartId === product.id && (
-                            <motion.div
-                                key="added-msg"
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: 10 }}
-                                transition={{ duration: 0.3 }}
-                                className="absolute bottom-24 right-4 bg-black text-white px-3 py-1 rounded-md text-sm shadow-lg border border-gold-500"
-                            >
-                                ✅ Added!
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </motion.div>
-            ))}
-        </div>
+            <AddToCartToast product={addedProduct} />
+        </>
     );
 }

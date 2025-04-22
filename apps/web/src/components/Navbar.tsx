@@ -8,6 +8,10 @@ import { Menu, X, ShoppingCart } from "lucide-react";
 import { useCart } from "@/lib/hooks/useCart";
 import { motion, AnimatePresence } from "framer-motion";
 import FullScreenMenu from "@/components/FullScreenMenu";
+import { useCartStore } from "@/app/store/cartStore";
+import { getCart } from "../utils/cart"; // ✅ API call
+import { useAuth } from "@clerk/nextjs"; // ✅ Get token for cart fetch
+import { useEffect } from "react"; // ✅ Fetch cart on mount
 
 const categories = [
     { name: "All Jewelry", path: "/shop" },
@@ -34,8 +38,21 @@ const Navbar = () => {
     const [hoverImage, setHoverImage] = useState("/default.jpg");
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    const { cart } = useCart();
-    const itemCount = cart.reduce((acc, item) => acc + item.quantity, 0);
+    const { getToken } = useAuth();
+    const cartCount = useCartStore((state) => state.cartCount);
+    const setCartCount = useCartStore((state) => state.setCartCount);
+
+    useEffect(() => {
+        const fetchCart = async () => {
+            const token = await getToken();
+            if (token) {
+                const cart = await getCart(token);
+                const itemCount = cart.reduce((acc: number, item: any) => acc + item.quantity, 0);
+                setCartCount(itemCount);
+            }
+        };
+        fetchCart();
+    }, [getToken, setCartCount]);
 
     const handleMouseEnter = () => {
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -71,9 +88,9 @@ const Navbar = () => {
                 <div className="flex items-center space-x-4">
                     <Link href="/cart" className="relative">
                         <ShoppingCart className="w-6 h-6" />
-                        {itemCount > 0 && (
+                        {cartCount > 0 && (
                             <span className="absolute -top-2 -right-2 bg-white text-black text-xs font-bold px-1.5 py-0.5 rounded-full">
-                                {itemCount}
+                                {cartCount}
                             </span>
                         )}
                     </Link>

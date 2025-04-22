@@ -17,7 +17,7 @@ export default function ProductList({ initialCategory }: { initialCategory?: str
 
     // Pagination & Sorting
     const [page, setPage] = useState(1);
-    const [pageSize, setPageSize] = useState(10);
+    const [pageSize, setPageSize] = useState(12);
     const [sortBy, setSortBy] = useState("price");
     const [sortOrder, setSortOrder] = useState("asc");
 
@@ -49,7 +49,7 @@ export default function ProductList({ initialCategory }: { initialCategory?: str
     }
 
     return (
-        <div className="container mx-auto py-12">
+        <div className="max-w-screen-xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
             <h2 className="text-4xl font-serif text-center text-gray-200 uppercase tracking-wider">
                 Shop All Jewelry
             </h2>
