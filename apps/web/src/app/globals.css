@@ -7,6 +7,10 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --navbar-height: 80px;
+}
+
 
 body {
   @apply bg-gradient-to-b from-gray-900 to-black text-white;

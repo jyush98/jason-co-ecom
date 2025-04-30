@@ -6,6 +6,7 @@ import { Product } from '../types/product';
 import { addToCart } from '../utils/cart';
 import { useCartStore } from '@/app/store/cartStore';
 import AddToCartToast from './AddtoCartToast';
+import AddToCartButton from './AddToCartButton';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 
@@ -53,19 +54,10 @@ export default function ProductGrid({ products }: ProductGridProps) {
                       <div className="px-4 pb-4 pt-2 bg-black">
                         <h3 className="text-lg font-semibold font-sans-serif">{product.name}</h3>
                         <p className="text-gray-600">${product.price.toFixed(2)}</p>
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault(); // don't navigate when clicking the button
-                            handleAddToCart(product.id);
-                          }}
-                          className="absolute bottom-4 right-4 bg-black text-white px-3 py-1 text-sm rounded hover:bg-gray-800 transition"
-                        >
-                          Add to Cart
-                        </button>
+                        <AddToCartButton productId={product.id}/>
                       </div>
                     </motion.div>
                   </Link>
-                  
                 ))}
             </div>
 

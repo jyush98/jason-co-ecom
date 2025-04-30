@@ -34,6 +34,8 @@ def verify_clerk_token(request: Request, token: str = Depends(get_token)):
             signing_key.key,
             algorithms=["RS256"],
             issuer=f"{os.getenv('CLERK_FRONTEND_API')}",
+            options={"verify_aud": False, "verify_iat": True},
+            leeway=10  # allow 10 seconds of clock skew
         )
 
         return payload  # Returns user details
