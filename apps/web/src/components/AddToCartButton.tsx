@@ -2,29 +2,36 @@
 
 import { useAuth } from "@clerk/nextjs";
 import { addToCart } from "@/utils/cart";
+import { useCartStore } from "@/app/store/cartStore"; // ✅ Zustand store for cart count
 
 interface AddToCartButtonProps {
-    productId: number;
+  productId: number;
+  fullWidth?: boolean;
 }
 
-export default function AddToCartButton({ productId }: AddToCartButtonProps) {
-    const { getToken } = useAuth();
+export default function AddToCartButton({ productId, fullWidth = false }: AddToCartButtonProps) {
+  const { getToken } = useAuth();
+  const fetchCartCount = useCartStore((state) => state.fetchCartCount);
 
-    const handleAddToCart = async (id: number) => {
-        const token = await getToken({ template: "default" });
-        if (!token) return;
-        await addToCart(id, 1, token);
-    };
+  const handleAddToCart = async () => {
+    const token = await getToken();
+    if (!token) return;
 
-    return (
-        <button
-            onClick={(e) => {
-                e.preventDefault(); // prevents page navigation
-                handleAddToCart(productId);
-            }}
-            className="mt-6 inline-block bg-black text-white px-4 py-2 text-sm rounded hover:bg-gray-800 transition"
-        >
-            Add to Cart
-        </button>
-    );
+    await addToCart(productId, 1, token);
+    await fetchCartCount(token); // ✅ accurate count update
+  };
+
+  return (
+    <button
+      onClick={(e) => {
+        e.preventDefault();
+        handleAddToCart();
+      }}
+      className={`bg-black text-white px-6 py-3 text-sm rounded hover:bg-gray-800 transition ${
+        fullWidth ? "w-full" : "inline-block"
+      }`}
+    >
+      Add to Cart
+    </button>
+  );
 }
