@@ -16,7 +16,7 @@ from app.models.product import Product
 Base.metadata.create_all(bind=engine)
 
 # Sample product data
-sample_products_without_details = [
+sample_products = [
   {
     "name": "Diamond Necklace",
     "description": "A beautiful 1.5-carat diamond necklace.",
@@ -146,25 +146,6 @@ sample_products_without_details = [
     "featured": True
   },
 ];
-
-# Sample product data with details
-sample_products = [
-  {
-    "name": "Detailed Diamond Necklace",
-    "description": "A beautiful 1.5-carat diamond necklace.",
-    "price": 2999.99,
-    "image_url": "https://media.istockphoto.com/id/163122066/photo/round-diamonds-necklace.jpg?s=612x612&w=0&k=20&c=WGZd7NPAX1FyYPrjjnIM-c8jinMHT-GAIF4BLMYjtD4=",
-    "category": "necklaces",
-    "featured": True,
-    "details": {
-        "Metal": "14k Rose Gold",
-        "Diamond Quality": "VS+",
-        "Diamond Color": "D-F",
-        "Carat Weight": "42.3 ct",
-        "Dimensions": "Length - 4.3 inches"
-    }
-  },
-]
 
 # Function to seed data
 def seed_products():
