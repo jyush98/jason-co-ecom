@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 class ProductSchema(BaseModel):
     id: int
@@ -10,6 +10,7 @@ class ProductSchema(BaseModel):
     image_urls: Optional[List[str]] = []
     category: str
     featured: bool
+    details: Optional[Dict[str, str]] = {}
 
     class Config:
         from_attributes = True  # ✅ Allows conversion from SQLAlchemy models
