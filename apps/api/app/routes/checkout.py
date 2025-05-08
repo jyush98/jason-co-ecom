@@ -17,6 +17,7 @@ router = APIRouter()
 # ✅ Initialize Stripe with Secret Key
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 CLERK_API_KEY = os.getenv("CLERK_SECRET_KEY")
+DOMAIN_URL = os.getenv("DOMAIN_URL", "http://localhost:3000")
 
 def get_user_details(user_sub: str):
     print("CLERK_API_KEY:", CLERK_API_KEY)
@@ -82,8 +83,9 @@ def create_checkout_session(cart: CartSchema, user=Depends(verify_clerk_token), 
             mode="payment",
             line_items=line_items,  # Use dynamic line items from the cart
             metadata={"order_id": str(order.id), "user_id": user_id},
-            success_url="http://localhost:3000",  # Your success URL
-            cancel_url="http://localhost:3000/cart",    # Your cancel URL
+            success_url=f"{DOMAIN_URL}/success",  # Your success URL
+            cancel_url=f"{DOMAIN_URL}/cart",    # Your cancel URL
+            client_reference_id=user_id,  # Pass the order ID to Stripe
         )
 
         return {"url": checkout_session.url}
