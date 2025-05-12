@@ -5,6 +5,11 @@ from fastapi.responses import JSONResponse
 from tempfile import NamedTemporaryFile
 import shutil
 from app.utils.s3 import upload_inspiration_image
+from sqlalchemy.orm import Session
+from fastapi import Depends
+from app.core.db import get_db
+from app.models.custom_order import CustomOrder
+
 
 router = APIRouter()
 
@@ -18,12 +23,25 @@ async def submit_custom_order(
     phone: str = Form(...),
     email: str = Form(""),
     message: str = Form(...),
-    inspiration: UploadFile = File(None)
+    inspiration: UploadFile = File(None),
+    db: Session = Depends(get_db)
 ):
     try:
         image_url = "No image uploaded"
         if inspiration and inspiration.filename:
             image_url = upload_inspiration_image(inspiration)
+
+        # Save to DB
+        custom_order = CustomOrder(
+            name=name,
+            phone=phone,
+            email=email,
+            message=message,
+            image_url=image_url
+        )
+        db.add(custom_order)
+        db.commit()
+        db.refresh(custom_order)
 
         email_body = f"""
 🛠️ New Custom Inquiry
