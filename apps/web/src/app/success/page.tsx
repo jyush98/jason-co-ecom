@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useCartStore } from "@/app/store/cartStore";
 import { useAuth } from "@clerk/nextjs";
 import React from "react";
@@ -22,7 +21,6 @@ interface Order {
 }
 
 export default function SuccessPage() {
-  const router = useRouter();
   const setCartCount = useCartStore((state) => state.setCartCount);
   const { getToken } = useAuth();
 

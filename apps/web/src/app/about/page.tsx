@@ -1,7 +1,6 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import Image from 'next/image'
 import MediaImage from './MediaImage'
 
 export default function AboutPage() {

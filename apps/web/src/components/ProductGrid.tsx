@@ -1,10 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useAuth } from '@clerk/nextjs';
 import { Product } from '../types/product';
-import { addToCart } from '../utils/cart';
-import { useCartStore } from '@/app/store/cartStore';
 import AddToCartToast from './AddtoCartToast';
 import AddToCartButton from './AddToCartButton';
 import { motion } from 'framer-motion';
@@ -16,23 +13,7 @@ interface ProductGridProps {
 }
 
 export default function ProductGrid({ products }: ProductGridProps) {
-    const { getToken } = useAuth();
-    const incrementCartCount = useCartStore((state) => state.incrementCartCount);
     const [addedProduct, setAddedProduct] = useState<{ name: string; image_url: string } | null>(null);
-
-    const handleAddToCart = async (productId: number) => {
-        const token = await getToken();
-        if (!token) return;
-
-        await addToCart(productId, 1, token);
-        incrementCartCount();
-
-        const product = products.find((p) => p.id === productId);
-        if (product) {
-            setAddedProduct({ name: product.name, image_url: product.image_url });
-            setTimeout(() => setAddedProduct(null), 2000);
-        }
-    };
 
     return (
         <>
