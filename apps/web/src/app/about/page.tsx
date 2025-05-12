@@ -103,7 +103,7 @@ export default function AboutPage() {
             Your Vision. Our Craft.
           </h2>
           <p className="text-lg text-gray-300 mb-8">
-            Whether you're chasing something never done before or refining a timeless piece — we got you.
+            {"Whether you're chasing something never done before or refining a timeless piece — we got you."}
           </p>
           <a
             href="/contact"

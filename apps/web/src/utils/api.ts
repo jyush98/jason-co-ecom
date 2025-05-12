@@ -1,6 +1,5 @@
 "use-client";
 
-import { useAuth } from "@clerk/nextjs";
 import { Product } from "../types/product";
 import { User } from "../types/user";
 import { Order } from "../types/order";

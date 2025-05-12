@@ -17,7 +17,7 @@ export default function ProductList({ initialCategory }: { initialCategory?: str
 
     // Pagination & Sorting
     const [page, setPage] = useState(1);
-    const [pageSize, _] = useState(12);
+    const [pageSize, ] = useState(12);
     const [sortBy, setSortBy] = useState("price");
     const [sortOrder, setSortOrder] = useState("asc");
 

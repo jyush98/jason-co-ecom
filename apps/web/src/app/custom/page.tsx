@@ -28,11 +28,14 @@ export default function CustomOrdersPage() {
 
       toast.success("Inquiry submitted!");
       form.reset(); // ✅ now works
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("❌ Submission error:", err);
-      toast.error(err.message || "Server error. Please try again.");
-    } finally {
-      setSubmitting(false);
+
+      if (err instanceof Error) {
+        toast.error(err.message);
+      } else {
+        toast.error("Server error. Please try again.");
+      }
     }
   };
 

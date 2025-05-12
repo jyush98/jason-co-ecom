@@ -8,7 +8,7 @@ import Collections from "../components/Collections";
 import CategoriesCarousel from "@/components/CategoriesCarousel";
 
 export default function Home() {
-    const [_, setFeaturedProducts] = useState<Product[]>([]);
+    const [, setFeaturedProducts] = useState<Product[]>([]);
 
     useEffect(() => {
         const getFeaturedProducts = async () => {
@@ -30,12 +30,6 @@ export default function Home() {
             <Hero />
             <Collections />
             <CategoriesCarousel />
-            {/* <div className="container mx-auto py-12">
-                <h2 className="text-4xl font-serif text-center text-gray-300 uppercase tracking-wide">
-                    Featured Jewelry
-                </h2>
-                <ProductGrid products={featuredProducts} />
-            </div> */}
         </main>
     );
 }
