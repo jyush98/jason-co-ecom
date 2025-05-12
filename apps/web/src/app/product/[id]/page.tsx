@@ -14,11 +14,8 @@ interface Product {
   details?: Record<string, string>;
 }
 
-export default async function ProductPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+// ✅ NO manual typing of props
+export default async function ProductPage({ params }: any) {
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products/${params.id}`,
     {
