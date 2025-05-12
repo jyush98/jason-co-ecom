@@ -1,4 +1,5 @@
 import os
+from typing import List
 import requests
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from fastapi.responses import JSONResponse
@@ -9,6 +10,7 @@ from sqlalchemy.orm import Session
 from fastapi import Depends
 from app.core.db import get_db
 from app.models.custom_order import CustomOrder
+from app.schemas.custom_order import CustomOrderOut
 
 
 router = APIRouter()
@@ -16,6 +18,11 @@ router = APIRouter()
 RESEND_API_KEY = os.getenv("RESEND_API_KEY")
 # Uncomment in production
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "jyushuvayev98@gmail.com")
+
+@router.get("/api/custom-orders", response_model=List[CustomOrderOut])
+def get_custom_orders(db: Session = Depends(get_db)):
+    return db.query(CustomOrder).order_by(CustomOrder.created_at.desc()).all()
+
 
 @router.post("/api/custom-order")
 async def submit_custom_order(
