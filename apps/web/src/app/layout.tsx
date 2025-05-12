@@ -3,6 +3,7 @@ import { ClerkProvider } from '@clerk/nextjs';
 import Navbar from '@/components/Navbar';
 import Head from 'next/head';
 import Footer from '@/components/Footer';
+import { Toaster } from 'react-hot-toast';
 
 export default function RootLayout({
   children,
@@ -10,9 +11,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
-      signInFallbackRedirectUrl="/" signInForceRedirectUrl="/dashboard"
-      signUpFallbackRedirectUrl="/" signUpForceRedirectUrl="/dashboard">
+    <ClerkProvider
+      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+      signInFallbackRedirectUrl="/"
+      signInForceRedirectUrl="/dashboard"
+      signUpFallbackRedirectUrl="/"
+      signUpForceRedirectUrl="/dashboard"
+    >
       <html lang="en">
         <Head>
           <title>Jason & Co.</title>
@@ -20,16 +25,20 @@ export default function RootLayout({
           <link rel="icon" href="/favicon.ico" />
           <link rel="preconnect" href="https://fonts.googleapis.com" />
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-          <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet"/>
-
+          <link
+            href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
+            rel="stylesheet"
+          />
         </Head>
         <body>
+          {/* Toast notifications globally available */}
+          <Toaster position="top-center" />
           <header>
             <Navbar />
           </header>
           {children}
           <footer>
-            <Footer/>
+            <Footer />
           </footer>
         </body>
       </html>
