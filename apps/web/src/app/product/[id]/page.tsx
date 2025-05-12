@@ -3,12 +3,6 @@ import ProductImageGallery from "@/components/ProductImageGallery";
 import AddToCartButton from "@/components/AddToCartButton";
 import React from "react";
 
-interface PageProps {
-  params: {
-    id: string;
-  };
-}
-
 interface Product {
   id: number;
   name: string;
@@ -20,15 +14,24 @@ interface Product {
   details?: Record<string, string>;
 }
 
-export default async function ProductPage({ params }: PageProps) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products/${params.id}`, {
-    next: { revalidate: 60 },
-  });
+export default async function ProductPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products/${params.id}`,
+    {
+      next: { revalidate: 60 },
+    }
+  );
 
   if (!res.ok) return notFound();
 
   const product: Product = await res.json();
-  const images = product.image_urls?.length ? product.image_urls : [product.image_url!];
+  const images = product.image_urls?.length
+    ? product.image_urls
+    : [product.image_url!];
 
   return (
     <div className="pt-[var(--navbar-height)] px-4 py-16 max-w-6xl mx-auto">
@@ -39,7 +42,9 @@ export default async function ProductPage({ params }: PageProps) {
           <hr className="border-t border-gray-300" />
           <AddToCartButton productId={product.id} fullWidth />
           {product.description && (
-            <p className="text-base text-gray-700 leading-relaxed">{product.description}</p>
+            <p className="text-base text-gray-700 leading-relaxed">
+              {product.description}
+            </p>
           )}
           <div>
             <h2 className="text-lg font-medium mt-6 mb-2">Details:</h2>
