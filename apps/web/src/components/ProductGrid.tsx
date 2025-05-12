@@ -13,7 +13,7 @@ interface ProductGridProps {
 }
 
 export default function ProductGrid({ products }: ProductGridProps) {
-    const [addedProduct, setAddedProduct] = useState<{ name: string; image_url: string } | null>(null);
+    const [addedProduct, _] = useState<{ name: string; image_url: string } | null>(null);
 
     return (
         <>

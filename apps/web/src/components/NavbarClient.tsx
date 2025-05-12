@@ -24,6 +24,10 @@ const collections = [
   { name: "Classics", path: "/shop?collection=classics" },
 ];
 
+interface CartItem {
+  quantity: number;
+}
+
 const navHover = {
   scale: 1.05,
   textDecoration: "underline" as const,
@@ -44,7 +48,7 @@ export default function NavbarClient() {
       const token = await getToken();
       if (token) {
         const cart = await getCart(token);
-        const itemCount = cart.reduce((acc: number, item: any) => acc + item.quantity, 0);
+        const itemCount = cart.reduce((acc: number, item: CartItem) => acc + item.quantity, 0);
         setCartCount(itemCount);
       }
     };

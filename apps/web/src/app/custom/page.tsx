@@ -86,7 +86,7 @@ export default function CustomOrdersPage() {
               </div>
             </div>
             <div className="flex flex-col">
-              <textarea name="message" placeholder="Tell us what you're looking for..." rows={10} className="w-full h-full p-4 rounded bg-neutral-800 text-white placeholder-gray-400" required />
+              <textarea name="message" placeholder={"Tell us what you're looking for..."} rows={10} className="w-full h-full p-4 rounded bg-neutral-800 text-white placeholder-gray-400" required />
               <button type="submit" disabled={submitting} className="mt-6 w-full py-3 bg-white text-black font-semibold rounded hover:bg-neutral-200 transition">
                 {submitting ? "Submitting..." : "Submit Inquiry"}
               </button>

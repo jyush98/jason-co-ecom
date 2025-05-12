@@ -21,7 +21,7 @@ const FullscreenMenu = ({
     onClose,
 }: FullscreenMenuProps) => {
     const [search, setSearch] = useState("");
-    const [results, setResults] = useState<Product[]>([]);
+    const [_, setResults] = useState<Product[]>([]);
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [showMenu, setShowMenu] = useState(true);
     const router = useRouter();

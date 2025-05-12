@@ -2,14 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { fetchProducts } from "../utils/api";
-import ProductGrid from "../components/ProductGrid";
 import { Product } from "../types/product";
 import Hero from "../components/Hero";
 import Collections from "../components/Collections";
 import CategoriesCarousel from "@/components/CategoriesCarousel";
 
 export default function Home() {
-    const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+    const [_, setFeaturedProducts] = useState<Product[]>([]);
 
     useEffect(() => {
         const getFeaturedProducts = async () => {
