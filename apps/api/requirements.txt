@@ -10,3 +10,4 @@ pyjwt
 cryptography
 stripe
 boto3
+python-multipart
