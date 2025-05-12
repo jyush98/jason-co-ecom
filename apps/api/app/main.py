@@ -15,6 +15,7 @@ from app.routes.checkout import router as checkout_router
 from app.routes.products import router as products_router
 from app.routes.order import router as order_router
 from app.routes.custom_order import router as custom_order_router
+from app.routes.admin import router as admin_router
 
 app = FastAPI()
 
@@ -40,6 +41,7 @@ app.include_router(checkout_router, prefix="/checkout", tags=["Checkout"])
 app.include_router(products_router, prefix="/api", tags=["Products"])
 app.include_router(order_router, prefix="/api", tags=["Orders"])
 app.include_router(custom_order_router)
+app.include_router(admin_router, prefix="/api/admin", tags=["Admin"])
 
 
 @app.get("/")

@@ -10,8 +10,10 @@
     "build:css": "postcss src/app/globals.css -o src/app/output.css"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.2",
     "@stripe/stripe-js": "^5.6.0",
     "framer-motion": "^12.4.1",
+    "headlessui": "^0.0.0",
     "next": "15.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

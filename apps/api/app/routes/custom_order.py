@@ -22,7 +22,7 @@ async def submit_custom_order(
 ):
     try:
         image_url = "No image uploaded"
-        if inspiration:
+        if inspiration and inspiration.filename:
             image_url = upload_inspiration_image(inspiration)
 
         email_body = f"""

@@ -20,3 +20,11 @@ class OrderSchema(BaseModel):
 
     class Config:
         from_attributes = True
+
+class OrderResponseSchema(BaseModel):
+    id: int
+    total_price: float
+    status: str
+    created_at: datetime
+    items: List[OrderItemSchema]
+
