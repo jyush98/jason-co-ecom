@@ -14,14 +14,15 @@ interface Product {
   details?: Record<string, string>;
 }
 
-// ✅ NO manual typing of props
 export default async function ProductPage({
-    params,
-  }: {
-    params: { id: string };
-  }) {
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products/${params.id}`,
+    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products/${id}`,
     {
       next: { revalidate: 60 },
     }
