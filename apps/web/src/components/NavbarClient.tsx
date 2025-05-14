@@ -76,6 +76,12 @@ export default function NavbarClient() {
     setHoverImage("/default.jpg");
   };
 
+  const handleDropdownLinkClick = () => {
+    if (window.innerWidth < 768) {
+      setIsDropdownOpen(false);
+    }
+  };
+
   return (
     <header className="fixed top-0 left-0 w-full bg-black z-50 text-white shadow-md">
       {/* Top Row */}
@@ -146,41 +152,76 @@ export default function NavbarClient() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.3 }}
-            className="absolute left-0 right-0 top-[125px] w-full bg-black text-white px-[15%] py-10 grid grid-cols-12 gap-8 shadow-lg"
+            className="absolute left-0 right-0 top-full w-full bg-black text-white py-10 shadow-lg"
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
-            <div className="col-span-3">
-              <h3 className="text-sm font-semibold uppercase mb-4">Categories</h3>
-              <ul className="space-y-2">
-                {categories.map((category) => (
-                  <li key={category.name}>
-                    <Link href={category.path} className="hover:underline">
-                      {category.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+            {/* Desktop Grid */}
+            <div className="hidden md:grid px-[15%] grid-cols-12 gap-8">
+              <div className="col-span-3">
+                <h3 className="text-sm font-semibold uppercase mb-4">Categories</h3>
+                <ul className="space-y-2">
+                  {categories.map((category) => (
+                    <li key={category.name}>
+                      <Link href={category.path} className="hover:underline" onClick={handleDropdownLinkClick}>
+                        {category.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="col-span-3">
+                <h3 className="text-sm font-semibold uppercase mb-4">Collections</h3>
+                <ul className="space-y-2">
+                  {collections.map((collection) => (
+                    <li key={collection.name}>
+                      <Link href={collection.path} className="hover:underline" onClick={handleDropdownLinkClick}>
+                        {collection.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="hidden md:flex col-span-6 space-x-4">
+                <Image src="/cuban-link.webp" alt="Featured 1" width={200} height={200} className="object-cover rounded-lg" />
+                <Image src="/cuban-link.webp" alt="Featured 2" width={200} height={200} className="object-cover rounded-lg" />
+              </div>
             </div>
-            <div className="col-span-3">
-              <h3 className="text-sm font-semibold uppercase mb-4">Collections</h3>
-              <ul className="space-y-2">
-                {collections.map((collection) => (
-                  <li key={collection.name}>
-                    <Link href={collection.path} className="hover:underline">
-                      {collection.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="col-span-6 flex space-x-4">
-              <Image src="/cuban-link.webp" alt="Featured 1" width={200} height={200} className="object-cover rounded-lg" />
-              <Image src="/cuban-link.webp" alt="Featured 2" width={200} height={200} className="object-cover rounded-lg" />
+
+            {/* Mobile Flex Layout */}
+            <div className="flex md:hidden w-full justify-between px-4">
+              <div className="w-[20%]" />
+              <div className="w-[30%]">
+                <h3 className="text-sm font-semibold uppercase mb-4">Categories</h3>
+                <ul className="space-y-2">
+                  {categories.map((category) => (
+                    <li key={category.name}>
+                      <Link href={category.path} className="hover:underline" onClick={handleDropdownLinkClick}>
+                        {category.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="w-[15%]" />
+              <div className="w-[30%]">
+                <h3 className="text-sm font-semibold uppercase mb-4">Collections</h3>
+                <ul className="space-y-2">
+                  {collections.map((collection) => (
+                    <li key={collection.name}>
+                      <Link href={collection.path} className="hover:underline" onClick={handleDropdownLinkClick}>
+                        {collection.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="w-[15%]" />
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
 
       {/* Fullscreen Menu */}
       {menuOpen && (

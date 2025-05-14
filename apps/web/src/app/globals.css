@@ -20,6 +20,7 @@ html, body {
   min-height: 100vh;  /* Ensures full-page height */
   margin: 0;
   padding: 0;
+  background-color: black;
 }
 
 .text-gold-500 {
