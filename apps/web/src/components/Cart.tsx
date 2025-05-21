@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { getCart, removeFromCart, addToCart } from "../utils/cart";
+import { useCartStore } from "@/app/store/cartStore";
+import { motion, AnimatePresence } from "framer-motion";
 
-// Define the type for a cart item
 interface CartItem {
     id: number;
     user_id: string;
@@ -27,6 +28,8 @@ export default function Cart() {
     const [error, setError] = useState<string | null>(null);
     const [totalPrice, setTotalPrice] = useState<number>(0);
 
+    const setCartCount = useCartStore((state) => state.setCartCount);
+
     useEffect(() => {
         const fetchCart = async () => {
             try {
@@ -36,8 +39,10 @@ export default function Cart() {
                     if (Array.isArray(cartData)) {
                         setCart(cartData);
                         calculateTotal(cartData);
+                        updateCartCount(cartData);
                     } else {
-                        setCart([]); // Set to empty array if cartData is not an array
+                        setCart([]);
+                        updateCartCount([]);
                     }
                 }
             } catch (err) {
@@ -50,6 +55,11 @@ export default function Cart() {
 
         fetchCart();
     }, []);
+
+    const updateCartCount = (items: CartItem[]) => {
+        const total = items.reduce((acc, item) => acc + item.quantity, 0);
+        setCartCount(total);
+    };
 
     const calculateTotal = (cartItems: CartItem[]) => {
         const total = cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
@@ -65,6 +75,7 @@ export default function Cart() {
             );
             setCart(updatedCart);
             calculateTotal(updatedCart);
+            updateCartCount(updatedCart);
         }
     };
 
@@ -75,14 +86,13 @@ export default function Cart() {
             const updatedCart = cart.filter((item) => item.product_id !== productId);
             setCart(updatedCart);
             calculateTotal(updatedCart);
+            updateCartCount(updatedCart);
         }
     };
 
     const handleCheckout = async () => {
         const token = await getToken();
-        const requestBody = JSON.stringify({
-            items: cart,  // Pass the cart data to backend
-        });
+        const requestBody = JSON.stringify({ items: cart });
 
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/checkout/session`, {
             method: "POST",
@@ -95,66 +105,98 @@ export default function Cart() {
 
         const data = await response.json();
         if (data.url) {
-            window.location.href = data.url;  // Redirect to Stripe Checkout
+            window.location.href = data.url;
         } else {
-        alert("Failed to start checkout. Please try again.");
-    }
+            alert("Failed to start checkout. Please try again.");
+        }
     };
 
-    if (loading) {
-        return <p>Loading cart...</p>;
-    }
-
-    if (error) {
-        return <p className="text-red-500">{error}</p>;
-    }
+    if (loading) return <p>Loading cart...</p>;
+    if (error) return <p className="text-red-500">{error}</p>;
 
     return (
-        <div className="max-w-2xl mx-auto p-4">
-            <h2 className="text-2xl font-bold mb-4">Your Cart</h2>
+        <div className="max-w-4xl mx-auto p-4 text-white">
+            <h2 className="text-3xl font-bold mb-6 text-center">Your Cart</h2>
             {cart.length === 0 ? (
-                <p>Your cart is empty.</p>
+                <p className="text-center">Your cart is empty.</p>
             ) : (
                 <>
-                    <ul className="space-y-4">
-                        {cart.map((item) => (
-                            <li key={item.product_id} className="flex items-center justify-between border-b pb-2">
-                                <span>{item.product.name} - {item.quantity}</span>
-                                <div className="flex items-center space-x-2">
-                                    <button
-                                        onClick={() => updateQuantity(item.product_id, 1)}
-                                        className="px-2 py-1 bg-green-500 text-white rounded"
-                                    >
-                                        +
-                                    </button>
-                                    <button
-                                        onClick={() => updateQuantity(item.product_id, -1)}
-                                        className="px-2 py-1 bg-yellow-500 text-white rounded"
-                                        disabled={item.quantity <= 1}
-                                    >
-                                        -
-                                    </button>
-                                    <button
-                                        onClick={() => handleRemove(item.product_id)}
-                                        className="px-2 py-1 bg-red-500 text-white rounded"
-                                    >
-                                        Remove
-                                    </button>
-                                </div>
-                            </li>
-                        ))}
+                    <ul className="space-y-6">
+                        <AnimatePresence>
+                            {cart.map((item) => (
+                                <motion.li
+                                    key={item.product_id}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.25 }}
+                                    className="flex flex-col md:flex-row items-center justify-between gap-4 border border-white/10 rounded-lg p-4 bg-white/5"
+                                >
+                                    <div className="flex items-center gap-4 w-full md:w-1/2">
+                                        <img
+                                            src={item.product.image_url || "/placeholder.jpg"}
+                                            alt={item.product.name}
+                                            className="w-24 h-24 object-cover rounded-md"
+                                        />
+                                        <div>
+                                            <h3 className="text-lg font-semibold">{item.product.name}</h3>
+                                            <p className="text-sm text-white/60">${item.product.price.toFixed(2)}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center justify-between gap-4 w-full md:w-1/2 md:justify-end">
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={() => updateQuantity(item.product_id, -1)}
+                                                disabled={item.quantity <= 1}
+                                                className="w-8 h-8 rounded-full border border-white disabled:opacity-50"
+                                            >
+                                                -
+                                            </button>
+                                            <motion.span
+                                                key={item.quantity}
+                                                initial={{ scale: 0.8, opacity: 0 }}
+                                                animate={{ scale: 1, opacity: 1 }}
+                                                transition={{ duration: 0.15 }}
+                                                className="inline-block text-center w-6"
+                                            >
+                                                {item.quantity}
+                                            </motion.span>
+
+
+                                            <button
+                                                onClick={() => updateQuantity(item.product_id, 1)}
+                                                className="w-8 h-8 rounded-full border border-white"
+                                            >
+                                                +
+                                            </button>
+                                        </div>
+                                        <button
+                                            onClick={() => handleRemove(item.product_id)}
+                                            className="text-xs underline text-white/60 hover:text-red-400"
+                                        >
+                                            Remove
+                                        </button>
+                                    </div>
+                                </motion.li>
+                            ))}
+                        </AnimatePresence>
                     </ul>
-                    <div className="text-right mt-4 text-lg font-bold">
+
+                    <div className="text-right mt-8 text-xl font-bold">
                         Total: ${totalPrice.toFixed(2)}
+                    </div>
+
+                    <div className="text-center mt-6">
+                        <button
+                            onClick={handleCheckout}
+                            className="w-full md:w-auto px-6 py-3 rounded-full bg-white text-black font-medium hover:bg-gray-200 transition"
+                        >
+                            Checkout with Stripe
+                        </button>
                     </div>
                 </>
             )}
-            <button
-                onClick={handleCheckout}
-                className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-                Checkout with Stripe
-            </button>
         </div>
     );
 }
