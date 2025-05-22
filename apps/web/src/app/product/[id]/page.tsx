@@ -17,9 +17,9 @@ interface Product {
 export default async function ProductPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }) {
-  const { id } = await params;
+  const { id } = params;
 
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products/${id}`,
@@ -36,44 +36,49 @@ export default async function ProductPage({
     : [product.image_url!];
 
   return (
-    <div className="pt-[var(--navbar-height)] px-4 py-16 max-w-6xl mx-auto">
+    <div className="pt-[var(--navbar-height)] px-4 max-w-6xl mx-auto text-white">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
         <ProductImageGallery images={images} />
-        <div className="space-y-6 w-full max-w-lg">
-          <h1 className="text-4xl font-semibold tracking-tight">{product.name}</h1>
-          <hr className="border-t border-gray-300" />
+
+        <div className="space-y-6 w-full max-w-lg mx-auto md:mx-0">
+          <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
+            {product.name}
+          </h1>
+
+          <hr className="border-t border-white/20" />
+
           <AddToCartButton productId={product.id} fullWidth />
+
           {product.description && (
-            <p className="text-base text-gray-700 leading-relaxed">
+            <p className="text-base text-white/80 leading-relaxed">
               {product.description}
             </p>
           )}
+
           <div>
-            <h2 className="text-lg font-medium mt-6 mb-2">Details:</h2>
-            {!product.details && (
-              <div className="grid grid-cols-2 text-sm gap-y-2">
-                <span className="text-gray-600">Metal</span>
-                <span>14k Rose Gold</span>
-                <span className="text-gray-600">Diamond Quality</span>
-                <span>VS+</span>
-                <span className="text-gray-600">Diamond Color</span>
-                <span>D–F</span>
-                <span className="text-gray-600">Carat Weight</span>
-                <span>42.3 ct</span>
-                <span className="text-gray-600">Dimensions</span>
-                <span>Length – 4.3 inches</span>
-              </div>
-            )}
-            {product.details && (
-              <div className="grid grid-cols-2 text-sm gap-y-2">
-                {Object.entries(product.details).map(([label, value]) => (
+            <h2 className="text-lg font-medium mt-8 mb-3">Details</h2>
+            <div className="grid grid-cols-2 gap-y-2 text-sm text-white/70">
+              {(product.details &&
+                Object.entries(product.details).map(([label, value]) => (
                   <React.Fragment key={label}>
-                    <span className="text-gray-600">{label}</span>
-                    <span>{value}</span>
+                    <span>{label}</span>
+                    <span className="text-white/90">{value}</span>
                   </React.Fragment>
-                ))}
-              </div>
-            )}
+                ))) || (
+                <>
+                  <span>Metal</span>
+                  <span className="text-white/90">14k Rose Gold</span>
+                  <span>Diamond Quality</span>
+                  <span className="text-white/90">VS+</span>
+                  <span>Diamond Color</span>
+                  <span className="text-white/90">D–F</span>
+                  <span>Carat Weight</span>
+                  <span className="text-white/90">42.3 ct</span>
+                  <span>Dimensions</span>
+                  <span className="text-white/90">Length – 4.3 inches</span>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
