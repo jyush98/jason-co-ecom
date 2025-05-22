@@ -1,7 +1,7 @@
-export const dynamic = "force-dynamic";
+"use client";
 
 import Shop from "../../components/Shop";
 
 export default function ShopPage() {
-    return <Shop />;
+  return <Shop />;
 }
