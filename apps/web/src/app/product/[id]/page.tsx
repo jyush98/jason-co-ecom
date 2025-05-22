@@ -65,19 +65,19 @@ export default async function ProductPage({
                     <span className="text-white/90">{value}</span>
                   </React.Fragment>
                 ))) || (
-                <>
-                  <span>Metal</span>
-                  <span className="text-white/90">14k Rose Gold</span>
-                  <span>Diamond Quality</span>
-                  <span className="text-white/90">VS+</span>
-                  <span>Diamond Color</span>
-                  <span className="text-white/90">D–F</span>
-                  <span>Carat Weight</span>
-                  <span className="text-white/90">42.3 ct</span>
-                  <span>Dimensions</span>
-                  <span className="text-white/90">Length – 4.3 inches</span>
-                </>
-              )}
+                  <>
+                    <span>Metal</span>
+                    <span className="text-white/90">14k Rose Gold</span>
+                    <span>Diamond Quality</span>
+                    <span className="text-white/90">VS+</span>
+                    <span>Diamond Color</span>
+                    <span className="text-white/90">D–F</span>
+                    <span>Carat Weight</span>
+                    <span className="text-white/90">42.3 ct</span>
+                    <span>Dimensions</span>
+                    <span className="text-white/90">Length – 4.3 inches</span>
+                  </>
+                )}
             </div>
           </div>
         </div>
