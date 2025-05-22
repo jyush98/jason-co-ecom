@@ -25,6 +25,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "https://jason-co-ecom-production.up.railway.app",
+        "https://jason-co-ecom-web.vercel.app",
         "*"
         ],
     allow_credentials=True,
