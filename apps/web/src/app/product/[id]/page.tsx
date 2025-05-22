@@ -2,24 +2,14 @@ import { notFound } from "next/navigation";
 import ProductImageGallery from "@/components/ProductImageGallery";
 import AddToCartButton from "@/components/AddToCartButton";
 import React from "react";
+import { Product } from "@/types/product";
 
-interface Product {
-  id: number;
-  name: string;
-  description?: string;
-  price: number;
-  image_url?: string;
-  image_urls?: string[];
-  category: string;
-  details?: Record<string, string>;
+interface ProductPageProps {
+  params: Promise<{ id: string }>; // ✅ required in Next 15
 }
 
-export default async function ProductPage({
-  params,
-}: {
-  params: { id: string };
-}) {
-  const { id } = params;
+export default async function ProductPage({ params }: ProductPageProps) {
+  const { id } = await params; // ✅ await is now required
 
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products/${id}`,
@@ -33,7 +23,7 @@ export default async function ProductPage({
   const product: Product = await res.json();
   const images = product.image_urls?.length
     ? product.image_urls
-    : [product.image_url!];
+    : [product.image_url];
 
   return (
     <div className="pt-[var(--navbar-height)] px-4 max-w-6xl mx-auto text-white">
@@ -62,7 +52,7 @@ export default async function ProductPage({
                 Object.entries(product.details).map(([label, value]) => (
                   <React.Fragment key={label}>
                     <span>{label}</span>
-                    <span className="text-white/90">{value}</span>
+                    <span className="text-white/90">{String(value)}</span>
                   </React.Fragment>
                 ))) || (
                   <>
