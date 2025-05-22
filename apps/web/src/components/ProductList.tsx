@@ -42,7 +42,7 @@ export default function ProductList({ initialCategory }: { initialCategory?: str
   }, [initialCategory]);
 
   if (loading) {
-    return <div className="text-center text-gold-400 text-xl">Loading...</div>;
+    return <div className="pt-[var(--navbar-height)] text-center text-white-400 text-xl">Loading...</div>;
   }
 
   return (
