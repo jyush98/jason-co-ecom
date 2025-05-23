@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { fetchProducts } from "../utils/api";
 import { Product } from "../types/product";
 import ProductGrid from "./ProductGrid";
@@ -8,127 +9,126 @@ import ProductGrid from "./ProductGrid";
 const categories = ["All", "Necklaces", "Bracelets", "Rings"];
 
 export default function ProductList({ initialCategory }: { initialCategory?: string }) {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [search, setSearch] = useState("");
-  const [minPrice, setMinPrice] = useState<number | undefined>();
-  const [maxPrice, setMaxPrice] = useState<number | undefined>();
-  const [category, setCategory] = useState<string>(initialCategory || "All");
-  const [loading, setLoading] = useState<boolean>(true);
+    const searchParams = useSearchParams();
+    const router = useRouter();
 
-  const [page, setPage] = useState(1);
-  const [pageSize] = useState(12);
-  const [sortBy, setSortBy] = useState("price");
-  const [sortOrder, setSortOrder] = useState("asc");
+    const [products, setProducts] = useState<Product[]>([]);
+    const [search, setSearch] = useState(searchParams?.get("name") || "");
+    const [category, setCategory] = useState<string>(initialCategory || "All");
+    const [loading, setLoading] = useState<boolean>(true);
 
-  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+    const [page, setPage] = useState(1);
+    const [pageSize] = useState(12);
+    const [sortBy, setSortBy] = useState("price");
+    const [sortOrder, setSortOrder] = useState("asc");
 
-  const getProducts = useCallback(() => {
-    setLoading(true);
-    fetchProducts({ name: search, minPrice, maxPrice, category, page, pageSize, sortBy, sortOrder })
-      .then(setProducts)
-      .catch(() => setProducts([]))
-      .finally(() => setLoading(false));
-  }, [search, minPrice, maxPrice, category, page, pageSize, sortBy, sortOrder]);
+    const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    debounceTimer.current = setTimeout(() => {
-      getProducts();
-    }, 300);
-  }, [search, minPrice, maxPrice, category, page, pageSize, sortBy, sortOrder, getProducts]);
+    const getProducts = useCallback(() => {
+        setLoading(true);
+        fetchProducts({ name: search, category, page, pageSize, sortBy, sortOrder })
+            .then(setProducts)
+            .catch(() => setProducts([]))
+            .finally(() => setLoading(false));
+    }, [search, category, page, pageSize, sortBy, sortOrder]);
 
-  useEffect(() => {
-    setCategory(initialCategory || "All");
-  }, [initialCategory]);
+    useEffect(() => {
+        if (debounceTimer.current) clearTimeout(debounceTimer.current);
+        debounceTimer.current = setTimeout(() => {
+            getProducts();
+        }, 300);
+    }, [search, category, page, pageSize, sortBy, sortOrder, getProducts]);
 
-  if (loading) {
-    return <div className="pt-[var(--navbar-height)] text-center text-white-400 text-xl">Loading...</div>;
-  }
+    useEffect(() => {
+        setCategory(initialCategory || "All");
+    }, [initialCategory]);
 
-  return (
-    <div className="max-w-screen-xl mx-auto px-4 py-10">
-      <h2 className="text-4xl font-serif text-center text-white uppercase tracking-wider mb-8">
-        Shop All Jewelry
-      </h2>
+    const handleCategoryChange = (value: string) => {
+        const params = new URLSearchParams(window.location.search);
+        if (value === "All") {
+            params.delete("category");
+        } else {
+            params.set("category", value);
+        }
+        router.push(`/shop?${params.toString()}`);
+        setCategory(value);
+    };
 
-      {/* Controls */}
-      <div className="flex flex-wrap gap-4 justify-center md:justify-between mb-8">
-        <div className="flex flex-wrap gap-4 w-full md:w-auto justify-center">
-          <input
-            type="text"
-            placeholder="Search..."
-            className="px-4 py-2 border border-white bg-black text-white rounded-lg w-60"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <input
-            type="number"
-            placeholder="Min"
-            className="px-4 py-2 border border-white bg-black text-white rounded-lg w-28"
-            value={minPrice || ""}
-            onChange={(e) => setMinPrice(e.target.value ? parseFloat(e.target.value) : undefined)}
-          />
-          <input
-            type="number"
-            placeholder="Max"
-            className="px-4 py-2 border border-white bg-black text-white rounded-lg w-28"
-            value={maxPrice || ""}
-            onChange={(e) => setMaxPrice(e.target.value ? parseFloat(e.target.value) : undefined)}
-          />
-          <select
-            className="px-4 py-2 border border-white bg-black text-white rounded-lg"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-          >
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </select>
+    if (loading) {
+        return <div className="pt-[var(--navbar-height)] text-center text-white-400 text-xl">Loading...</div>;
+    }
+
+    return (
+        <div className="pt-[var(--navbar-height)] max-w-screen-xl mx-auto px-4 py-10">
+            <h2 className="text-4xl font-sans-serif text-center text-white uppercase tracking-wider mb-8 hidden">
+                Shop All Jewelry
+            </h2>
+
+            {/* Controls */}
+            <div className="flex justify-center mb-8">
+                <div className="w-full md:w-[70%] flex flex-col md:flex-row md:items-center gap-4">
+                    <input
+                        type="text"
+                        placeholder="Search for a piece..."
+                        className="flex-1 px-5 py-3 bg-black border border-white/30 rounded-full text-white placeholder-white/40 shadow-inner focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                    />
+
+                    <div className="flex gap-4 flex-wrap items-center justify-center md:justify-start">
+                        <select
+                            value={category}
+                            onChange={(e) => handleCategoryChange(e.target.value)}
+                            className="px-5 py-3 bg-black border border-white/30 rounded-full text-white shadow-inner focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
+                        >
+                            {categories.map((cat) => (
+                                <option key={cat} value={cat}>
+                                    {cat}
+                                </option>
+                            ))}
+                        </select>
+
+                        <select
+                            value={sortBy}
+                            onChange={(e) => setSortBy(e.target.value)}
+                            className="px-5 py-3 bg-black border border-white/30 rounded-full text-white shadow-inner focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
+                        >
+                            <option value="price">Price</option>
+                            <option value="name">Name</option>
+                        </select>
+
+                        <select
+                            value={sortOrder}
+                            onChange={(e) => setSortOrder(e.target.value)}
+                            className="px-5 py-3 bg-black border border-white/30 rounded-full text-white shadow-inner focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
+                        >
+                            <option value="asc">Asc</option>
+                            <option value="desc">Desc</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            {/* Product Grid */}
+            <ProductGrid products={products} />
+
+            {/* Pagination */}
+            <div className="flex justify-center mt-10">
+                <button
+                    onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                    className="px-4 py-2 bg-white text-black rounded-lg mx-2 disabled:opacity-50"
+                    disabled={page === 1}
+                >
+                    Previous
+                </button>
+                <span className="text-white text-lg mx-4">Page {page}</span>
+                <button
+                    onClick={() => setPage((prev) => prev + 1)}
+                    className="px-4 py-2 bg-white text-black rounded-lg mx-2"
+                >
+                    Next
+                </button>
+            </div>
         </div>
-
-        <div className="flex gap-4 justify-center w-full md:w-auto">
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="px-4 py-2 border border-white bg-black text-white rounded-lg"
-          >
-            <option value="price">Sort by Price</option>
-            <option value="name">Sort by Name</option>
-          </select>
-
-          <select
-            value={sortOrder}
-            onChange={(e) => setSortOrder(e.target.value)}
-            className="px-4 py-2 border border-white bg-black text-white rounded-lg"
-          >
-            <option value="asc">Ascending</option>
-            <option value="desc">Descending</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Product Grid */}
-      <ProductGrid products={products} />
-
-      {/* Pagination */}
-      <div className="flex justify-center mt-10">
-        <button
-          onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-          className="px-4 py-2 bg-white text-black rounded-lg mx-2 disabled:opacity-50"
-          disabled={page === 1}
-        >
-          Previous
-        </button>
-        <span className="text-white text-lg mx-4">Page {page}</span>
-        <button
-          onClick={() => setPage((prev) => prev + 1)}
-          className="px-4 py-2 bg-white text-black rounded-lg mx-2"
-        >
-          Next
-        </button>
-      </div>
-    </div>
-  );
+    );
 }
