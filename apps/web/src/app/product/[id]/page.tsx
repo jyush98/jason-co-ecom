@@ -27,13 +27,27 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   return (
     <div className="pt-[var(--navbar-height)] px-4 max-w-6xl mx-auto text-white">
+      <div className="mb-6">
+        <a href="/shop" className="text-sm text-white/60 hover:text-white transition">
+          ← Back to Shop
+        </a>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
         <ProductImageGallery images={images} />
 
         <div className="space-y-6 w-full max-w-lg mx-auto md:mx-0">
-          <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
-            {product.name}
-          </h1>
+          <div className="space-y-1">
+            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight font-sans-serif">
+              {product.name}
+            </h1>
+            {product.description && (
+              <p className="text-white/60 text-sm">{product.description.slice(0, 100)}...</p>
+            )}
+
+            <p className="text-xl text-white/90">${product.price.toLocaleString()}</p>
+            <p className="text-sm uppercase text-white/60 tracking-wider">{product.category}</p>
+          </div>
+
 
           <hr className="border-t border-white/20" />
 
