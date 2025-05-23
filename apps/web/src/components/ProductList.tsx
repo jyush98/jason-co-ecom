@@ -75,7 +75,7 @@ export default function ProductList({ initialCategory }: { initialCategory?: str
                         onChange={(e) => setSearch(e.target.value)}
                     />
 
-                    <div className="flex flex-wrap gap-3 items-center justify-center text-sm">
+                    <div className="flex flex-wrap gap-3 items-center justify-center md:justify-start text-sm">
                         <select
                             value={category}
                             onChange={(e) => handleCategoryChange(e.target.value)}
@@ -109,8 +109,12 @@ export default function ProductList({ initialCategory }: { initialCategory?: str
                 </div>
             </div>
 
-            {/* Product Grid */}
-            <ProductGrid products={products} />
+            {/* Product Grid or Empty State */}
+            {products.length > 0 ? (
+                <ProductGrid products={products} />
+            ) : (
+                <div className="text-white text-center text-lg mt-10">No results found.</div>
+            )}
 
             {/* Pagination */}
             <div className="flex justify-center mt-10">
