@@ -6,7 +6,7 @@ import { Product } from "@/types/product";
 import { Metadata } from "next";
 
 interface ProductPageProps {
-  params: Promise<{ id: string }>; // ✅ required in Next 15
+  params: { id: string };
 }
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
-  const { id } = await params; // ✅ await is now required
+  const { id } = params;
 
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products/${id}`,
@@ -39,9 +39,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   if (!res.ok) return notFound();
 
   const product: Product = await res.json();
-  const images = product.image_urls?.length
-    ? product.image_urls
-    : [product.image_url];
+  const images = product.image_urls?.length ? product.image_urls : [product.image_url];
 
   return (
     <div className="pt-[var(--navbar-height)] px-4 max-w-6xl mx-auto text-white">
@@ -65,7 +63,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <p className="text-xl text-white/90">${product.price.toLocaleString()}</p>
             <p className="text-sm uppercase text-white/60 tracking-wider">{product.category}</p>
           </div>
-
 
           <hr className="border-t border-white/20" />
 
