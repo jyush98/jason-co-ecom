@@ -66,20 +66,20 @@ export default function ProductList({ initialCategory }: { initialCategory?: str
 
             {/* Controls */}
             <div className="flex justify-center mb-8">
-                <div className="w-full md:w-[70%] flex flex-col md:flex-row md:items-center gap-4">
+                <div className="w-full md:w-[70%] flex flex-col gap-4">
                     <input
                         type="text"
                         placeholder="Search for a piece..."
-                        className="flex-1 px-5 py-3 bg-black border border-white/30 rounded-full text-white placeholder-white/40 shadow-inner focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
+                        className="w-full px-6 py-3 bg-black border border-white/30 rounded-full text-white placeholder-white/40 shadow-inner focus:outline-none focus:ring-2 focus:ring-white/50 transition-all text-base"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                     />
 
-                    <div className="flex gap-4 flex-wrap items-center justify-center md:justify-start">
+                    <div className="flex flex-wrap gap-3 items-center justify-center text-sm">
                         <select
                             value={category}
                             onChange={(e) => handleCategoryChange(e.target.value)}
-                            className="px-5 py-3 bg-black border border-white/30 rounded-full text-white shadow-inner focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
+                            className="px-5 py-3 bg-black border border-white/30 rounded-full text-white shadow-inner focus:outline-none focus:ring-2 focus:ring-white/50 transition-all text-sm"
                         >
                             {categories.map((cat) => (
                                 <option key={cat} value={cat}>
@@ -91,7 +91,7 @@ export default function ProductList({ initialCategory }: { initialCategory?: str
                         <select
                             value={sortBy}
                             onChange={(e) => setSortBy(e.target.value)}
-                            className="px-5 py-3 bg-black border border-white/30 rounded-full text-white shadow-inner focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
+                            className="px-5 py-3 bg-black border border-white/30 rounded-full text-white shadow-inner focus:outline-none focus:ring-2 focus:ring-white/50 transition-all text-sm"
                         >
                             <option value="price">Price</option>
                             <option value="name">Name</option>
@@ -100,7 +100,7 @@ export default function ProductList({ initialCategory }: { initialCategory?: str
                         <select
                             value={sortOrder}
                             onChange={(e) => setSortOrder(e.target.value)}
-                            className="px-5 py-3 bg-black border border-white/30 rounded-full text-white shadow-inner focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
+                            className="px-5 py-3 bg-black border border-white/30 rounded-full text-white shadow-inner focus:outline-none focus:ring-2 focus:ring-white/50 transition-all text-sm"
                         >
                             <option value="asc">Asc</option>
                             <option value="desc">Desc</option>
