@@ -3,9 +3,27 @@ import ProductImageGallery from "@/components/ProductImageGallery";
 import AddToCartButton from "@/components/AddToCartButton";
 import React from "react";
 import { Product } from "@/types/product";
+import { Metadata } from "next";
 
 interface ProductPageProps {
   params: Promise<{ id: string }>; // ✅ required in Next 15
+}
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products/${params.id}`);
+  if (!res.ok) return {};
+
+  const product = await res.json();
+
+  return {
+    title: `${product.name} – Jason & Co.`,
+    description: product.description ?? "Explore this one-of-a-kind piece from Jason & Co.",
+    openGraph: {
+      title: `${product.name} – Jason & Co.`,
+      description: product.description ?? "Explore this one-of-a-kind piece from Jason & Co.",
+      images: product.image_urls?.length ? product.image_urls : [product.image_url],
+    },
+  };
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
