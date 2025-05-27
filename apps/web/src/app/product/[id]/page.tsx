@@ -4,6 +4,7 @@ import AddToCartButton from "@/components/AddToCartButton";
 import React from "react";
 import { Product } from "@/types/product";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 interface ProductPageProps {
   params: Promise<{ id: string }>;
@@ -46,9 +47,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
   return (
     <div className="pt-[var(--navbar-height)] px-4 max-w-6xl mx-auto text-white">
       <div className="mb-6">
-        <a href="/shop" className="text-sm text-white/60 hover:text-white transition">
+        <Link
+          href="/shop"
+          className="inline-flex items-center gap-1 text-sm text-white/70 hover:text-white transition focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 rounded"
+          aria-label="Go back to the Shop page"
+        >
           ← Back to Shop
-        </a>
+        </Link>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
         <ProductImageGallery images={images} />
