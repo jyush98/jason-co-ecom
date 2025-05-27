@@ -3,13 +3,33 @@ import ProductImageGallery from "@/components/ProductImageGallery";
 import AddToCartButton from "@/components/AddToCartButton";
 import React from "react";
 import { Product } from "@/types/product";
+import type { Metadata } from "next";
 
 interface ProductPageProps {
-  params: Promise<{ id: string }>; // ✅ required in Next 15
+  params: Promise<{ id: string }>;
+}
+
+export async function generateMetadata(propsPromise: ProductPageProps): Promise<Metadata> {
+  const { id } = await propsPromise.params;
+
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products/${id}`);
+  if (!res.ok) return {};
+
+  const product = await res.json();
+
+  return {
+    title: `${product.name} – Jason & Co.`,
+    description: product.description ?? "Explore this one-of-a-kind piece from Jason & Co.",
+    openGraph: {
+      title: `${product.name} – Jason & Co.`,
+      description: product.description ?? "Explore this one-of-a-kind piece from Jason & Co.",
+      images: product.image_urls?.length ? product.image_urls : [product.image_url],
+    },
+  };
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
-  const { id } = await params; // ✅ await is now required
+  const { id } = await params;
 
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products/${id}`,
@@ -21,9 +41,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   if (!res.ok) return notFound();
 
   const product: Product = await res.json();
-  const images = product.image_urls?.length
-    ? product.image_urls
-    : [product.image_url];
+  const images = product.image_urls?.length ? product.image_urls : [product.image_url];
 
   return (
     <div className="pt-[var(--navbar-height)] px-4 max-w-6xl mx-auto text-white">
@@ -43,20 +61,15 @@ export default async function ProductPage({ params }: ProductPageProps) {
             {product.description && (
               <p className="text-white/60 text-sm">{product.description.slice(0, 100)}...</p>
             )}
-
             <p className="text-xl text-white/90">${product.price.toLocaleString()}</p>
             <p className="text-sm uppercase text-white/60 tracking-wider">{product.category}</p>
           </div>
 
-
           <hr className="border-t border-white/20" />
-
           <AddToCartButton productId={product.id} fullWidth />
 
           {product.description && (
-            <p className="text-base text-white/80 leading-relaxed">
-              {product.description}
-            </p>
+            <p className="text-base text-white/80 leading-relaxed">{product.description}</p>
           )}
 
           <div>
