@@ -38,19 +38,22 @@ export default function ProductGrid({ products }: ProductGridProps) {
                 whileHover={{ scale: 1.02 }}
                 transition={{ duration: 0.3 }}
               >
-                <div className="w-full aspect-square relative">
+                <div className="w-full aspect-square relative overflow-hidden">
                   <img
                     src={primary}
                     alt={`${product.name} main image`}
-                    className={`w-full h-full object-cover object-center absolute inset-0 transition-opacity duration-500 ${isActive ? "opacity-0" : "opacity-100"}`}
+                    className={`w-full h-full object-cover object-center absolute inset-0 transition-all duration-500 ease-in-out transform ${isActive ? "opacity-0" : "opacity-100 hover:scale-110"
+                      }`}
                   />
                   <img
                     src={hover}
                     alt={`${product.name} alternate view`}
-                    className={`w-full h-full object-cover object-center absolute inset-0 transition-opacity duration-500 ${isActive ? "opacity-100" : "opacity-0"}`}
+                    className={`w-full h-full object-cover object-center absolute inset-0 transition-all duration-500 ease-in-out transform ${isActive ? "opacity-100" : "opacity-0 hover:scale-110"
+                      }`}
                     aria-hidden="true"
                   />
                 </div>
+
                 <div className="px-4 py-3 text-white space-y-1">
                   <h3 className="text-lg font-medium">{product.name}</h3>
                   <p className="text-sm text-white/70">${product.price.toFixed(2)}</p>
