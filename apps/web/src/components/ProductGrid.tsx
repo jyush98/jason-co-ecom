@@ -34,11 +34,11 @@ export default function ProductGrid({ products }: ProductGridProps) {
               onMouseLeave={() => setActiveId(null)}
             >
               <motion.div
-                className="relative border border-white/10 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-shadow bg-black"
+                className="relative border border-white/10 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-shadow bg-black flex flex-col h-full"
                 whileHover={{ scale: 1.02 }}
                 transition={{ duration: 0.3 }}
               >
-                <div className="w-full aspect-square relative overflow-hidden">
+                <div className="w-full aspect-square relative">
                   <img
                     src={primary}
                     alt={`${product.name} main image`}
@@ -53,10 +53,11 @@ export default function ProductGrid({ products }: ProductGridProps) {
                     aria-hidden="true"
                   />
                 </div>
-
-                <div className="px-4 py-3 text-white space-y-1">
-                  <h3 className="text-lg font-medium">{product.name}</h3>
-                  <p className="text-sm text-white/70">${product.price.toFixed(2)}</p>
+                <div className="flex flex-col justify-between px-4 py-3 text-white grow">
+                  <div className="space-y-1">
+                    <h3 className="text-lg font-medium">{product.name}</h3>
+                    <p className="text-sm text-white/70">${product.price.toFixed(2)}</p>
+                  </div>
                   <AddToCartButton productId={product.id} aria-label={`Add ${product.name} to cart`} />
                 </div>
               </motion.div>

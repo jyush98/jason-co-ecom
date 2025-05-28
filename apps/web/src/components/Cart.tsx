@@ -116,9 +116,9 @@ export default function Cart() {
 
     return (
         <div className="max-w-4xl mx-auto p-4 text-white">
-            <h2 className="text-3xl font-bold mb-6 text-center">Your Cart</h2>
+            <h2 className="text-3xl font-bold mb-6 text-center mt-10">Your Cart</h2>
             {cart.length === 0 ? (
-                <p className="text-center">Your cart is empty.</p>
+                <p className="px-4 py-12 text-center">Your cart is empty.</p>
             ) : (
                 <>
                     <ul className="space-y-6">
