@@ -17,6 +17,7 @@ export async function generateMetadata(propsPromise: ProductPageProps): Promise<
   if (!res.ok) return {};
 
   const product = await res.json();
+  const images = product.image_urls?.length ? product.image_urls : [product.image_url];
 
   return {
     title: `${product.name} – Jason & Co.`,
@@ -24,7 +25,13 @@ export async function generateMetadata(propsPromise: ProductPageProps): Promise<
     openGraph: {
       title: `${product.name} – Jason & Co.`,
       description: product.description ?? "Explore this one-of-a-kind piece from Jason & Co.",
-      images: product.image_urls?.length ? product.image_urls : [product.image_url],
+      images,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${product.name} – Jason & Co.`,
+      description: product.description ?? "Explore this one-of-a-kind piece from Jason & Co.",
+      images,
     },
   };
 }

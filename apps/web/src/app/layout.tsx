@@ -21,7 +21,7 @@ export default function RootLayout({
       <html lang="en">
         <Head>
           <title>Jason & Co.</title>
-          <meta name="description" content="Jason & Co. - Custom Jewelry" />
+          <meta name="description" content="Jason & Co." />
           <link rel="icon" href="/favicon.ico" />
           <link rel="preconnect" href="https://fonts.googleapis.com" />
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
