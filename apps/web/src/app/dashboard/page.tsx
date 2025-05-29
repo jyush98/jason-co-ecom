@@ -35,8 +35,8 @@ export default function Dashboard() {
             <p>{DASHBOARD}</p>
             {
                 DASHBOARD &&
-                <div className="container mx-auto py-12">
-                    <h1 className="text-4xl text-gold-400">Welcome, {user.fullName}!</h1>
+                <div className="container mx-auto pt-[var(--navbar-height)]">
+                    <h1 className="text-4xl text-white-600">Welcome, {user.fullName}!</h1>
                     {userData && <p className="text-lg text-gray-300">Email from FastAPI: {userData.email}</p>}
                     <GetJWT />
                 </div>
