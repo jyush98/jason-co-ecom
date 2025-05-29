@@ -30,13 +30,12 @@ export default function RootLayout({
             rel="stylesheet"
           />
         </Head>
-        <body>
-          {/* Toast notifications globally available */}
+        <body className="min-h-screen flex flex-col bg-black text-white">
           <Toaster position="top-center" />
           <header>
             <Navbar />
           </header>
-          {children}
+          <main className="flex-grow">{children}</main>
           <footer>
             <Footer />
           </footer>
