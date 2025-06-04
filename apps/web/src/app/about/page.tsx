@@ -59,7 +59,7 @@ export default function AboutPage() {
             <MediaImage image="/images/chrome-hearts-jesus/chain-zoom-1.jpg" alt="chain picture" />
             <div className="relative aspect-[9/16] w-full lg:w-1/4 m-4">
               <video autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover rounded-md">
-                <source src="/videos/chrome.mov" type="video/mp4" />
+                <source src="https://jasonco-inspiration-images.s3.us-east-2.amazonaws.com/content/chrome-chain-black.mp4" type="video/mp4" />
               </video>
             </div>
             <MediaImage image="/images/chrome-hearts-jesus/chain-zoom-2.jpg" alt="chain picture" />
