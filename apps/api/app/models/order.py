@@ -11,8 +11,11 @@ class Order(Base):
     total_price = Column(Float, nullable=False)
     status = Column(String, default="pending")  # 'pending', 'completed', 'failed'
     created_at = Column(DateTime, default=datetime.utcnow)
+    
+    guest_name = Column(String, nullable=True)
+    guest_email = Column(String, nullable=True)
 
-    # ✅ Establish a relationship to OrderItem
+    # Establish a relationship to OrderItem
     items = relationship("OrderItem", back_populates="order")
 
 

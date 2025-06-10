@@ -3,7 +3,7 @@ from typing import List, Optional
 import stripe
 import requests
 from fastapi import APIRouter, HTTPException, Depends
-from app.auth import verify_clerk_token
+from app.auth import verify_clerk_token_optional
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 from app.core.db import get_db
@@ -31,17 +31,33 @@ def get_user_details(user_sub: str):
     return response.json()
 
 @router.post("/session")
-def create_checkout_session(cart: CartSchema, user=Depends(verify_clerk_token), db: Session = Depends(get_db)):
+def create_checkout_session(
+    cart: CartSchema,
+    db: Session = Depends(get_db),
+    user: Optional[dict] = Depends(verify_clerk_token_optional),
+):
     """Creates a Stripe checkout session"""
-    print("🔍 Inside checkout_session function")
-    
-    # Step 1: Create the Order in DB first
-    # user_details = get_user_details(user["sub"])
-    # email = user_details.get("email_addresses", [{}])[0].get("email_address", "guest@yourstore.com")
-    
-    user_id = user["sub"]
 
-    order = Order(user_id=user_id, total_price=0, status="pending")  # Placeholder total_price
+    print("🔍 Inside checkout_session function")
+    is_guest = user is None
+
+    if is_guest:
+        guest_email = cart.guest_email
+        guest_name = cart.guest_name
+        if not guest_email:
+            raise HTTPException(status_code=400, detail="Guest email is required.")
+        user_id = None
+    else:
+        user_id = user["sub"]
+
+    # Create the Order in DB
+    order = Order(
+        user_id=user_id,
+        total_price=0,
+        status="pending",
+        guest_name=guest_name if is_guest else None,
+        guest_email=guest_email if is_guest else None,
+    )
     db.add(order)
     db.commit()
 
@@ -50,7 +66,6 @@ def create_checkout_session(cart: CartSchema, user=Depends(verify_clerk_token), 
 
     try:
         for item in cart.items:
-
             order_item = OrderItem(
                 order_id=order.id,
                 product_id=item.product.id,
@@ -60,7 +75,6 @@ def create_checkout_session(cart: CartSchema, user=Depends(verify_clerk_token), 
             )
             db.add(order_item)
 
-            # Prepare Stripe line item
             line_items.append({
                 "price_data": {
                     "currency": "usd",
@@ -77,18 +91,23 @@ def create_checkout_session(cart: CartSchema, user=Depends(verify_clerk_token), 
 
         db.commit()
 
-        # Create Stripe Checkout Session
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=["card"],
             mode="payment",
-            line_items=line_items,  # Use dynamic line items from the cart
-            metadata={"order_id": str(order.id), "user_id": user_id},
-            success_url=f"{DOMAIN_URL}/success",  # Your success URL
-            cancel_url=f"{DOMAIN_URL}/cart",    # Your cancel URL
-            client_reference_id=user_id,  # Pass the order ID to Stripe
+            line_items=line_items,
+            metadata={
+                "order_id": str(order.id),
+                "user_id": user_id or "guest",
+                "guest_name": guest_name or "",
+            },
+            success_url=f"{DOMAIN_URL}/success",
+            cancel_url=f"{DOMAIN_URL}/cart",
+            client_reference_id=user_id or guest_email,
+            customer_email=guest_email if is_guest else user["email_addresses"][0]["email_address"],
         )
 
         return {"url": checkout_session.url}
+
     except stripe.error.StripeError as e:
         raise HTTPException(status_code=500, detail=f"Stripe error: {e.user_message}")
     except Exception as e:

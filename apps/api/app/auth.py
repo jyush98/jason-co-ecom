@@ -50,3 +50,12 @@ def verify_clerk_token(request: Request, token: str = Depends(get_token)):
         print(f"❌ Invalid token: {e}")
         raise HTTPException(status_code=401, detail="Invalid token")
 
+def verify_clerk_token_optional(request: Request, token: str = Depends(get_token)):
+    auth_header = request.headers.get("authorization")
+
+    if auth_header and auth_header.startswith("Bearer "):
+        token = auth_header.replace("Bearer ", "")
+        return verify_clerk_token(request, token=token)
+
+    # No token provided → treat as guest
+    return None

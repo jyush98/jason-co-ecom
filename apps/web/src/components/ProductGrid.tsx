@@ -58,7 +58,7 @@ export default function ProductGrid({ products }: ProductGridProps) {
                     <h3 className="text-lg font-medium">{product.name}</h3>
                     <p className="text-sm text-white/70">${product.price.toFixed(2)}</p>
                   </div>
-                  <AddToCartButton productId={product.id} aria-label={`Add ${product.name} to cart`} />
+                  <AddToCartButton productId={product.id} productName={product.name} productPrice={product.price} productImageUrl={product.image_url} aria-label={`Add ${product.name} to cart`} />
                 </div>
               </motion.div>
             </Link>

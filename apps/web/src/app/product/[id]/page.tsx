@@ -78,7 +78,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </div>
 
           <hr className="border-t border-white/20" />
-          <AddToCartButton productId={product.id} fullWidth />
+          <AddToCartButton productId={product.id} productName={product.name} productPrice={product.price} productImageUrl={product.image_url} fullWidth />
 
           {product.description && (
             <p className="text-base text-white/80 leading-relaxed">{product.description}</p>
