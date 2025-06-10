@@ -17,9 +17,9 @@ def get_token(authorization: str = Header(None)):
 
 def verify_clerk_token(request: Request, token: str = Depends(get_token)):
     """Verifies the Clerk JWT using the public JWKS, skipping `aud` validation."""
-    
+
     print("Authenticating...")
-    
+
     if "stripe-signature" in request.headers:
         print("✅ Stripe webhook detected. Skipping authentication.")
         return None  # Skip token validation
@@ -50,7 +50,7 @@ def verify_clerk_token(request: Request, token: str = Depends(get_token)):
         print(f"❌ Invalid token: {e}")
         raise HTTPException(status_code=401, detail="Invalid token")
 
-def verify_clerk_token_optional(request: Request, token: str = Depends(get_token)):
+def verify_clerk_token_optional(request: Request):
     auth_header = request.headers.get("authorization")
 
     if auth_header and auth_header.startswith("Bearer "):

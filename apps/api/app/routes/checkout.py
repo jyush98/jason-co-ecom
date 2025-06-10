@@ -43,7 +43,6 @@ def create_checkout_session(
 
     if is_guest:
         guest_email = cart.guest_email
-        guest_name = cart.guest_name
         if not guest_email:
             raise HTTPException(status_code=400, detail="Guest email is required.")
         user_id = None
@@ -55,7 +54,6 @@ def create_checkout_session(
         user_id=user_id,
         total_price=0,
         status="pending",
-        guest_name=guest_name if is_guest else None,
         guest_email=guest_email if is_guest else None,
     )
     db.add(order)
@@ -98,7 +96,6 @@ def create_checkout_session(
             metadata={
                 "order_id": str(order.id),
                 "user_id": user_id or "guest",
-                "guest_name": guest_name or "",
             },
             success_url=f"{DOMAIN_URL}/success",
             cancel_url=f"{DOMAIN_URL}/cart",

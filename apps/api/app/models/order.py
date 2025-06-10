@@ -7,7 +7,7 @@ class Order(Base):
     __tablename__ = "orders"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(String, nullable=False)
+    user_id = Column(String, nullable=True)
     total_price = Column(Float, nullable=False)
     status = Column(String, default="pending")  # 'pending', 'completed', 'failed'
     created_at = Column(DateTime, default=datetime.utcnow)

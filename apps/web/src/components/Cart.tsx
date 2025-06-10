@@ -115,7 +115,7 @@ export default function Cart() {
   };
 
   const handleCheckout = async () => {
-    if (!isSignedIn && (!guestName.trim() || !guestEmail.trim())) {
+    if (!isSignedIn && !guestEmail.trim()) {
       alert("Please enter your name and email to checkout as a guest.");
       return;
     }
@@ -126,7 +126,6 @@ export default function Cart() {
 
       const requestBody = {
         items: cart,
-        guest_name: isSignedIn ? undefined : guestName,
         guest_email: isSignedIn ? undefined : guestEmail,
       };
 
@@ -241,14 +240,6 @@ export default function Cart() {
 
           {!isSignedIn && (
             <div className="mb-6 space-y-2">
-              <input
-                type="text"
-                placeholder="Name"
-                value={guestName}
-                onChange={(e) => setGuestName(e.target.value)}
-                className="w-full p-2 border border-white/30 rounded bg-black placeholder-white/50 text-white"
-                required
-              />
               <input
                 type="email"
                 placeholder="Email"

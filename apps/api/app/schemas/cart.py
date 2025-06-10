@@ -4,9 +4,7 @@ from .cartItem import CartItemSchema
 
 class CartSchema(BaseModel):
     items: list[CartItemSchema]
-    guest_name: Optional[str] = None
     guest_email: Optional[EmailStr] = None
 
     class Config:
         from_attributes = True
-

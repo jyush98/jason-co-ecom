@@ -4,13 +4,13 @@ from typing import Optional, List, Dict
 class ProductSchema(BaseModel):
     id: int
     name: str
-    description: Optional[str]
+    description: Optional[str] = None
     price: float
     image_url: Optional[str]
     image_urls: Optional[List[str]] = []
-    category: str
-    featured: bool
+    category: Optional[str] = None
+    featured: Optional[bool] = None
     details: Optional[Dict[str, str]] = {}
 
     class Config:
-        from_attributes = True  # ✅ Allows conversion from SQLAlchemy models
+        from_attributes = True  # Allows conversion from SQLAlchemy models
