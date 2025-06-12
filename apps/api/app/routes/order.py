@@ -21,3 +21,10 @@ def get_recent_order(user=Depends(verify_clerk_token), db: Session = Depends(get
         raise HTTPException(status_code=404, detail="No recent order found")
 
     return order
+
+@router.get("/orders/guest/{email}", response_model=OrderSchema)
+def get_guest_order(email: str, db: Session = Depends(get_db)):
+    order = db.query(Order).filter(Order.guest_email == email).order_by(Order.created_at.desc()).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    return order

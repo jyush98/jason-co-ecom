@@ -1,5 +1,5 @@
 import os
-from typing import List, Optional
+from typing import Optional
 import stripe
 import requests
 from fastapi import APIRouter, HTTPException, Depends
@@ -14,7 +14,6 @@ load_dotenv()  # Load the .env file variables
 
 router = APIRouter()
 
-# ✅ Initialize Stripe with Secret Key
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 CLERK_API_KEY = os.getenv("CLERK_SECRET_KEY")
 DOMAIN_URL = os.getenv("DOMAIN_URL", "http://localhost:3000")
@@ -46,8 +45,11 @@ def create_checkout_session(
         if not guest_email:
             raise HTTPException(status_code=400, detail="Guest email is required.")
         user_id = None
+        customer_email = guest_email
     else:
         user_id = user["sub"]
+        clerk_user = get_user_details(user_id)
+        customer_email = clerk_user.get("email_addresses", [{}])[0].get("email_address")
 
     # Create the Order in DB
     order = Order(
@@ -87,6 +89,7 @@ def create_checkout_session(
 
             total_price += item.product.price * item.quantity
 
+        order.total_price = total_price
         db.commit()
 
         checkout_session = stripe.checkout.Session.create(
@@ -100,7 +103,7 @@ def create_checkout_session(
             success_url=f"{DOMAIN_URL}/success",
             cancel_url=f"{DOMAIN_URL}/cart",
             client_reference_id=user_id or guest_email,
-            customer_email=guest_email if is_guest else user["email_addresses"][0]["email_address"],
+            customer_email=customer_email,
         )
 
         return {"url": checkout_session.url}

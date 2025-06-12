@@ -30,14 +30,25 @@ export default function SuccessPage() {
   useEffect(() => {
     const fetchOrder = async () => {
       const token = await getToken();
-      if (!token) return;
+      let endpoint = "";
+      let headers: Record<string, string> = {};
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/orders/recent`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      if (token) {
+        // Logged-in user
+        endpoint = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/orders/recent`;
+        headers["Authorization"] = `Bearer ${token}`;
+      } else {
+        // Guest user
+        const guestEmail = localStorage.getItem("guest_email");
+        if (!guestEmail) {
+          console.log(!guestEmail ? "No Email" : guestEmail);
+          return;
+        }
 
+        endpoint = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/orders/guest/${guestEmail}`;
+      }
+
+      const res = await fetch(endpoint, { headers });
       if (res.ok) {
         const data = await res.json();
         setOrder(data);
@@ -46,6 +57,7 @@ export default function SuccessPage() {
       setLoading(false);
       setCartCount(0);
     };
+
 
     fetchOrder();
   }, [getToken, setCartCount]);
