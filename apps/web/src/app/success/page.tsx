@@ -31,7 +31,7 @@ export default function SuccessPage() {
     const fetchOrder = async () => {
       const token = await getToken();
       let endpoint = "";
-      let headers: Record<string, string> = {};
+      const headers: Record<string, string> = {};
 
       if (token) {
         // Logged-in user

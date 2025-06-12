@@ -26,7 +26,7 @@ export default function Cart() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [totalPrice, setTotalPrice] = useState<number>(0);
-    const [guestName, setGuestName] = useState("");
+    // const [guestName, setGuestName] = useState("");
     const [guestEmail, setGuestEmail] = useState("");
     const [checkingOut, setCheckingOut] = useState(false);
 
