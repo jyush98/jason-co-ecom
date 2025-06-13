@@ -33,7 +33,7 @@ export default function AddToCartButton({
     if (isSignedIn) {
       const token = await getToken();
       if (!token) return;
-
+  
       await addToCart(productId, 1, token);
       await fetchCartCount(token);
     } else {
@@ -47,10 +47,11 @@ export default function AddToCartButton({
           image_url: productImageUrl,
         },
       });
+      setCartCount(useGuestCartStore.getState().getCount());
     }
-    setCartCount(useGuestCartStore.getState().getCount());
     setAdding(false);
   };
+  
 
   return (
     <button
