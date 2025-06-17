@@ -16,6 +16,13 @@ const nextConfig = {
       'www.shutterstock.com',
       'johnnysaintstudio.com',
     ],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'jasonco-inspiration-images.s3.us-east-2.amazonaws.com',
+        pathname: '/**',
+      },
+    ]
   },
 };
 

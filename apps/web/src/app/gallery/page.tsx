@@ -1,9 +1,9 @@
-'use client'
+import Gallery from "./Gallery";
 
-import ComingSoon from "@/components/ComingSoon";
-
-export default function ContactPage() {
+export default function GalleryPage() {
     return (
-        <ComingSoon/>
+        <main className="min-h-screen bg-black text-white pt-[var(--navbar-height)]">
+            <Gallery />
+        </main>
     );
 }
