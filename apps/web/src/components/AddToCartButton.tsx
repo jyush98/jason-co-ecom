@@ -33,7 +33,7 @@ export default function AddToCartButton({
     if (isSignedIn) {
       const token = await getToken();
       if (!token) return;
-  
+
       await addToCart(productId, 1, token);
       await fetchCartCount(token);
     } else {
@@ -51,7 +51,7 @@ export default function AddToCartButton({
     }
     setAdding(false);
   };
-  
+
 
   return (
     <button
@@ -60,9 +60,8 @@ export default function AddToCartButton({
         handleAddToCart();
       }}
       disabled={adding}
-      className={`bg-black text-white px-6 py-3 text-sm rounded hover:bg-gray-800 transition disabled:opacity-50 ${
-        fullWidth ? "w-full" : "inline-block"
-      }`}
+      className={`bg-black text-white px-6 py-3 text-sm rounded hover:bg-gray-800 transition disabled:opacity-50 ${fullWidth ? "w-full" : "inline-block"
+        }`}
     >
       {adding ? "Adding..." : "Add to Cart"}
     </button>
