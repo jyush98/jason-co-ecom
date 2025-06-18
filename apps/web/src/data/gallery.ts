@@ -42,26 +42,26 @@ export const galleryItemsBasic: GalleryItemType[] = [
 export const galleryItems = [
     {
         id: "1",
-        title: "Iced Out Cuban",
+        title: "Chrome Hearts Jesus Pendant",
         description: "14k yellow gold, 12ct diamonds, handmade in NYC.",
-        largeImage: "https://jasonco-inspiration-images.s3.us-east-2.amazonaws.com/gallery/chrome-hearts-jesus/IMG_0575.jpg",
+        largeImage: "https://jasonco-inspiration-images.s3.us-east-2.amazonaws.com/gallery/chrome-hearts-jesus/IMG_0621.jpg",
         portraits: [
+            "https://jasonco-inspiration-images.s3.us-east-2.amazonaws.com/gallery/chrome-hearts-jesus/IMG_0594.jpg",
             "https://jasonco-inspiration-images.s3.us-east-2.amazonaws.com/gallery/chrome-hearts-jesus/IMG_0575.jpg",
-            "https://jasonco-inspiration-images.s3.us-east-2.amazonaws.com/gallery/chrome-hearts-jesus/IMG_0575.jpg",
-            "https://jasonco-inspiration-images.s3.us-east-2.amazonaws.com/gallery/chrome-hearts-jesus/IMG_0575.jpg",
+            "https://jasonco-inspiration-images.s3.us-east-2.amazonaws.com/gallery/chrome-hearts-jesus/IMG_0603.jpg",
         ],
-        category: "Chains",
+        category: "Pendants",
     },
     {
         id: "2",
-        title: "Custom Pendant Set",
+        title: "Chrome Hearts Bracelet",
         description: "Diamond letter pendant set with matching bracelet.",
-        largeImage: "https://jasonco-inspiration-images.s3.us-east-2.amazonaws.com/gallery/chrome-hearts-jesus/IMG_0575.jpg",
+        largeImage: "https://jasonco-inspiration-images.s3.us-east-2.amazonaws.com/gallery/chrome-hearts-bracelet/IMG_0554.jpg",
         portraits: [
-            "https://jasonco-inspiration-images.s3.us-east-2.amazonaws.com/gallery/chrome-hearts-jesus/IMG_0575.jpg",
-            "https://jasonco-inspiration-images.s3.us-east-2.amazonaws.com/gallery/chrome-hearts-jesus/IMG_0575.jpg",
-            "https://jasonco-inspiration-images.s3.us-east-2.amazonaws.com/gallery/chrome-hearts-jesus/IMG_0575.jpg",
+            "https://jasonco-inspiration-images.s3.us-east-2.amazonaws.com/gallery/chrome-hearts-bracelet/IMG_0565.jpg",
+            "https://jasonco-inspiration-images.s3.us-east-2.amazonaws.com/gallery/chrome-hearts-bracelet/IMG_0552.jpg",
+            "https://jasonco-inspiration-images.s3.us-east-2.amazonaws.com/gallery/chrome-hearts-bracelet/IMG_0568.jpg",
         ],
-        category: "Chains",
+        category: "Bracelets",
     },
 ];
