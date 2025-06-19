@@ -51,7 +51,7 @@ export default function CategoriesCarousel() {
     }, [instanceRef]);
 
     return (
-        <section className="py-24 bg-black text-white dark:bg-white dark:text-black transition-colors duration-300">
+        <section className="py-24 bg-white text-black dark:bg-black dark:text-white transition-colors duration-300">
             <h2 className="text-4xl font-sans text-center mb-10 uppercase tracking-wide">Categories</h2>
 
             <div ref={sliderRef} className="keen-slider">
@@ -91,8 +91,8 @@ export default function CategoriesCarousel() {
                     >
                         <button
                             className={`transition-all rounded h-1 w-8 ${currentSlide === idx
-                                ? "bg-white dark:bg-black"
-                                : "bg-gray-600 dark:bg-gray-300 hover:bg-white dark:hover:bg-black"
+                                ? "bg-black dark:bg-white"
+                                : "bg-gray-300 dark:bg-gray-600 hover:bg-black dark:hover:bg-white"
                                 }`}
                             aria-label={`Go to ${cat.name}`}
                         />

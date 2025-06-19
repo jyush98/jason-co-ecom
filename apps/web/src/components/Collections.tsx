@@ -23,14 +23,14 @@ const collections = [
 
 export default function CollectionsSection() {
   return (
-    <section className="py-20 bg-black text-white dark:bg-white dark:text-black transition-colors duration-300">
+    <section className="py-20 bg-white text-black dark:bg-black dark:text-white transition-colors duration-300">
       <h2 className="text-4xl font-sans uppercase text-center mb-12 tracking-wide">
         Collections
       </h2>
 
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 px-4">
         {/* Left Column: Large Feature Image */}
-        <div className="relative group overflow-hidden rounded-none outline outline-1 outline-white dark:outline-black">
+        <div className="relative group overflow-hidden rounded-none outline outline-1 outline-black dark:outline-white">
           <Image
             src={collections[0].image}
             alt={collections[0].name}
@@ -54,7 +54,7 @@ export default function CollectionsSection() {
           {collections.slice(1).map((col, index) => (
             <div
               key={index}
-              className="relative group overflow-hidden rounded-none outline outline-1 outline-white dark:outline-black"
+              className="relative group overflow-hidden rounded-none outline outline-1 outline-black dark:outline-white"
             >
               <Image
                 src={col.image}

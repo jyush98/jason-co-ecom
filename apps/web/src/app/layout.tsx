@@ -19,7 +19,7 @@ export default function RootLayout({
       signUpFallbackRedirectUrl="/"
       signUpForceRedirectUrl="/"
     >
-      <html lang="en">
+      <html lang="en" className="dark">
         <Head>
           <title>Jason & Co.</title>
           <meta name="description" content="Jason & Co." />
