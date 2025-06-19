@@ -16,6 +16,17 @@ body {
   @apply bg-gradient-to-b from-gray-900 to-black text-white;
 }
 
+html.dark {
+  background-color: #000;
+  color: #fff;
+}
+
+html.light {
+  background-color: #fff;
+  color: #000;
+}
+
+
 html, body {
   min-height: 100vh;  /* Ensures full-page height */
   margin: 0;

@@ -9,6 +9,7 @@ import { useCartStore } from "@/app/store/cartStore";
 import { getCart } from "@/utils/cart";
 import { motion, AnimatePresence } from "framer-motion";
 import FullScreenMenu from "@/components/FullScreenMenu";
+import ThemeToggle from "./ThemeToggle";
 
 const categories = [
   { name: "All Jewelry", path: "/shop" },
@@ -86,9 +87,13 @@ export default function NavbarClient() {
     <header className="fixed top-0 left-0 w-full bg-black z-50 text-white shadow-md">
       {/* Top Row */}
       <div className="flex justify-between items-center px-4 py-3 h-[85px]">
-        <button onClick={toggleMenu}>
-          {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
+        <div className="flex items-center space-x-3">
+          <button onClick={toggleMenu}>
+            {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+          <ThemeToggle /> {/* ✅ Toggle sits to the right of the menu icon */}
+        </div>
+
         <Link href="/" className="mx-auto" onClick={() => setMenuOpen(false)}>
           <Image src="/logo.jpg" alt="Jason & Co." width={200} height={100} priority />
         </Link>

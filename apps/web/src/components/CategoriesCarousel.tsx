@@ -12,7 +12,7 @@ const categories = [
     { name: "Rings", image: "/images/collection3.png", path: "/shop?category=rings" },
     { name: "Earrings", image: "/images/collection1.png", path: "/shop?category=earrings" },
     { name: "Watches", image: "/images/collection2.png", path: "/shop?category=watches" },
-    { name: "Grillz", image: "/images/collection3.png", path: "/shop?category=grillz" }
+    { name: "Grillz", image: "/images/collection3.png", path: "/shop?category=grillz" },
 ];
 
 export default function CategoriesCarousel() {
@@ -21,17 +21,17 @@ export default function CategoriesCarousel() {
         loop: true,
         slides: {
             origin: "center",
-            perView: 4, // Show 5 slides (half + 3 full + half)
+            perView: 4,
             spacing: 40,
         },
         mode: "free-snap",
         rubberband: false,
         breakpoints: {
             "(max-width: 768px)": {
-                slides: { perView: 3, spacing: 8 }, // Adjust for tablet
+                slides: { perView: 3, spacing: 8 },
             },
             "(max-width: 480px)": {
-                slides: { perView: 1.5, spacing: 4 }, // Half-image effect on mobile
+                slides: { perView: 1.5, spacing: 4 },
             },
         },
         slideChanged(slider) {
@@ -51,14 +51,14 @@ export default function CategoriesCarousel() {
     }, [instanceRef]);
 
     return (
-        <section className="py-24 bg-black text-white">
-            <h2 className="text-4xl font-sans text-center mb-10">Categories</h2>
+        <section className="py-24 bg-black text-white dark:bg-white dark:text-black transition-colors duration-300">
+            <h2 className="text-4xl font-sans text-center mb-10 uppercase tracking-wide">Categories</h2>
 
             <div ref={sliderRef} className="keen-slider">
                 {categories.map((cat, idx) => (
                     <div
                         key={idx}
-                        className="keen-slider__slide relative overflow-hidden rounded-lg cursor-pointer"
+                        className="keen-slider__slide relative overflow-hidden rounded-none cursor-pointer"
                         onClick={() => scrollToSlide(idx)}
                     >
                         <Image
@@ -67,12 +67,15 @@ export default function CategoriesCarousel() {
                             width={600}
                             height={400}
                             className="object-cover w-full h-full"
-                            priority={idx < 3} // Prioritize loading first few images
+                            priority={idx < 3}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
                         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-                            <Link href={cat.path} className="text-white text-lg font-medium hover:underline">
-                                {cat.name}
+                            <Link
+                                href={cat.path}
+                                className="px-4 py-1.5 border border-white text-white uppercase tracking-wide text-sm hover:bg-white hover:text-black transition"
+                            >
+                                → {cat.name.toUpperCase()}
                             </Link>
                         </div>
                     </div>
@@ -87,7 +90,9 @@ export default function CategoriesCarousel() {
                         onClick={() => scrollToSlide(idx)}
                     >
                         <button
-                            className={`transition-all rounded h-1 w-8 ${currentSlide === idx ? "bg-white" : "bg-gray-600 hover:bg-white"
+                            className={`transition-all rounded h-1 w-8 ${currentSlide === idx
+                                ? "bg-white dark:bg-black"
+                                : "bg-gray-600 dark:bg-gray-300 hover:bg-white dark:hover:bg-black"
                                 }`}
                             aria-label={`Go to ${cat.name}`}
                         />

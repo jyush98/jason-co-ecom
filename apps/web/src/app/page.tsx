@@ -26,7 +26,7 @@ export default function Home() {
     }, []);
 
     return (
-        <main className="min-h-screen p-8 pt-navbar">
+        <main className="min-h-screen pt-navbar bg-black text-white dark:bg-white dark:text-black transition-colors duration-300">
             <Hero />
             <Collections />
             <CategoriesCarousel />

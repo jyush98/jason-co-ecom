@@ -4,6 +4,7 @@ import Navbar from '@/components/Navbar';
 import Head from 'next/head';
 import Footer from '@/components/Footer';
 import { Toaster } from 'react-hot-toast';
+import ThemeInitializer from '@/components/ThemeInitializer';
 
 export default function RootLayout({
   children,
@@ -31,6 +32,7 @@ export default function RootLayout({
           />
         </Head>
         <body className="min-h-screen flex flex-col bg-black text-white">
+          <ThemeInitializer />
           <Toaster position="top-center" />
           <header>
             <Navbar />
