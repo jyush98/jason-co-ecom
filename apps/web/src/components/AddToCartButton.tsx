@@ -3,7 +3,7 @@
 import { useAuth, useUser } from "@clerk/nextjs";
 import { addToCart } from "@/utils/cart";
 import { useCartStore } from "@/app/store/cartStore";
-import { useGuestCartStore } from "@/app/store/guestCartStore"; // ✅ new guest cart store
+import { useGuestCartStore } from "@/app/store/guestCartStore";
 import { useState } from "react";
 
 interface AddToCartButtonProps {
@@ -26,7 +26,7 @@ export default function AddToCartButton({
   const fetchCartCount = useCartStore((state) => state.fetchCartCount);
   const addGuestItem = useGuestCartStore((state) => state.addItem);
   const [adding, setAdding] = useState(false);
-  const setCartCount = useCartStore((state) => state.setCartCount)
+  const setCartCount = useCartStore((state) => state.setCartCount);
 
   const handleAddToCart = async () => {
     setAdding(true);
@@ -52,7 +52,6 @@ export default function AddToCartButton({
     setAdding(false);
   };
 
-
   return (
     <button
       onClick={(e) => {
@@ -60,10 +59,11 @@ export default function AddToCartButton({
         handleAddToCart();
       }}
       disabled={adding}
-      className={`bg-black text-white px-6 py-3 text-sm rounded hover:bg-gray-800 transition disabled:opacity-50 ${fullWidth ? "w-full" : "inline-block"
-        }`}
+      className={`px-6 py-2 border border-black text-black bg-white dark:border-white dark:text-white dark:bg-black uppercase tracking-wide text-sm hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition ${
+        fullWidth ? "w-full" : "inline-block"
+      } disabled:opacity-50`}
     >
-      {adding ? "Adding..." : "Add to Cart"}
+      {adding ? "Adding..." : "→ Add to Cart"}
     </button>
   );
 }

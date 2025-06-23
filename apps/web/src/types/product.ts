@@ -8,4 +8,5 @@ export interface Product {
     category: string;
     featured: boolean;
     details?: Record<string, string | number>;
+    display_theme?: string;
 }

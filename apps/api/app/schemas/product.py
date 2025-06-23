@@ -11,6 +11,7 @@ class ProductSchema(BaseModel):
     category: Optional[str] = None
     featured: Optional[bool] = None
     details: Optional[Dict[str, str]] = {}
+    display_theme: Optional[str] = "dark"
 
     class Config:
         from_attributes = True  # Allows conversion from SQLAlchemy models

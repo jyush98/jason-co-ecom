@@ -55,80 +55,86 @@ export default function ProductList({ initialCategory }: { initialCategory?: str
     };
 
     if (loading) {
-        return <div className="pt-[var(--navbar-height)] text-center text-white-400 text-xl">Loading...</div>;
+        return (
+            <div className="pt-[var(--navbar-height)] text-center text-black dark:text-white text-xl">
+                Loading...
+            </div>
+        );
     }
 
     return (
-        <div className="pt-[var(--navbar-height)] max-w-screen-xl mx-auto px-4 py-10">
-            <h2 className="text-4xl font-sans-serif text-center text-white uppercase tracking-wider mb-8 hidden">
+        <div className="pt-[var(--navbar-height)] max-w-screen-xl mx-auto px-4 py-20 bg-white text-black dark:bg-black dark:text-white transition-colors duration-300">
+            {/* Header */}
+            <h2 className="text-4xl font-sans uppercase text-center tracking-wider mb-12">
                 Shop All Jewelry
             </h2>
 
             {/* Controls */}
-            <div className="flex justify-center mb-8">
-                <div className="w-full md:w-[70%] flex flex-col gap-4">
+            <div className="flex justify-center mb-16">
+                <div className="w-full flex flex-wrap items-center gap-4">
+                    {/* Search Bar */}
                     <input
                         type="text"
                         placeholder="Search for a piece..."
-                        className="w-full px-6 py-3 bg-black border border-white/30 rounded-full text-white placeholder-white/40 shadow-inner focus:outline-none focus:ring-2 focus:ring-white/50 transition-all text-base"
+                        className="flex-grow px-6 py-3 h-[60px] border border-black dark:border-white bg-white text-black dark:bg-black dark:text-white placeholder-black/40 dark:placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-black/20 dark:focus:ring-white/20 transition-all text-base tracking-wide"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                     />
 
-                    <div className="flex flex-wrap gap-3 items-center justify-center md:justify-start text-sm">
-                        <select
-                            value={category}
-                            onChange={(e) => handleCategoryChange(e.target.value)}
-                            className="px-5 py-3 bg-black border border-white/30 rounded-full text-white shadow-inner focus:outline-none focus:ring-2 focus:ring-white/50 transition-all text-sm"
-                        >
-                            {categories.map((cat) => (
-                                <option key={cat} value={cat}>
-                                    {cat}
-                                </option>
-                            ))}
-                        </select>
+                    {/* Category Filter */}
+                    <select
+                        value={category}
+                        onChange={(e) => handleCategoryChange(e.target.value)}
+                        className="min-w-[140px] px-4 py-3 h-[60px] border border-black dark:border-white bg-white text-black dark:bg-black dark:text-white tracking-wide"
+                    >
+                        {categories.map((cat) => (
+                            <option key={cat} value={cat}>
+                                {cat}
+                            </option>
+                        ))}
+                    </select>
 
-                        <select
-                            value={sortBy}
-                            onChange={(e) => setSortBy(e.target.value)}
-                            className="px-5 py-3 bg-black border border-white/30 rounded-full text-white shadow-inner focus:outline-none focus:ring-2 focus:ring-white/50 transition-all text-sm"
-                        >
-                            <option value="price">Price</option>
-                            <option value="name">Name</option>
-                        </select>
-
-                        <select
-                            value={sortOrder}
-                            onChange={(e) => setSortOrder(e.target.value)}
-                            className="px-5 py-3 bg-black border border-white/30 rounded-full text-white shadow-inner focus:outline-none focus:ring-2 focus:ring-white/50 transition-all text-sm"
-                        >
-                            <option value="asc">Asc</option>
-                            <option value="desc">Desc</option>
-                        </select>
-                    </div>
+                    {/* Sort Selector */}
+                    <select
+                        value={`${sortBy}-${sortOrder}`}
+                        onChange={(e) => {
+                            const [field, direction] = e.target.value.split("-");
+                            setSortBy(field);
+                            setSortOrder(direction);
+                        }}
+                        className="min-w-[170px] px-4 py-3 h-[60px] border border-black dark:border-white bg-white text-black dark:bg-black dark:text-white tracking-wide"
+                    >
+                        <option value="price-asc">Price - Asc</option>
+                        <option value="price-desc">Price - Desc</option>
+                        <option value="name-asc">Name - Asc</option>
+                        <option value="name-desc">Name - Desc</option>
+                    </select>
                 </div>
+
             </div>
 
             {/* Product Grid or Empty State */}
             {products.length > 0 ? (
                 <ProductGrid products={products} />
             ) : (
-                <div className="text-white text-center text-lg mt-10">No results found.</div>
+                <div className="text-center text-lg mt-20 tracking-wide">
+                    No results found.
+                </div>
             )}
 
             {/* Pagination */}
-            <div className="flex justify-center mt-10">
+            <div className="flex justify-center mt-20">
                 <button
                     onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                    className="px-4 py-2 bg-white text-black rounded-lg mx-2 disabled:opacity-50"
+                    className="px-6 py-2 border border-black text-black uppercase tracking-wide hover:bg-black hover:text-white dark:border-white dark:text-white dark:hover:bg-white dark:hover:text-black transition mx-2"
                     disabled={page === 1}
                 >
                     Previous
                 </button>
-                <span className="text-white text-lg mx-4">Page {page}</span>
+                <span className="text-lg mx-4">Page {page}</span>
                 <button
                     onClick={() => setPage((prev) => prev + 1)}
-                    className="px-4 py-2 bg-white text-black rounded-lg mx-2"
+                    className="px-6 py-2 border border-black text-black uppercase tracking-wide hover:bg-black hover:text-white dark:border-white dark:text-white dark:hover:bg-white dark:hover:text-black transition mx-2"
                 >
                     Next
                 </button>
