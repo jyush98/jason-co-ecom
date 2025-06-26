@@ -13,7 +13,7 @@ export default function ProductList({ initialCategory }: { initialCategory?: str
     const router = useRouter();
 
     const [products, setProducts] = useState<Product[]>([]);
-    const [search, setSearch] = useState(searchParams?.get("name") || "");
+    const [search, setSearch] = useState("");
     const [category, setCategory] = useState<string>(initialCategory || "All");
     const [loading, setLoading] = useState<boolean>(true);
 
@@ -23,6 +23,12 @@ export default function ProductList({ initialCategory }: { initialCategory?: str
     const [sortOrder, setSortOrder] = useState("asc");
 
     const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+
+    useEffect(() => {
+        const querySearch = searchParams?.get("search") || "";
+        setSearch(querySearch);
+      }, [searchParams]);
+      
 
     const getProducts = useCallback(() => {
         setLoading(true);

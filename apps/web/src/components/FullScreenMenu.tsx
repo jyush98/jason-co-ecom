@@ -21,24 +21,9 @@ const FullscreenMenu = ({
     onClose,
 }: FullscreenMenuProps) => {
     const [search, setSearch] = useState("");
-    const [, setResults] = useState<Product[]>([]);
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [showMenu, setShowMenu] = useState(true);
     const router = useRouter();
-
-    useEffect(() => {
-        const delayDebounce = setTimeout(() => {
-            if (search.trim() !== "") {
-                fetchProducts({ name: search })
-                    .then(setResults)
-                    .catch(() => setResults([]));
-            } else {
-                setResults([]);
-            }
-        }, 300);
-
-        return () => clearTimeout(delayDebounce);
-    }, [search]);
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter" && search.trim()) {
@@ -66,14 +51,14 @@ const FullscreenMenu = ({
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0, transition: { duration: 0.3 } }}
-                        className="fixed left-0 right-0 top-[85px] bottom-0 bg-black text-white z-40 flex"
+                        className="fixed left-0 right-0 top-[85px] bottom-0 bg-white text-black dark:bg-black dark:text-white z-40 flex"
                     >
                         {/* Left Side: Search + Category Links */}
                         <div className="w-1/2 pl-[15%] pr-4 py-10 flex flex-col justify-start space-y-8 relative">
                             <input
                                 type="text"
                                 placeholder="Search..."
-                                className="bg-transparent border-b border-white text-white text-2xl p-2 mb-4 outline-none placeholder-gray-400"
+                                className="bg-transparent border-b border-white text-2xl p-2 mb-4 outline-none placeholder-gray-400"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 onKeyDown={handleKeyDown}
@@ -102,7 +87,7 @@ const FullscreenMenu = ({
                                 alt="Preview"
                                 width={400}
                                 height={400}
-                                className="object-cover rounded-lg"
+                                className="object-cover"
                             />
                         </div>
                     </motion.div>

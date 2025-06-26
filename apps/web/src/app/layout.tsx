@@ -5,6 +5,7 @@ import Head from 'next/head';
 import Footer from '@/components/Footer';
 import { Toaster } from 'react-hot-toast';
 import ThemeInitializer from '@/components/ThemeInitializer';
+import { ThemeProvider } from 'next-themes';
 
 export default function RootLayout({
   children,
@@ -19,7 +20,7 @@ export default function RootLayout({
       signUpFallbackRedirectUrl="/"
       signUpForceRedirectUrl="/"
     >
-      <html lang="en" className="dark">
+      <html lang="en" suppressHydrationWarning>
         <Head>
           <title>Jason & Co.</title>
           <meta name="description" content="Jason & Co." />
@@ -31,16 +32,18 @@ export default function RootLayout({
             rel="stylesheet"
           />
         </Head>
-        <body className="min-h-screen flex flex-col bg-black text-white">
-          <ThemeInitializer />
-          <Toaster position="top-center" />
-          <header>
-            <Navbar />
-          </header>
-          <main className="flex-grow">{children}</main>
-          <footer>
-            <Footer />
-          </footer>
+        <body className="min-h-screen flex flex-col">
+          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+            <ThemeInitializer />
+            <Toaster position="top-center" />
+            <header>
+              <Navbar />
+            </header>
+            <main className="flex-grow">{children}</main>
+            <footer>
+              <Footer />
+            </footer>
+          </ThemeProvider>
         </body>
       </html>
     </ClerkProvider>

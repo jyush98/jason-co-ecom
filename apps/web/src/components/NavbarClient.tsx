@@ -3,13 +3,13 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, X, ShoppingCart } from "lucide-react";
+import { Menu, X, ShoppingCart, Sun, Moon } from "lucide-react";
 import { SignedIn, SignedOut, SignInButton, UserButton, useAuth } from "@clerk/nextjs";
 import { useCartStore } from "@/app/store/cartStore";
 import { getCart } from "@/utils/cart";
 import { motion, AnimatePresence } from "framer-motion";
 import FullScreenMenu from "@/components/FullScreenMenu";
-import ThemeToggle from "./ThemeToggle";
+import { useTheme } from "next-themes";
 
 const categories = [
   { name: "All Jewelry", path: "/shop" },
@@ -44,6 +44,8 @@ export default function NavbarClient() {
   const cartCount = useCartStore((state) => state.cartCount);
   const setCartCount = useCartStore((state) => state.setCartCount);
 
+  const { resolvedTheme, setTheme } = useTheme();
+
   useEffect(() => {
     const fetchCart = async () => {
       const token = await getToken();
@@ -77,6 +79,10 @@ export default function NavbarClient() {
     setHoverImage("/default.jpg");
   };
 
+  const toggleTheme = () => {
+    setTheme(resolvedTheme === "dark" ? "light" : "dark");
+  };
+
   const handleDropdownLinkClick = () => {
     if (window.innerWidth < 768) {
       setIsDropdownOpen(false);
@@ -84,24 +90,33 @@ export default function NavbarClient() {
   };
 
   return (
-    <header className="fixed top-0 left-0 w-full bg-black z-50 text-white shadow-md">
+    <header className="fixed top-0 left-0 w-full z-50 bg-white text-black dark:text-white shadow-md dark:bg-black transition-colors">
       {/* Top Row */}
       <div className="flex justify-between items-center px-4 py-3 h-[85px]">
         <div className="flex items-center space-x-3">
           <button onClick={toggleMenu}>
             {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
-          <ThemeToggle /> {/* ✅ Toggle sits to the right of the menu icon */}
+          <button onClick={toggleTheme} aria-label="Toggle Theme">
+            {resolvedTheme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </button>
         </div>
 
         <Link href="/" className="mx-auto" onClick={() => setMenuOpen(false)}>
-          <Image src="/logo.jpg" alt="Jason & Co." width={200} height={100} priority />
+          <Image
+            src={resolvedTheme === "dark" ? "/logo-dark.png" : "/logo-light.png"}
+            alt="Jason & Co."
+            width={200}
+            height={100}
+            priority
+          />
         </Link>
+
         <div className="flex items-center space-x-4">
           <Link href="/cart" className="relative">
             <ShoppingCart className="w-6 h-6" />
             {cartCount > 0 && (
-              <span className="absolute -top-2 -right-2 bg-white text-black text-xs font-bold px-1.5 py-0.5 rounded-full">
+              <span className="absolute -top-2 -right-2 bg-black dark:bg-white text-white dark:text-black text-xs font-bold px-1.5 py-0.5 rounded-full">
                 {cartCount}
               </span>
             )}
@@ -157,7 +172,7 @@ export default function NavbarClient() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.3 }}
-            className="absolute left-0 right-0 top-full w-full bg-black text-white py-10 shadow-lg"
+            className="absolute left-0 right-0 top-full w-full bg-white dark:bg-black text-black dark:text-white py-10 shadow-lg"
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
@@ -226,7 +241,6 @@ export default function NavbarClient() {
           </motion.div>
         )}
       </AnimatePresence>
-
 
       {/* Fullscreen Menu */}
       {menuOpen && (
