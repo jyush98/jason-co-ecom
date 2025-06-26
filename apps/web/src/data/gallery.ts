@@ -50,7 +50,9 @@ export const galleryItems = [
             "https://jasonco-inspiration-images.s3.us-east-2.amazonaws.com/gallery/chrome-hearts-jesus/IMG_0575.jpg",
             "https://jasonco-inspiration-images.s3.us-east-2.amazonaws.com/gallery/chrome-hearts-jesus/IMG_0603.jpg",
         ],
-        category: "Pendants",
+        category: "Pendant",
+        objectPosition: "0%_10%",
+        collection: "Chrome Hearts",
     },
     {
         id: "2",
@@ -62,6 +64,7 @@ export const galleryItems = [
             "https://jasonco-inspiration-images.s3.us-east-2.amazonaws.com/gallery/chrome-hearts-bracelet/IMG_0552.jpg",
             "https://jasonco-inspiration-images.s3.us-east-2.amazonaws.com/gallery/chrome-hearts-bracelet/IMG_0568.jpg",
         ],
-        category: "Bracelets",
+        category: "Bracelet",
+        collection: "Chrome Hearts"
     },
 ];

@@ -57,14 +57,14 @@ export default function ProductImageGallery({ images }: ProductImageGalleryProps
               className={`relative min-w-[64px] md:min-w-0 w-16 h-16 cursor-pointer border ${selectedImage === img ? "border-white" : "border-transparent"
                 }`}
             >
-              <Image src={img} alt={`Thumb ${index}`} fill className="object-cover rounded-md" />
+              <Image src={img} alt={`Thumb ${index}`} fill className="object-cover" />
             </div>
           ))}
         </div>
 
         {/* Main Image */}
         <div
-          className="relative w-full aspect-square overflow-hidden rounded-2xl shadow-lg cursor-zoom-in"
+          className="relative w-full aspect-square overflow-hidden shadow-lg border border-white cursor-zoom-in"
           onClick={() => setModalOpen(true)}
         >
           <Image
@@ -119,7 +119,7 @@ export default function ProductImageGallery({ images }: ProductImageGalleryProps
 
           {/* Image Frame */}
           <div
-            className={`relative w-[600px] h-[600px] max-w-full max-h-[80vh] rounded-md border border-white/50 bg-black shadow-xl overflow-hidden transition-transform duration-300 ${zoomed ? "cursor-move scale-125" : "cursor-zoom-in"
+            className={`relative w-[600px] h-[600px] max-w-full max-h-[80vh] border border-white/50 bg-black shadow-xl overflow-hidden transition-transform duration-300 ${zoomed ? "cursor-move scale-125" : "cursor-zoom-in"
               }`}
             onClick={(e) => {
               e.stopPropagation();
