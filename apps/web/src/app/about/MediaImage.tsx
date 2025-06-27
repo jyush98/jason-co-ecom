@@ -14,7 +14,7 @@ export default function MediaImage({ image, alt = 'Media item' }: MediaImageProp
                 src={image}
                 alt={alt}
                 fill
-                className="object-cover rounded-md"
+                className="object-cover rounded-sm"
             />
         </div>
     )

@@ -1,4 +1,4 @@
-import { GalleryItemType } from "@/types/gallery";
+import { GalleryElegantItemType, GalleryItemType } from "@/types/gallery";
 
 export const galleryItemsBasic: GalleryItemType[] = [
     {
@@ -39,7 +39,7 @@ export const galleryItemsBasic: GalleryItemType[] = [
     },
 ];
 
-export const galleryItems = [
+export const galleryItems: GalleryElegantItemType[] = [
     {
         id: "1",
         title: "Chrome Hearts Jesus Pendant",

@@ -167,7 +167,7 @@ export default function Cart() {
     if (error) return <p className="text-red-500">{error}</p>;
 
     return (
-        <div className="max-w-4xl mx-auto p-4 text-white">
+        <div className="max-w-4xl mx-auto p-4">
             <h2 className="text-3xl font-bold mb-6 text-center mt-10">Your Cart</h2>
             {cart.length === 0 ? (
                 <p className="px-4 py-12 text-center">Your cart is empty.</p>
@@ -182,7 +182,7 @@ export default function Cart() {
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -10 }}
                                     transition={{ duration: 0.25 }}
-                                    className="flex flex-col md:flex-row items-center justify-between gap-4 border border-white/10 rounded-lg p-4 bg-white/5"
+                                    className="flex flex-col md:flex-row items-center justify-between gap-4 border border-black bg-slate-50 dark:border-white/10 rounded-lg p-4 dark:bg-white/5"
                                 >
                                     <div className="flex items-center gap-4 w-full md:w-1/2">
                                         <img
@@ -194,7 +194,7 @@ export default function Cart() {
                                             <h3 className="text-lg font-semibold">
                                                 {item.product.name}
                                             </h3>
-                                            <p className="text-sm text-white/60">
+                                            <p className="text-sm dark:text-white/60">
                                                 ${item.product.price.toFixed(2)}
                                             </p>
                                         </div>
@@ -205,7 +205,7 @@ export default function Cart() {
                                             <button
                                                 onClick={() => updateQuantity(item.product_id, -1)}
                                                 disabled={item.quantity <= 1}
-                                                className="w-8 h-8 rounded-full border border-white disabled:opacity-50"
+                                                className="w-8 h-8 rounded-full border border-black dark:border-white disabled:opacity-50"
                                             >
                                                 -
                                             </button>
@@ -220,14 +220,14 @@ export default function Cart() {
                                             </motion.span>
                                             <button
                                                 onClick={() => updateQuantity(item.product_id, 1)}
-                                                className="w-8 h-8 rounded-full border border-white"
+                                                className="w-8 h-8 rounded-full border border-black dark:border-white"
                                             >
                                                 +
                                             </button>
                                         </div>
                                         <button
                                             onClick={() => handleRemove(item.product_id)}
-                                            className="text-xs underline text-white/60 hover:text-red-400"
+                                            className="text-xs underline dark:text-white/60 hover:text-red-400"
                                         >
                                             Remove
                                         </button>
@@ -248,7 +248,7 @@ export default function Cart() {
                                 placeholder="Email"
                                 value={guestEmail}
                                 onChange={(e) => setGuestEmail(e.target.value)}
-                                className="w-full p-2 border border-white/30 rounded bg-black placeholder-white/50 text-white"
+                                className="w-full p-2 border border-black dark:border-white/30 rounded dark:bg-black dark:placeholder-white/50 text-black dark:text-white"
                                 required
                             />
                         </div>
@@ -258,7 +258,7 @@ export default function Cart() {
                         <button
                             onClick={handleCheckout}
                             disabled={checkingOut}
-                            className="w-full md:w-auto px-6 py-3 rounded-full bg-white text-black font-medium hover:bg-gray-200 transition disabled:opacity-50"
+                            className="w-full md:w-auto px-6 py-3 rounded-full border border-black bg-white text-black font-medium hover:bg-gray-200 transition disabled:opacity-50"
                         >
                             {checkingOut ? "Redirecting..." : "Checkout with Stripe"}
                         </button>

@@ -16,6 +16,10 @@ body {
   @apply bg-gradient-to-b from-gray-900 to-black text-white;
 }
 
+body.light {
+  background-color: #fff;
+}
+
 html.dark {
   background-color: #000;
   color: #fff;

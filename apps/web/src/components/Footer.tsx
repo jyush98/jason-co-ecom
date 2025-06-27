@@ -2,10 +2,14 @@
 
 import Image from "next/image";
 import { FaInstagram, FaTiktok, FaEnvelope } from "react-icons/fa";
+import { useTheme } from "next-themes";
 
 export default function Footer() {
+
+  const { resolvedTheme, setTheme } = useTheme();
+
   return (
-    <footer className="bg-black text-white py-12  w-full">
+    <footer className="bg-white text-black dark:bg-black dark:text-white py-12  w-full">
       <div className="max-w-6xl mx-auto px-4 flex flex-col items-center justify-center text-center">
         {/* <div className="flex flex-col md:flex-row gap-12">
           <div>
@@ -28,7 +32,7 @@ export default function Footer() {
           </div>
         </div> */}
         <div className="mt-6 md:mt-0 text-center flex flex-col items-center justify-center">
-          <Image src="/logo.jpg" alt="Jason & Co." width={250} height={125} className="object-contain mx-auto" />
+          <Image src={resolvedTheme === "dark" ? "/logo-dark.png" : "/logo-light.png"} alt="Jason & Co." width={250} height={125} className="object-contain mx-auto" />
           <div className="mt-2 flex justify-center space-x-6 text-xl">
             <a href="https://www.instagram.com/jasonjeweler/" target="_blank" aria-label="Instagram" className="hover:text-gray-300"><FaInstagram /></a>
             <a href="https://www.tiktok.com/@jasonjeweler?_t=ZP-8x4FKyhxJKZ&_r=1" target="_blank" aria-label="TikTok" className="hover:text-gray-300"><FaTiktok /></a>
