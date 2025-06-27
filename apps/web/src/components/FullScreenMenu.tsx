@@ -3,9 +3,9 @@
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-import { fetchProducts } from "../utils/api";
-import { Product } from "../types/product";
+import { useState } from "react";
+// import { fetchProducts } from "../utils/api";
+// import { Product } from "../types/product";
 
 interface FullscreenMenuProps {
     categories: { name: string; path: string }[];

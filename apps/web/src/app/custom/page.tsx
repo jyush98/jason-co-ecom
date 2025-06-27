@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
-import Image from "next/image";
-import { customItems } from "@/data/custom";
-import SignatureGallery from "@/components/Signature Gallery";
+// import Image from "next/image";
+// import { customItems } from "@/data/custom";
+// import SignatureGallery from "@/components/Signature Gallery";
 
 export default function CustomOrdersPage() {
   const [submitting, setSubmitting] = useState(false);
@@ -28,7 +28,7 @@ export default function CustomOrdersPage() {
 
       toast.success("Inquiry submitted!");
       form.reset();
-    } catch (err) {
+    } catch {
       toast.error("Something went wrong. Please try again.");
     }
 

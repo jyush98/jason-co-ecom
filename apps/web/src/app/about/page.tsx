@@ -47,7 +47,7 @@ export default function AboutPage() {
             From diamond-drenched pendants to finely set watches, every detail is engineered to stun.
           </p>
           <p className="text-lg md:text-xl text-muted-foreground">
-            Our workshop fuses street-born energy with red-carpet precision. We don't follow trends — we stone-set what’s next.
+            Our workshop fuses street-born energy with red-carpet precision. We don&apos;t follow trends — we stone-set what&rsquo;s next.
           </p>
         </motion.div>
       </section>
@@ -109,7 +109,7 @@ export default function AboutPage() {
             Your Vision. Our Craft.
           </h2>
           <p className="text-lg text-muted-foreground mb-8">
-            Whether you're chasing something never done before or refining a timeless piece — we got you.
+            Whether you&apos;re chasing something never done before or refining a timeless piece — we got you.
           </p>
           <a
             href="/contact"

@@ -6,7 +6,7 @@ import { useTheme } from "next-themes";
 
 export default function Footer() {
 
-  const { resolvedTheme, setTheme } = useTheme();
+  const { resolvedTheme } = useTheme();
 
   return (
     <footer className="bg-white text-black dark:bg-black dark:text-white py-12  w-full">
