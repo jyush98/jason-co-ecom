@@ -18,18 +18,18 @@ interface ScrollGalleryItemProps {
   cycleIndex: number;
 }
 
-export default function ScrollGalleryItem({ 
-  item, 
-  index, 
+export default function ScrollGalleryItem({
+  item,
+  index,
   globalIndex,
-  totalItems, 
+  totalItems,
   extendedProgress,
   cycleIndex
 }: ScrollGalleryItemProps) {
-  
+
   // Calculate the position of this item in the extended scroll
   const itemPosition = globalIndex;
-  
+
   // Create smooth horizontal movement with longer transition zones
   const x = useTransform(
     extendedProgress,
@@ -46,7 +46,7 @@ export default function ScrollGalleryItem({
       "-100vw"   // Exit off-screen left
     ]
   );
-  
+
   // Overlapping opacity transitions for smooth crossfade
   const opacity = useTransform(
     extendedProgress,
@@ -58,7 +58,7 @@ export default function ScrollGalleryItem({
     ],
     [0, 1, 1, 0]
   );
-  
+
   // Subtle scale effect with longer transitions
   const scale = useTransform(
     extendedProgress,
@@ -70,7 +70,7 @@ export default function ScrollGalleryItem({
     ],
     [0.9, 1, 1, 0.9]
   );
-  
+
   // Enhanced rotation for more dynamic crossfading
   const rotateY = useTransform(
     extendedProgress,
@@ -95,39 +95,41 @@ export default function ScrollGalleryItem({
         transformStyle: "preserve-3d"
       }}
     >
-      {/* Jewelry piece container */}
-      <div className="relative w-full h-full max-w-4xl flex items-center justify-center">
-        {/* Main jewelry image */}
-        <div className="relative w-full h-full">
-          <Image
-            src={item.largeImage}
-            alt={item.title}
-            fill
-            className="object-contain"
-            style={{
-              objectPosition: item.objectPosition || "center",
-              filter: "drop-shadow(0 25px 50px rgba(0, 0, 0, 0.3))"
-            }}
-            priority={cycleIndex === 1 && index < 2} // Prioritize middle cycle, first items
-          />
-          
-          {/* Enhanced glow effect */}
-          <motion.div 
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background: "radial-gradient(circle at center, rgba(212, 175, 55, 0.15) 0%, transparent 60%)",
-              opacity: useTransform(
-                extendedProgress,
-                [itemPosition - 0.5, itemPosition, itemPosition + 0.5],
-                [0.3, 0.8, 0.3]
-              )
-            }}
-          />
+      {/* Jewelry piece container - responsive sizing */}
+      <div className="relative w-full h-full max-w-4xl flex md:items-center justify-center px-4 md:px-0">
+        {/* Main jewelry image - 80% height on mobile, top-aligned */}
+        <div className="relative w-full h-[80%] md:h-full flex items-start md:items-center justify-center">
+          <div className="relative w-full h-full max-w-sm md:max-w-none">
+            <Image
+              src={item.largeImage}
+              alt={item.title}
+              fill
+              className="object-contain"
+              style={{
+                objectPosition: item.objectPosition || "center top", // Top-aligned on mobile
+                filter: "drop-shadow(0 25px 50px rgba(0, 0, 0, 0.3))"
+              }}
+              priority={cycleIndex === 1 && index < 2} // Prioritize middle cycle, first items
+            />
+
+            {/* Enhanced glow effect */}
+            <motion.div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: "radial-gradient(circle at center, rgba(212, 175, 55, 0.15) 0%, transparent 60%)",
+                opacity: useTransform(
+                  extendedProgress,
+                  [itemPosition - 0.5, itemPosition, itemPosition + 0.5],
+                  [0.3, 0.8, 0.3]
+                )
+              }}
+            />
+          </div>
         </div>
-        
+
         {/* Category badge with enhanced animation */}
-        <motion.div 
-          className="absolute top-8 right-8 bg-white/90 dark:bg-black/90 backdrop-blur-sm px-4 py-2 rounded-full border border-gold/40"
+        <motion.div
+          className="absolute top-4 md:top-8 right-4 md:right-8 bg-white/90 dark:bg-black/90 backdrop-blur-sm px-3 md:px-4 py-1.5 md:py-2 rounded-full border border-gold/40"
           style={{
             y: useTransform(
               extendedProgress,
@@ -141,11 +143,11 @@ export default function ScrollGalleryItem({
             )
           }}
         >
-          <span className="text-gold text-sm tracking-wider uppercase font-medium">
+          <span className="text-gold text-xs md:text-sm tracking-wider uppercase font-medium">
             {item.category}
           </span>
         </motion.div>
-        
+
         {/* Cycle indicator (for debugging - remove in production) */}
         {process.env.NODE_ENV === 'development' && (
           <div className="absolute top-4 left-4 bg-red-500 text-white px-2 py-1 text-xs rounded hidden">
