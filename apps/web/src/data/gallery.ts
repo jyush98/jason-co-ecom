@@ -44,7 +44,7 @@ export const galleryItems: GalleryElegantItemType[] = [
         id: "1",
         title: "Chrome Hearts Jesus Pendant",
         description: "14k yellow gold, 12ct diamonds, handmade in NYC.",
-        largeImage: "https://jasonco-inspiration-images.s3.us-east-2.amazonaws.com/gallery/chrome-hearts-jesus/IMG_0621.jpg",
+        largeImage: "https://jasonco-inspiration-images.s3.us-east-2.amazonaws.com/gallery/chrome-hearts-jesus/transparent.png",
         portraits: [
             "https://jasonco-inspiration-images.s3.us-east-2.amazonaws.com/gallery/chrome-hearts-jesus/IMG_0594.jpg",
             "https://jasonco-inspiration-images.s3.us-east-2.amazonaws.com/gallery/chrome-hearts-jesus/IMG_0575.jpg",
@@ -58,7 +58,7 @@ export const galleryItems: GalleryElegantItemType[] = [
         id: "2",
         title: "Chrome Hearts Bracelet",
         description: "Diamond letter pendant set with matching bracelet.",
-        largeImage: "https://jasonco-inspiration-images.s3.us-east-2.amazonaws.com/gallery/chrome-hearts-bracelet/IMG_0554.jpg",
+        largeImage: "https://jasonco-inspiration-images.s3.us-east-2.amazonaws.com/gallery/chrome-hearts-bracelet/transparent.png",
         portraits: [
             "https://jasonco-inspiration-images.s3.us-east-2.amazonaws.com/gallery/chrome-hearts-bracelet/IMG_0565.jpg",
             "https://jasonco-inspiration-images.s3.us-east-2.amazonaws.com/gallery/chrome-hearts-bracelet/IMG_0552.jpg",
