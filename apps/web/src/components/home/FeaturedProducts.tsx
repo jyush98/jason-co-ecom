@@ -209,7 +209,7 @@ export default function FeaturedProducts({
                 >
                     <a
                         href={viewAllLink}
-                        className="inline-block px-8 py-4 border border-current hover:bg-current hover:text-white dark:hover:text-black transition-all duration-300 tracking-widest uppercase text-sm group"
+                        className="inline-block px-8 py-4 border border-current hover:text-white hover:bg-black dark:hover:text-black dark:hover:bg-white transition-all duration-300 tracking-widest uppercase text-sm group"
                     >
                         <span className="inline-block transform group-hover:translate-x-1 transition-transform duration-300">
                             View All Products
