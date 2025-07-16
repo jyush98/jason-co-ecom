@@ -10,86 +10,73 @@ import {
     CollectionsShowcase,
     CategoriesSection
 } from "@/components/home";
+import { HOME_CONFIG } from "@/config/homeConfig";
+import { defaultCollections, defaultCategories, heroVideoConfig } from "@/data/homepage";
 
 export default function HomePage() {
     const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const getFeaturedProducts = async () => {
+        const loadFeaturedProducts = async () => {
             try {
-                setLoading(true);
-                const filters = {};
-                const data = await fetchProducts(filters);
-
-                // Filter for featured products, fallback to first 6 if no featured products
-                const featured = data.filter((product: Product) => product.featured);
-                const displayProducts = featured.length > 0 ? featured : data.slice(0, 6);
-
-                setFeaturedProducts(displayProducts);
+                setIsLoading(true);
+                const response = await fetchProducts({ pageSize: 8 });
+                setFeaturedProducts(response.products || []);
             } catch (error) {
-                console.error("Error fetching featured products:", error);
+                console.error('Failed to load featured products:', error);
                 setFeaturedProducts([]);
             } finally {
-                setLoading(false);
+                setIsLoading(false);
             }
         };
 
-        getFeaturedProducts();
+        loadFeaturedProducts();
     }, []);
 
     return (
-        <motion.main
-            className="min-h-screen bg-white text-black dark:bg-black dark:text-white transition-colors duration-500"
+        <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.6 }}
+            className="min-h-screen"
         >
-            {/* Hero Section */}
+            {/* Video Hero Section */}
             <VideoHero
-                videoSrc="/hero-video.mp4" // Replace with your video path
-                fallbackImage="/patek-philippe-246234.jpg" // Your current hero image
-                title="WHERE AMBITION MEETS ARTISTRY"
-                subtitle="Designed without Limits"
-                ctaText="EXPLORE COLLECTION"
-                ctaLink="/shop"
+                videoSrc={heroVideoConfig.src}
+                fallbackImage={heroVideoConfig.fallback}
+                title={HOME_CONFIG.hero.title}
+                subtitle={HOME_CONFIG.hero.subtitle}
+                ctaText={HOME_CONFIG.hero.ctaText}
+                ctaLink={HOME_CONFIG.hero.ctaLink}
+                autoplay={HOME_CONFIG.hero.autoplay}
+                showControls={HOME_CONFIG.hero.showControls}
             />
 
             {/* Featured Products Section */}
-            {!loading && featuredProducts.length > 0 && (
+            {!isLoading && featuredProducts.length > 0 && (
                 <FeaturedProducts
                     products={featuredProducts}
-                    title="SIGNATURE PIECES"
-                    subtitle="Crafted for those who demand excellence"
-                    showPrices={true}
+                    title={HOME_CONFIG.featuredProducts.title}
+                    subtitle={HOME_CONFIG.featuredProducts.subtitle}
+                    showPrices={HOME_CONFIG.featuredProducts.showPrices}
+                    viewAllLink={HOME_CONFIG.featuredProducts.viewAllLink}
                 />
             )}
 
             {/* Collections Showcase */}
             <CollectionsShowcase
-                title="COLLECTIONS"
+                collections={defaultCollections}
+                title={HOME_CONFIG.collections.title}
             />
 
             {/* Categories Section */}
             <CategoriesSection
-                title="EXPLORE BY CATEGORY"
-                autoplay={true}
-                autoplayInterval={5000}
+                categories={defaultCategories}
+                title={HOME_CONFIG.categories.title}
+                autoplay={HOME_CONFIG.categories.autoplay}
+                autoplayInterval={HOME_CONFIG.categories.autoplayInterval}
             />
-
-            {/* Optional: Loading State for Featured Products */}
-            {loading && (
-                <section className="py-20 md:py-32 bg-white dark:bg-black">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="text-center">
-                            <div className="w-12 h-12 border-2 border-gold/30 border-t-gold rounded-full animate-spin mx-auto mb-4" />
-                            <p className="text-gray-600 dark:text-gray-400 text-sm tracking-widest uppercase">
-                                Loading Featured Products
-                            </p>
-                        </div>
-                    </div>
-                </section>
-            )}
-        </motion.main>
+        </motion.div>
     );
 }

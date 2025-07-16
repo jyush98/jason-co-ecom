@@ -1,4 +1,4 @@
-"use-client";
+"use client";
 
 import { Product } from "../types/product";
 import { User } from "../types/user";
@@ -34,17 +34,41 @@ export const fetchProducts = async (filters: {
     }
 
     try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/products?${cacheKey}`);
-        if (!response.ok) throw new Error("Failed to fetch products");
+        const url = `${API_BASE_URL}/products?${cacheKey}`;
+        console.log('Fetching from URL:', url); // Debug log
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
         const data = await response.json();
-        cache.set(cacheKey, data); // ✅ Store response in cache
-        return data;
+        console.log('Raw API response:', data); // Debug log
+
+        // Ensure consistent return format
+        const normalizedData = {
+            products: Array.isArray(data) ? data : (data.products || data.items || []),
+            total: data.total || data.count || (Array.isArray(data) ? data.length : 0),
+            page: data.page || 1,
+            pageSize: data.pageSize || data.page_size || filters.pageSize || 10
+        };
+
+        console.log('Normalized data:', normalizedData); // Debug log
+
+        cache.set(cacheKey, normalizedData); // ✅ Store response in cache
+        return normalizedData;
     } catch (error) {
         console.error("Error fetching products:", error);
-        return [];
+        // Return consistent format even on error
+        return {
+            products: [],
+            total: 0,
+            page: 1,
+            pageSize: filters.pageSize || 10
+        };
     }
 };
-
 
 export const fetchProduct = async (productId: number): Promise<Product | null> => {
     try {
@@ -82,7 +106,6 @@ export const fetchUser = async (clerkId: string, token: string): Promise<User | 
     }
 };
 
-
 export const fetchOrders = async (clerkId: string): Promise<Order[]> => {
     try {
         const response = await fetch(`${API_BASE_URL}/api/orders/${clerkId}`);
@@ -93,9 +116,3 @@ export const fetchOrders = async (clerkId: string): Promise<Order[]> => {
         return [];
     }
 };
-
-
-
-
-
-

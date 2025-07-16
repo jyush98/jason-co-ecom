@@ -1,127 +1,44 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-
-interface Category {
-    name: string;
-    image: string;
-    path: string;
-}
-
-interface CategoriesSectionProps {
-    categories?: Category[];
-    title?: string;
-    autoplay?: boolean;
-    autoplayInterval?: number;
-}
-
-const defaultCategories: Category[] = [
-    {
-        name: "Necklaces",
-        image: "/images/collection1.png",
-        path: "/shop?category=necklaces"
-    },
-    {
-        name: "Bracelets",
-        image: "/images/collection3.png",
-        path: "/shop?category=bracelets"
-    },
-    {
-        name: "Rings",
-        image: "/images/collection3.png",
-        path: "/shop?category=rings"
-    },
-    {
-        name: "Earrings",
-        image: "/images/collection1.png",
-        path: "/shop?category=earrings"
-    },
-    {
-        name: "Watches",
-        image: "/images/collection1.png",
-        path: "/shop?category=watches"
-    },
-    {
-        name: "Grillz",
-        image: "/images/collection3.png",
-        path: "/shop?category=grillz"
-    },
-];
+import { CategoriesSectionProps } from "@/types/home";
+import { defaultCategories } from "@/data/homepage";
+import { HOME_CONFIG } from "@/config";
+import { useInfiniteCarousel, useResponsiveCarousel } from "@/lib/hooks";
 
 export default function CategoriesSection({
     categories = defaultCategories,
-    title = "EXPLORE BY CATEGORY",
-    autoplay = true,
-    autoplayInterval = 5000
+    title = HOME_CONFIG.categories.title,
+    autoplay = HOME_CONFIG.categories.autoplay,
+    autoplayInterval = HOME_CONFIG.categories.autoplayInterval
 }: CategoriesSectionProps) {
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [isAutoplayActive, setIsAutoplayActive] = useState(autoplay);
     const sectionRef = useRef<HTMLDivElement>(null);
     const isInView = useInView(sectionRef, { once: true, amount: 0.3 });
 
-    // Responsive settings
-    const [slidesToShow, setSlidesToShow] = useState(4);
-    const [slideWidth, setSlideWidth] = useState(300);
+    // Use responsive carousel settings hook
+    const { slidesToShow, slideWidth } = useResponsiveCarousel();
 
-    useEffect(() => {
-        const updateLayout = () => {
-            if (window.innerWidth >= 1024) {
-                setSlidesToShow(4);
-                setSlideWidth(300);
-            } else if (window.innerWidth >= 768) {
-                setSlidesToShow(3);
-                setSlideWidth(250);
-            } else if (window.innerWidth >= 480) {
-                setSlidesToShow(2);
-                setSlideWidth(200);
-            } else {
-                setSlidesToShow(1);
-                setSlideWidth(280);
-            }
-        };
-
-        updateLayout();
-        window.addEventListener('resize', updateLayout);
-        return () => window.removeEventListener('resize', updateLayout);
-    }, []);
-
-    // Infinite cycling autoplay
-    useEffect(() => {
-        if (!isAutoplayActive || !isInView) return;
-
-        const interval = setInterval(() => {
-            setCurrentIndex((prev) => (prev + 1) % categories.length);
-        }, autoplayInterval);
-
-        return () => clearInterval(interval);
-    }, [isAutoplayActive, isInView, categories.length, autoplayInterval]);
-
-    // Infinite cycling navigation
-    const goLeft = () => {
-        setCurrentIndex((prev) => (prev - 1 + categories.length) % categories.length);
-        setIsAutoplayActive(false);
-    };
-
-    const goRight = () => {
-        setCurrentIndex((prev) => (prev + 1) % categories.length);
-        setIsAutoplayActive(false);
-    };
-
-    const goToSlide = (index: number) => {
-        setCurrentIndex(index);
-        setIsAutoplayActive(false);
-    };
+    // Use infinite carousel hook
+    const { currentIndex, goLeft, goRight, goToSlide, setAutoplay } = useInfiniteCarousel({
+        itemCount: categories.length,
+        autoplay: autoplay && isInView,
+        autoplayInterval,
+        onSlideChange: (index) => {
+            // Optional: Add any side effects when slide changes
+            console.log('Slide changed to:', index);
+        }
+    });
 
     const containerVariants = {
         hidden: { opacity: 0 },
         visible: {
             opacity: 1,
             transition: {
-                staggerChildren: 0.1,
+                staggerChildren: HOME_CONFIG.categories.animation.staggerDelay,
                 delayChildren: 0.3,
             },
         },
@@ -134,7 +51,7 @@ export default function CategoriesSection({
             y: 0,
             scale: 1,
             transition: {
-                duration: 0.6,
+                duration: HOME_CONFIG.categories.animation.duration,
                 ease: "easeOut",
             },
         },
@@ -144,8 +61,8 @@ export default function CategoriesSection({
         <section
             ref={sectionRef}
             className="py-20 md:py-32 bg-black text-white transition-colors duration-500"
-            onMouseEnter={() => setIsAutoplayActive(false)}
-            onMouseLeave={() => setIsAutoplayActive(autoplay)}
+            onMouseEnter={() => setAutoplay(false)}
+            onMouseLeave={() => setAutoplay(autoplay)}
         >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Section Header */}
@@ -153,7 +70,7 @@ export default function CategoriesSection({
                     className="text-center mb-16"
                     initial={{ opacity: 0, y: 50 }}
                     animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
-                    transition={{ duration: 0.8 }}
+                    transition={{ duration: HOME_CONFIG.animations.transitions.duration }}
                 >
                     <h2 className="text-3xl md:text-5xl font-sans tracking-wide text-white">
                         {title}
@@ -248,8 +165,8 @@ export default function CategoriesSection({
                                 key={index}
                                 onClick={() => goToSlide(index)}
                                 className={`w-2 h-2 rounded-full transition-all duration-300 ${currentIndex === index
-                                        ? 'bg-gold scale-125'
-                                        : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
+                                    ? 'bg-gold scale-125'
+                                    : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
                                     }`}
                                 aria-label={`Go to category ${index + 1}`}
                             />

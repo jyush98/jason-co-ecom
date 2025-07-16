@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
+import { defaultCollections } from "@/data/homepage";
 
 interface Collection {
     name: string;
@@ -16,30 +17,6 @@ interface CollectionsShowcaseProps {
     collections?: Collection[];
     title?: string;
 }
-
-const defaultCollections: Collection[] = [
-    {
-        name: "Necklaces",
-        image: "/images/collection1.png",
-        path: "/shop?category=necklaces",
-        featured: true
-    },
-    {
-        name: "Bracelets",
-        image: "/images/collection3.png",
-        path: "/shop?category=bracelets"
-    },
-    {
-        name: "Rings",
-        image: "/images/collection3.png",
-        path: "/shop?category=rings"
-    },
-    {
-        name: "Watches",
-        image: "/images/collection4.png",
-        path: "/shop?category=watches"
-    }
-];
 
 export default function CollectionsShowcase({
     collections = defaultCollections,
