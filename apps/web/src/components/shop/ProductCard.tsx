@@ -11,12 +11,14 @@ interface ProductCardProps {
     product: Product;
     showPrice?: boolean;
     index?: number; // For staggered animations
+    disableRotation?: boolean; // For homepage usage
 }
 
 export default function ProductCard({
     product,
     showPrice = SHOP_CONFIG.showPrices,
-    index = 0
+    index = 0,
+    disableRotation = false
 }: ProductCardProps) {
     const [isActive, setIsActive] = useState(false);
     const [showQuickView, setShowQuickView] = useState(false);
@@ -70,8 +72,8 @@ export default function ProductCard({
                 {/* Main Product Card */}
                 <motion.div
                     className={`relative overflow-hidden transition-all duration-500 ease-out ${isDark
-                            ? "bg-gradient-to-br from-gray-900 to-black text-white"
-                            : "bg-gradient-to-br from-white to-gray-50 text-black"
+                        ? "bg-gradient-to-br from-gray-900 to-black text-white"
+                        : "bg-gradient-to-br from-white to-gray-50 text-black"
                         }`}
                     style={{
                         boxShadow: isActive
@@ -80,7 +82,7 @@ export default function ProductCard({
                     }}
                     whileHover={{
                         scale: SHOP_CONFIG.animation.hoverScale,
-                        rotate: isActive ? SHOP_CONFIG.animation.hoverRotation : 0,
+                        rotate: disableRotation ? 0 : (isActive ? SHOP_CONFIG.animation.hoverRotation : 0),
                         transition: { duration: 0.4, ease: "easeOut" }
                     }}
                 >
@@ -177,7 +179,7 @@ export default function ProductCard({
                                         e.preventDefault();
                                         setShowQuickView(true);
                                     }}
-                                    className="w-full py-2 text-sm tracking-widest uppercase border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-gold hover:text-gold transition-all duration-300"
+                                    className="w-full py-2 text-sm tracking-widest uppercase border border-gray-300 dark:border-gray-600 text-gray-300 hover:border-gold hover:text-gold transition-all duration-300"
                                 >
                                     Quick View
                                 </button>
