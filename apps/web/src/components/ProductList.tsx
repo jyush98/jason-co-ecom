@@ -23,6 +23,7 @@ export default function ProductList({ initialCategory }: ProductListProps) {
 
     // State management
     const [products, setProducts] = useState<Product[]>([]);
+    const [total, setTotal] = useState<number>(0); // Add total count
     const [search, setSearch] = useState("");
     const [category, setCategory] = useState<string>(initialCategory || getDefaultCategory());
     const [loading, setLoading] = useState<boolean>(true);
@@ -47,12 +48,19 @@ export default function ProductList({ initialCategory }: ProductListProps) {
         setCategory(initialCategory || getDefaultCategory());
     }, [initialCategory]);
 
-    // Debounced product fetching
+    // Debounced product fetching - FIXED: Handle normalized response
     const getProducts = useCallback(() => {
         setLoading(true);
         fetchProducts({ name: search, category, page, pageSize, sortBy, sortOrder })
-            .then(setProducts)
-            .catch(() => setProducts([]))
+            .then(response => {
+                // Handle the normalized response structure
+                setProducts(response.products || []);
+                setTotal(response.total || 0);
+            })
+            .catch(() => {
+                setProducts([]);
+                setTotal(0);
+            })
             .finally(() => setLoading(false));
     }, [search, category, page, pageSize, sortBy, sortOrder]);
 
@@ -115,6 +123,11 @@ export default function ProductList({ initialCategory }: ProductListProps) {
         sortOrder !== getDefaultSort().value.split("-")[1]
     );
 
+    // Calculate pagination info
+    const totalPages = Math.ceil(total / pageSize);
+    const hasNextPage = page < totalPages;
+    const hasPrevPage = page > 1;
+
     // Loading state for initial load
     if (loading && products.length === 0) {
         return (
@@ -150,7 +163,7 @@ export default function ProductList({ initialCategory }: ProductListProps) {
                 </p>
             </motion.div>
 
-            {/* Filters */}
+            {/* Filters - Pass total count instead of products.length */}
             <ShopFilters
                 search={search}
                 onSearchChange={handleSearchChange}
@@ -163,7 +176,7 @@ export default function ProductList({ initialCategory }: ProductListProps) {
                 onToggleFilters={toggleFilters}
                 onClearFilters={clearFilters}
                 hasActiveFilters={hasActiveFilters}
-                resultCount={products.length}
+                resultCount={total} // Use total from API response
                 loading={loading}
             />
 
@@ -182,8 +195,8 @@ export default function ProductList({ initialCategory }: ProductListProps) {
                 />
             )}
 
-            {/* Pagination */}
-            {products.length > 0 && (
+            {/* Enhanced Pagination with better logic */}
+            {products.length > 0 && totalPages > 1 && (
                 <motion.div
                     className="flex justify-center items-center mt-16 md:mt-20 space-x-6"
                     initial={{ opacity: 0 }}
@@ -193,21 +206,25 @@ export default function ProductList({ initialCategory }: ProductListProps) {
                     <button
                         onClick={() => setPage((prev) => Math.max(1, prev - 1))}
                         className="group flex items-center gap-2 px-6 py-3 border border-current hover:bg-current hover:text-white dark:hover:text-black transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                        disabled={page === 1}
+                        disabled={!hasPrevPage}
                     >
                         <span className="transform group-hover:-translate-x-1 transition-transform">←</span>
                         <span className="tracking-widest uppercase text-sm">Previous</span>
                     </button>
 
                     <div className="flex items-center space-x-4">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">Page</span>
-                        <span className="text-lg font-serif">{page}</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                            Page {page} of {totalPages}
+                        </span>
+                        <span className="text-xs text-gray-500 dark:text-gray-500">
+                            ({total} total)
+                        </span>
                     </div>
 
                     <button
                         onClick={() => setPage((prev) => prev + 1)}
-                        className="group flex items-center gap-2 px-6 py-3 border border-current hover:bg-current hover:text-white dark:hover:text-black transition-all duration-300"
-                        disabled={products.length < pageSize}
+                        className="group flex items-center gap-2 px-6 py-3 border border-current hover:bg-current hover:text-white dark:hover:text-black transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={!hasNextPage}
                     >
                         <span className="tracking-widest uppercase text-sm">Next</span>
                         <span className="transform group-hover:translate-x-1 transition-transform">→</span>
