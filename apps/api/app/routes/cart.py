@@ -54,7 +54,7 @@ def remove_from_cart(product_id: int, user=Depends(verify_clerk_token), db: Sess
     db.commit()
     return {"message": "Item removed from cart"}
 
-@router.patch("/cart/update")
+@router.patch("/update")
 def update_cart(
     item: CartItemRequest,  # JSON Body
     user=Depends(verify_clerk_token),
