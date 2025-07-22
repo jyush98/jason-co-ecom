@@ -264,6 +264,48 @@ export interface CheckoutStepProps {
     onClick?: (step: CheckoutStep) => void;
 }
 
+export interface OrderDetails {
+    id: number;
+    order_number: string;
+    total_price: number;
+    status: string;
+    created_at: string;
+    item_count: number;
+    tracking_number?: string;
+    estimated_delivery?: string;
+    
+    // Detailed info
+    items: OrderItemDetails[];
+    shipping_address: ShippingAddress;
+    billing_address?: ShippingAddress;
+    payment_method: string;
+    shipping_method: string;
+    subtotal: number;
+    tax: number;
+    shipping_cost: number;
+    discount?: number;
+    notes?: string;
+    status_history?: OrderStatusUpdate[];
+}
+
+export interface OrderItemDetails {
+    id: number;
+    product_id: number;
+    product_name: string;
+    unit_price: number;
+    quantity: number;
+    product_image?: string;
+    product_category?: string;
+    custom_options?: Record<string, string>;
+}
+
+export interface OrderStatusUpdate {
+    status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+    timestamp: string;
+    note?: string;
+    location?: string;
+}
+
 // Utility types
 export type CartItemKey = keyof CartItem;
 export type CheckoutFormKey = keyof CheckoutFormData;

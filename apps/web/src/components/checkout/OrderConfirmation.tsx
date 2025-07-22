@@ -1,94 +1,55 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import {
-    CheckCircle,
-    Truck,
-    Calendar,
-    Mail,
-    Download,
-    ArrowRight,
-    Package,
-    CreditCard,
-    MapPin
-} from "lucide-react";
+import { CheckCircle, Package, Truck, CreditCard, Calendar, MapPin, Mail, Download, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { CART_CONFIG } from "@/config/cartConfig";
-import { formatCartPrice } from "@/config/cartConfig";
+
+// ✅ SIMPLIFIED - Use your actual types
+import type { Order } from "@/types/order";
+import { CART_CONFIG, formatCartPrice } from "@/config";
 
 interface OrderConfirmationProps {
     orderNumber?: string;
-    orderData?: any; // You'd have proper types for this
+    className?: string;
 }
 
 export default function OrderConfirmation({
     orderNumber,
-    orderData
+    className = ""
 }: OrderConfirmationProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [isLoading, setIsLoading] = useState(true);
-    const [order, setOrder] = useState<any>(null);
+    const [order, setOrder] = useState<Order | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
-    // Get order number from URL params if not passed as prop
+    // Get order number from URL if not provided
     const finalOrderNumber = orderNumber || searchParams?.get('order_number') || '';
 
     useEffect(() => {
-        // Fetch order details if needed
-        if (finalOrderNumber && !orderData) {
+        if (finalOrderNumber) {
             fetchOrderDetails(finalOrderNumber);
-        } else if (orderData) {
-            setOrder(orderData);
-            setIsLoading(false);
         }
-    }, [finalOrderNumber, orderData]);
+    }, [finalOrderNumber]);
 
+    // ✅ SIMPLE API call - matches your actual endpoint
     const fetchOrderDetails = async (orderNum: string) => {
         try {
-            // Replace with your actual API call
-            const response = await fetch(`/api/orders/${orderNum}`);
-            const orderDetails = await response.json();
-            setOrder(orderDetails);
-        } catch (error) {
-            console.error('Failed to fetch order details:', error);
-            // You might want to show an error state here
+            setIsLoading(true);
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/orders/${orderNum}`);
+            
+            if (!response.ok) {
+                throw new Error('Order not found');
+            }
+            
+            const orderData: Order = await response.json();
+            setOrder(orderData);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to load order');
         } finally {
             setIsLoading(false);
-        }
-    };
-
-    // Mock order data for display (replace with real data)
-    const mockOrder = order || {
-        order_number: finalOrderNumber || 'ORD-123456',
-        total: 1250.00,
-        subtotal: 1200.00,
-        tax: 35.00,
-        shipping: 15.00,
-        created_at: new Date().toISOString(),
-        estimated_delivery: '3-5 business days',
-        shipping_address: {
-            first_name: 'John',
-            last_name: 'Doe',
-            address_line_1: '123 Main St',
-            city: 'New York',
-            state: 'NY',
-            postal_code: '10001'
-        },
-        items: [
-            {
-                product: {
-                    name: 'Premium Diamond Ring',
-                    image_url: '/api/placeholder/100/100'
-                },
-                quantity: 1,
-                price: 1200.00
-            }
-        ],
-        payment_method: {
-            type: 'card',
-            last_four: '4242'
         }
     };
 
@@ -117,8 +78,17 @@ export default function OrderConfirmation({
         return <OrderConfirmationSkeleton />;
     }
 
+    if (error || !order) {
+        return <OrderNotFound orderNumber={finalOrderNumber} error={error} />;
+    }
+
+    // ✅ SIMPLE calculations - no complex transformations
+    const customerName = order.customer_first_name && order.customer_last_name 
+        ? `${order.customer_first_name} ${order.customer_last_name}`
+        : 'Customer';
+
     return (
-        <div className="min-h-screen bg-white dark:bg-black pt-[var(--navbar-height)]">
+        <div className={`min-h-screen bg-white dark:bg-black pt-[var(--navbar-height)] ${className}`}>
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <motion.div
                     variants={containerVariants}
@@ -127,11 +97,7 @@ export default function OrderConfirmation({
                     className="space-y-8"
                 >
                     {/* Success Header */}
-                    <motion.div
-                        variants={itemVariants}
-                        className="text-center"
-                    >
-                        {/* Success Icon */}
+                    <motion.div variants={itemVariants} className="text-center">
                         <motion.div
                             className="mx-auto w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-6"
                             initial={{ scale: 0 }}
@@ -141,7 +107,6 @@ export default function OrderConfirmation({
                             <CheckCircle size={40} className="text-green-600 dark:text-green-400" />
                         </motion.div>
 
-                        {/* Success Message */}
                         <h1 className="text-3xl md:text-4xl font-serif text-black dark:text-white mb-4">
                             {CART_CONFIG.messaging.checkout.confirmation.title}
                         </h1>
@@ -149,22 +114,18 @@ export default function OrderConfirmation({
                             {CART_CONFIG.messaging.checkout.confirmation.subtitle}
                         </p>
 
-                        {/* Order Number */}
                         <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 max-w-md mx-auto">
                             <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                                {CART_CONFIG.messaging.checkout.confirmation.orderNumberLabel}
+                                Order Number
                             </p>
                             <p className="text-2xl font-mono font-bold text-gold">
-                                {mockOrder.order_number}
+                                {order.order_number}
                             </p>
                         </div>
                     </motion.div>
 
-                    {/* Order Details */}
-                    <motion.div
-                        variants={itemVariants}
-                        className="grid grid-cols-1 lg:grid-cols-2 gap-8"
-                    >
+                    {/* Order Details Grid */}
+                    <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         {/* Order Summary */}
                         <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6">
                             <h2 className="text-xl font-serif mb-6 flex items-center gap-2">
@@ -172,48 +133,56 @@ export default function OrderConfirmation({
                                 Order Summary
                             </h2>
 
-                            {/* Order Items */}
+                            {/* Items */}
                             <div className="space-y-4 mb-6">
-                                {mockOrder.items.map((item: any, index: number) => (
-                                    <div key={index} className="flex gap-4">
+                                {order.items.map((item) => (
+                                    <div key={item.id} className="flex gap-4">
                                         <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden">
-                                            <img
-                                                src={item.product.image_url}
-                                                alt={item.product.name}
-                                                className="w-full h-full object-cover"
-                                            />
+                                            {item.product_image_url && (
+                                                <img
+                                                    src={item.product_image_url}
+                                                    alt={item.product_name}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            )}
                                         </div>
                                         <div className="flex-1">
-                                            <h3 className="font-medium">{item.product.name}</h3>
+                                            <h3 className="font-medium">{item.product_name}</h3>
                                             <p className="text-sm text-gray-600 dark:text-gray-400">
                                                 Qty: {item.quantity}
                                             </p>
                                             <p className="font-medium text-gold">
-                                                {formatCartPrice(item.price * item.quantity)}
+                                                {formatCartPrice(item.unit_price * item.quantity)}
                                             </p>
                                         </div>
                                     </div>
                                 ))}
                             </div>
 
-                            {/* Order Totals */}
+                            {/* Totals */}
                             <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-2">
-                                <div className="flex justify-between">
-                                    <span>Subtotal</span>
-                                    <span>{formatCartPrice(mockOrder.subtotal)}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span>Shipping</span>
-                                    <span>{formatCartPrice(mockOrder.shipping)}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span>Tax</span>
-                                    <span>{formatCartPrice(mockOrder.tax)}</span>
-                                </div>
+                                {order.subtotal && (
+                                    <div className="flex justify-between">
+                                        <span>Subtotal</span>
+                                        <span>{formatCartPrice(order.subtotal)}</span>
+                                    </div>
+                                )}
+                                {order.shipping_amount && (
+                                    <div className="flex justify-between">
+                                        <span>Shipping</span>
+                                        <span>{formatCartPrice(order.shipping_amount)}</span>
+                                    </div>
+                                )}
+                                {order.tax_amount && (
+                                    <div className="flex justify-between">
+                                        <span>Tax</span>
+                                        <span>{formatCartPrice(order.tax_amount)}</span>
+                                    </div>
+                                )}
                                 <div className="border-t border-gray-200 dark:border-gray-700 pt-2">
                                     <div className="flex justify-between text-lg font-semibold">
                                         <span>Total</span>
-                                        <span className="text-gold">{formatCartPrice(mockOrder.total)}</span>
+                                        <span className="text-gold">{formatCartPrice(order.total_price)}</span>
                                     </div>
                                 </div>
                             </div>
@@ -221,39 +190,46 @@ export default function OrderConfirmation({
 
                         {/* Delivery & Payment Info */}
                         <div className="space-y-6">
-                            {/* Delivery Information */}
-                            <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6">
-                                <h2 className="text-xl font-serif mb-4 flex items-center gap-2">
-                                    <Truck size={20} className="text-gold" />
-                                    Delivery Information
-                                </h2>
+                            {/* Delivery */}
+                            {order.shipping_address && (
+                                <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6">
+                                    <h2 className="text-xl font-serif mb-4 flex items-center gap-2">
+                                        <Truck size={20} className="text-gold" />
+                                        Delivery Information
+                                    </h2>
 
-                                <div className="space-y-3">
-                                    <div className="flex items-start gap-3">
-                                        <MapPin size={16} className="text-gray-400 mt-1" />
-                                        <div>
-                                            <p className="font-medium">Shipping Address</p>
-                                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                                                {mockOrder.shipping_address.first_name} {mockOrder.shipping_address.last_name}<br />
-                                                {mockOrder.shipping_address.address_line_1}<br />
-                                                {mockOrder.shipping_address.city}, {mockOrder.shipping_address.state} {mockOrder.shipping_address.postal_code}
-                                            </p>
+                                    <div className="space-y-3">
+                                        <div className="flex items-start gap-3">
+                                            <MapPin size={16} className="text-gray-400 mt-1" />
+                                            <div>
+                                                <p className="font-medium">Shipping Address</p>
+                                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                                    {order.shipping_address.first_name} {order.shipping_address.last_name}<br />
+                                                    {order.shipping_address.address_line_1}<br />
+                                                    {order.shipping_address.address_line_2 && (
+                                                        <>{order.shipping_address.address_line_2}<br /></>
+                                                    )}
+                                                    {order.shipping_address.city}, {order.shipping_address.state} {order.shipping_address.postal_code}
+                                                </p>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <div className="flex items-center gap-3">
-                                        <Calendar size={16} className="text-gray-400" />
-                                        <div>
-                                            <p className="font-medium">Estimated Delivery</p>
-                                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                                                {mockOrder.estimated_delivery}
-                                            </p>
-                                        </div>
+                                        {order.estimated_delivery_date && (
+                                            <div className="flex items-center gap-3">
+                                                <Calendar size={16} className="text-gray-400" />
+                                                <div>
+                                                    <p className="font-medium">Estimated Delivery</p>
+                                                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                                                        {new Date(order.estimated_delivery_date).toLocaleDateString()}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
-                            </div>
+                            )}
 
-                            {/* Payment Information */}
+                            {/* Payment */}
                             <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6">
                                 <h2 className="text-xl font-serif mb-4 flex items-center gap-2">
                                     <CreditCard size={20} className="text-gold" />
@@ -265,7 +241,10 @@ export default function OrderConfirmation({
                                         <CreditCard size={16} className="text-gray-600" />
                                     </div>
                                     <div>
-                                        <p className="font-medium">Card ending in {mockOrder.payment_method.last_four}</p>
+                                        <p className="font-medium">
+                                            {order.payment_method_brand && order.payment_method_brand.charAt(0).toUpperCase() + order.payment_method_brand.slice(1)} 
+                                            {order.payment_method_last4 && ` ending in ${order.payment_method_last4}`}
+                                        </p>
                                         <p className="text-sm text-gray-600 dark:text-gray-400">
                                             Payment processed successfully
                                         </p>
@@ -276,10 +255,7 @@ export default function OrderConfirmation({
                     </motion.div>
 
                     {/* Next Steps */}
-                    <motion.div
-                        variants={itemVariants}
-                        className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6"
-                    >
+                    <motion.div variants={itemVariants} className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
                         <h2 className="text-xl font-serif mb-4 flex items-center gap-2">
                             <Mail size={20} className="text-blue-600 dark:text-blue-400" />
                             What's Next?
@@ -306,10 +282,7 @@ export default function OrderConfirmation({
                     </motion.div>
 
                     {/* Action Buttons */}
-                    <motion.div
-                        variants={itemVariants}
-                        className="flex flex-col sm:flex-row gap-4 justify-center"
-                    >
+                    <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 justify-center">
                         <Link
                             href="/shop"
                             className="bg-gold hover:bg-gold/90 text-black font-medium py-4 px-8 transition-all duration-300 hover:scale-[1.02] tracking-widest uppercase text-sm text-center"
@@ -318,7 +291,7 @@ export default function OrderConfirmation({
                         </Link>
 
                         <Link
-                            href={`/orders/${mockOrder.order_number}`}
+                            href={`/orders/${order.order_number}`}
                             className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium py-4 px-8 transition-all duration-300 hover:scale-[1.02] tracking-widest uppercase text-sm text-center"
                         >
                             {CART_CONFIG.messaging.checkout.confirmation.trackOrderCTA}
@@ -331,10 +304,7 @@ export default function OrderConfirmation({
                     </motion.div>
 
                     {/* Customer Support */}
-                    <motion.div
-                        variants={itemVariants}
-                        className="text-center pt-8 border-t border-gray-200 dark:border-gray-700"
-                    >
+                    <motion.div variants={itemVariants} className="text-center pt-8 border-t border-gray-200 dark:border-gray-700">
                         <p className="text-gray-600 dark:text-gray-400 mb-4">
                             Questions about your order?
                         </p>
@@ -352,13 +322,37 @@ export default function OrderConfirmation({
     );
 }
 
+// Error state component
+function OrderNotFound({ orderNumber, error }: { orderNumber: string; error: string | null }) {
+    return (
+        <div className="min-h-screen bg-white dark:bg-black pt-[var(--navbar-height)] flex items-center justify-center">
+            <div className="text-center max-w-md">
+                <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <span className="text-2xl">❌</span>
+                </div>
+                <h1 className="text-2xl font-serif mb-4">Order Not Found</h1>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                    {error || `We couldn't find order ${orderNumber}. Please check your order number and try again.`}
+                </p>
+                <div className="flex gap-4 justify-center">
+                    <Link href="/orders" className="text-gold hover:text-gold/80 font-medium">
+                        View All Orders
+                    </Link>
+                    <Link href="/shop" className="bg-gold hover:bg-gold/90 text-black px-6 py-2 font-medium">
+                        Continue Shopping
+                    </Link>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 // Loading skeleton
 function OrderConfirmationSkeleton() {
     return (
         <div className="min-h-screen bg-white dark:bg-black pt-[var(--navbar-height)]">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <div className="animate-pulse space-y-8">
-                    {/* Header skeleton */}
                     <div className="text-center">
                         <div className="w-20 h-20 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto mb-6" />
                         <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-64 mx-auto mb-4" />
@@ -366,7 +360,6 @@ function OrderConfirmationSkeleton() {
                         <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded w-64 mx-auto" />
                     </div>
 
-                    {/* Content skeleton */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         <div className="h-96 bg-gray-200 dark:bg-gray-700 rounded" />
                         <div className="space-y-6">

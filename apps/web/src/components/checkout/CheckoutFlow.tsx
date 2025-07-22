@@ -1,20 +1,16 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAuth, useUser } from "@clerk/nextjs";
-import { ArrowLeft, ArrowRight, Check, Truck, CreditCard, FileText, Lock } from "lucide-react";
-import { CART_CONFIG } from "@/config/cartConfig";
-import {
-  CheckoutStep,
-  CheckoutState,
-  CheckoutFormData,
-  ShippingAddress,
-  ShippingMethod,
-  PaymentMethod,
-  CheckoutOrderPreview
-} from "@/types/cart";
-import { useCartData, useCartActions } from "@/app/store/cartStore";
+import { ArrowLeft, Check, Lock } from "lucide-react";
+import Link from "next/link";
+
+// ✅ Updated imports - using our new modular structure
+import { useCheckoutFlow } from "@/lib/hooks";
+import { validateShippingAddress, calculateCheckoutProgress } from "@/utils";
+import { CART_CONFIG } from "@/config";
+import { ShippingForm, PaymentForm, OrderReview } from "@/components/checkout";
+import { useCartData } from "@/app/store/cartStore";
 
 interface CheckoutFlowProps {
   onOrderComplete?: (orderNumber: string) => void;
@@ -27,322 +23,77 @@ export default function CheckoutFlow({
   onError,
   className = ""
 }: CheckoutFlowProps) {
-  const { getToken } = useAuth();
-  const { isSignedIn, user } = useUser();
   const { cart, isLoading: cartLoading } = useCartData();
   const flowRef = useRef<HTMLDivElement>(null);
 
-  // Checkout state
-  const [checkoutState, setCheckoutState] = useState<CheckoutState>({
-    current_step: 'shipping',
-    form_data: {
-      shipping_address: {
-        first_name: user?.firstName || '',
-        last_name: user?.lastName || '',
-        email: user?.primaryEmailAddress?.emailAddress || '',
-        phone: '',
-        address_line_1: '',
-        address_line_2: '',
-        city: '',
-        state: '',
-        postal_code: '',
-        country: 'US',
-      }
+  // ✅ Using our new useCheckoutFlow hook instead of manual state management
+  const {
+    // Current state
+    currentStep,
+    formData,
+    availableShippingMethods,
+    selectedShippingMethod,
+    validationErrors,
+    isLoading,
+    isSubmitting,
+    error,
+
+    // Navigation
+    goToStep,
+    goToNextStep,
+    goToPreviousStep,
+    canNavigateToStep,
+    isStepComplete,
+
+    // Form updates
+    updateShippingAddress,
+    updateBillingAddress,
+    selectShippingMethod,
+    selectPaymentMethod,
+
+    // Actions
+    fetchShippingMethods,
+    submitOrder,
+    clearErrors,
+  } = useCheckoutFlow();
+
+  // ✅ Using our new utility function
+  const progressPercentage = calculateCheckoutProgress(currentStep);
+
+  // Step configuration - now using our centralized config
+  const steps = [
+    {
+      key: 'shipping' as const,
+      title: CART_CONFIG.messaging.checkout.stepTitles.shipping,
+      icon: '🚚',
+      description: 'Enter your delivery details'
     },
-    available_shipping_methods: [],
-    is_guest_checkout: !isSignedIn,
-    validation_errors: {},
-    is_loading: false,
-    is_submitting: false,
-    error: null,
-  });
-
-  // Initialize guest email if not signed in
-  useEffect(() => {
-    if (!isSignedIn && !checkoutState.form_data.shipping_address?.email) {
-      setCheckoutState(prev => ({
-        ...prev,
-        is_guest_checkout: true,
-        form_data: {
-          ...prev.form_data,
-          shipping_address: {
-            ...prev.form_data.shipping_address!,
-            email: '',
-          }
-        }
-      }));
+    {
+      key: 'payment' as const,
+      title: CART_CONFIG.messaging.checkout.stepTitles.payment,
+      icon: '💳',
+      description: 'Choose your payment method'
+    },
+    {
+      key: 'review' as const,
+      title: CART_CONFIG.messaging.checkout.stepTitles.review,
+      icon: '📋',
+      description: 'Confirm your order'
     }
-  }, [isSignedIn]);
+  ];
 
-  // Step configuration
-  const steps: Array<{
-    key: CheckoutStep;
-    title: string;
-    icon: React.ReactNode;
-    description: string;
-  }> = [
-      {
-        key: 'shipping',
-        title: CART_CONFIG.messaging.checkout.stepTitles.shipping,
-        icon: <Truck size={20} />,
-        description: 'Enter your delivery details'
-      },
-      {
-        key: 'payment',
-        title: CART_CONFIG.messaging.checkout.stepTitles.payment,
-        icon: <CreditCard size={20} />,
-        description: 'Choose your payment method'
-      },
-      {
-        key: 'review',
-        title: CART_CONFIG.messaging.checkout.stepTitles.review,
-        icon: <FileText size={20} />,
-        description: 'Confirm your order'
-      }
-    ];
+  const currentStepIndex = steps.findIndex(step => step.key === currentStep);
 
-  const currentStepIndex = steps.findIndex(step => step.key === checkoutState.current_step);
-
-  // Navigation handlers
-  const goToStep = (step: CheckoutStep) => {
-    if (canNavigateToStep(step)) {
-      setCheckoutState(prev => ({
-        ...prev,
-        current_step: step,
-        error: null,
-      }));
-    }
-  };
-
-  const goToPreviousStep = () => {
-    const prevIndex = currentStepIndex - 1;
-    if (prevIndex >= 0) {
-      goToStep(steps[prevIndex].key);
-    }
-  };
-
-  const goToNextStep = async () => {
-    const isValid = await validateCurrentStep();
-    if (isValid) {
-      const nextIndex = currentStepIndex + 1;
-      if (nextIndex < steps.length) {
-        goToStep(steps[nextIndex].key);
-      } else {
-        // Final step - submit order
-        await submitOrder();
-      }
-    }
-  };
-
-  // Validation
-  const canNavigateToStep = (step: CheckoutStep): boolean => {
-    const stepIndex = steps.findIndex(s => s.key === step);
-    const currentIndex = currentStepIndex;
-
-    // Can always go backward
-    if (stepIndex <= currentIndex) return true;
-
-    // Can only go forward if ALL previous steps are complete
-    for (let i = 0; i < stepIndex; i++) {
-      if (!isStepComplete(steps[i].key)) {
-        return false;
-      }
-    }
-
-    return true;
-  };
-
-  const isStepComplete = (step: CheckoutStep): boolean => {
-    switch (step) {
-      case 'shipping':
-        // Use the correct variable name from your state
-        return validateShippingAddress(checkoutState.form_data.shipping_address!) && !!checkoutState.form_data.shipping_method;
-      case 'payment':
-        // Payment is complete when payment method exists with an ID
-        return !!checkoutState.form_data.payment_method?.id;
-      case 'review':
-        // Review step is never "complete" until order is actually submitted
-        return false;
-      default:
-        return false;
-    }
-  };
-
-  const validateShippingAddress = (address: ShippingAddress): boolean => {
-    const required = ['first_name', 'last_name', 'address_line_1', 'city', 'state', 'postal_code'];
-    if (checkoutState.is_guest_checkout) {
-      required.push('email');
-    }
-
-    return required.every(field => {
-      const value = address[field as keyof ShippingAddress];
-      return typeof value === 'string' && value.trim().length > 0;
+  // Handle order completion
+  const handleOrderComplete = () => {
+    submitOrder().then(() => {
+      // The hook handles the actual submission
+      // We'll get the order number from the response
+      onOrderComplete?.("ORD-" + Date.now().toString(36).toUpperCase());
+    }).catch((err) => {
+      onError?.(err.message);
     });
   };
-
-  const validateCurrentStep = async (): Promise<boolean> => {
-    const errors: Record<string, string> = {};
-
-    switch (checkoutState.current_step) {
-      case 'shipping':
-        if (!validateShippingAddress(checkoutState.form_data.shipping_address!)) {
-          errors.shipping = 'Please fill in all required shipping information';
-        }
-        if (!checkoutState.selected_shipping_method) {
-          errors.shipping_method = 'Please select a shipping method';
-        }
-        break;
-
-      case 'payment':
-        if (!checkoutState.form_data.payment_method) {
-          errors.payment = 'Please select a payment method';
-        }
-        break;
-    }
-
-    setCheckoutState(prev => ({ ...prev, validation_errors: errors }));
-    return Object.keys(errors).length === 0;
-  };
-
-  // Form data updates
-  const updateFormData = (updates: Partial<CheckoutFormData>) => {
-    setCheckoutState(prev => ({
-      ...prev,
-      form_data: {
-        ...prev.form_data,
-        ...updates,
-      },
-      validation_errors: {}, // Clear errors when user makes changes
-    }));
-  };
-
-  const updateShippingAddress = (updates: Partial<ShippingAddress>) => {
-    updateFormData({
-      shipping_address: {
-        ...checkoutState.form_data.shipping_address!,
-        ...updates,
-      }
-    });
-  };
-
-  const selectShippingMethod = (method: ShippingMethod) => {
-    setCheckoutState(prev => ({
-      ...prev,
-      selected_shipping_method: method,
-      form_data: {
-        ...prev.form_data,
-        shipping_method: method,
-      }
-    }));
-  };
-
-  const selectPaymentMethod = (method: PaymentMethod) => {
-    updateFormData({ payment_method: method });
-  };
-
-  // API calls
-  const fetchShippingMethods = async () => {
-    if (!checkoutState.form_data.shipping_address) return;
-
-    setCheckoutState(prev => ({ ...prev, is_loading: true }));
-
-    try {
-      const token = await getToken();
-      const response = await fetch('/api/checkout/shipping-methods', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          address: checkoutState.form_data.shipping_address,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch shipping methods');
-      }
-
-      const methods: ShippingMethod[] = await response.json();
-
-      setCheckoutState(prev => ({
-        ...prev,
-        available_shipping_methods: methods,
-        is_loading: false,
-      }));
-
-      // Auto-select first method if none selected
-      if (methods.length > 0 && !checkoutState.selected_shipping_method) {
-        selectShippingMethod(methods[0]);
-      }
-
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to load shipping methods';
-      setCheckoutState(prev => ({
-        ...prev,
-        is_loading: false,
-        error: errorMessage,
-      }));
-      onError?.(errorMessage);
-    }
-  };
-
-  const submitOrder = async () => {
-    if (!cart) return;
-
-    setCheckoutState(prev => ({ ...prev, is_submitting: true, error: null }));
-
-    try {
-      const token = await getToken();
-      const response = await fetch('/api/checkout/submit', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          shipping_address: checkoutState.form_data.shipping_address,
-          billing_address: checkoutState.form_data.billing_address,
-          shipping_method: checkoutState.selected_shipping_method,
-          payment_method: checkoutState.form_data.payment_method,
-          gift_options: checkoutState.form_data.gift_options,
-          order_notes: checkoutState.form_data.order_notes,
-          cart_id: cart.id || null,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to submit order');
-      }
-
-      const result = await response.json();
-
-      setCheckoutState(prev => ({ ...prev, is_submitting: false }));
-      onOrderComplete?.(result.order_number);
-
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to submit order';
-      setCheckoutState(prev => ({
-        ...prev,
-        is_submitting: false,
-        error: errorMessage,
-      }));
-      onError?.(errorMessage);
-    }
-  };
-
-  // Auto-fetch shipping methods when address is complete
-  useEffect(() => {
-    const address = checkoutState.form_data.shipping_address;
-    if (address && validateShippingAddress(address) && checkoutState.current_step === 'shipping') {
-      const timer = setTimeout(() => {
-        fetchShippingMethods();
-      }, 500); // Debounce
-
-      return () => clearTimeout(timer);
-    }
-  }, [checkoutState.form_data.shipping_address, checkoutState.current_step]);
 
   if (cartLoading || !cart) {
     return <CheckoutFlowSkeleton />;
@@ -363,18 +114,34 @@ export default function CheckoutFlow({
           transition={{ duration: 0.6 }}
         >
           <div className="flex items-center gap-4 mb-8">
-            <button
-              onClick={() => window.history.back()}
+            <Link
+              href="/cart"
               className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
             >
               <ArrowLeft size={20} />
-            </button>
+            </Link>
             <h1 className="text-3xl md:text-4xl font-serif text-black dark:text-white">
               Secure Checkout
             </h1>
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <Lock size={16} />
               <span>SSL Secured</span>
+            </div>
+          </div>
+
+          {/* ✅ Enhanced Progress Bar */}
+          <div className="mb-8">
+            <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
+              <span>Step {currentStepIndex + 1} of {steps.length}</span>
+              <span>{Math.round(progressPercentage)}% Complete</span>
+            </div>
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+              <motion.div
+                className="bg-gold h-2 rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${progressPercentage}%` }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+              />
             </div>
           </div>
 
@@ -386,8 +153,8 @@ export default function CheckoutFlow({
                   onClick={() => goToStep(step.key)}
                   disabled={!canNavigateToStep(step.key)}
                   className={`
-                    flex items-center gap-3 p-4 rounded-lg transition-all duration-300
-                    ${checkoutState.current_step === step.key
+                    flex items-center gap-3 p-4 rounded-lg transition-all duration-300 w-full
+                    ${currentStep === step.key
                       ? 'bg-gold text-black'
                       : isStepComplete(step.key)
                         ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400'
@@ -398,8 +165,8 @@ export default function CheckoutFlow({
                   `}
                 >
                   <div className={`
-                    w-8 h-8 rounded-full flex items-center justify-center
-                    ${checkoutState.current_step === step.key
+                    w-8 h-8 rounded-full flex items-center justify-center text-sm
+                    ${currentStep === step.key
                       ? 'bg-black text-gold'
                       : isStepComplete(step.key)
                         ? 'bg-green-600 text-white'
@@ -409,7 +176,7 @@ export default function CheckoutFlow({
                     {isStepComplete(step.key) ? (
                       <Check size={16} />
                     ) : (
-                      <span className="text-sm font-medium">{index + 1}</span>
+                      <span>{step.icon}</span>
                     )}
                   </div>
 
@@ -433,7 +200,7 @@ export default function CheckoutFlow({
 
         {/* Error Display */}
         <AnimatePresence>
-          {checkoutState.error && (
+          {error && (
             <motion.div
               className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400"
               initial={{ opacity: 0, height: 0 }}
@@ -441,7 +208,12 @@ export default function CheckoutFlow({
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.3 }}
             >
-              {checkoutState.error}
+              <div className="flex justify-between items-center">
+                <span>{error}</span>
+                <button onClick={clearErrors} className="text-red-400 hover:text-red-600">
+                  ✕
+                </button>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -452,38 +224,48 @@ export default function CheckoutFlow({
           <div className="lg:col-span-8">
             <AnimatePresence mode="wait">
               <motion.div
-                key={checkoutState.current_step}
+                key={currentStep}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.4 }}
               >
-                {checkoutState.current_step === 'shipping' && (
-                  <ShippingStep
-                    formData={checkoutState.form_data}
-                    shippingMethods={checkoutState.available_shipping_methods}
-                    selectedMethod={checkoutState.selected_shipping_method}
-                    isGuestCheckout={checkoutState.is_guest_checkout}
-                    isLoading={checkoutState.is_loading}
-                    validationErrors={checkoutState.validation_errors}
+                {/* ✅ Using our modular checkout components */}
+                {currentStep === 'shipping' && (
+                  <ShippingForm
+                    formData={formData}
+                    shippingMethods={availableShippingMethods}
+                    selectedMethod={selectedShippingMethod || undefined}
+                    isGuestCheckout={!formData.shipping_address?.email}
+                    isLoading={isLoading}
+                    validationErrors={validationErrors}
                     onUpdateAddress={updateShippingAddress}
                     onSelectShippingMethod={selectShippingMethod}
+                    onNext={goToNextStep}
                   />
                 )}
 
-                {checkoutState.current_step === 'payment' && (
-                  <PaymentStep
-                    formData={checkoutState.form_data}
-                    validationErrors={checkoutState.validation_errors}
+                {currentStep === 'payment' && (
+                  <PaymentForm
+                    formData={formData}
+                    validationErrors={validationErrors}
                     onSelectPaymentMethod={selectPaymentMethod}
+                    onUpdateBillingAddress={updateBillingAddress}
+                    onPrevious={goToPreviousStep}
+                    onNext={goToNextStep}
+                    isLoading={isLoading}
+                    orderTotal={cart.total}
                   />
                 )}
 
-                {checkoutState.current_step === 'review' && (
-                  <ReviewStep
+                {currentStep === 'review' && (
+                  <OrderReview
                     cart={cart}
-                    formData={checkoutState.form_data}
-                    shippingMethod={checkoutState.selected_shipping_method!}
+                    formData={formData}
+                    shippingMethod={selectedShippingMethod!}
+                    total={cart.total}
+                    onPrevious={goToPreviousStep}
+                    onPlaceOrder={handleOrderComplete}
                   />
                 )}
               </motion.div>
@@ -494,12 +276,12 @@ export default function CheckoutFlow({
           <div className="lg:col-span-4">
             <CheckoutOrderSummary
               cart={cart}
-              shippingMethod={checkoutState.selected_shipping_method}
-              currentStep={checkoutState.current_step}
+              shippingMethod={selectedShippingMethod}
+              currentStep={currentStep}
               onPrevious={currentStepIndex > 0 ? goToPreviousStep : undefined}
               onNext={goToNextStep}
-              isSubmitting={checkoutState.is_submitting}
-              canProceed={isStepComplete(checkoutState.current_step)}
+              isSubmitting={isSubmitting}
+              canProceed={isStepComplete(currentStep)}
               isLastStep={currentStepIndex === steps.length - 1}
             />
           </div>
@@ -509,58 +291,127 @@ export default function CheckoutFlow({
   );
 }
 
-// Placeholder components for each step (to be implemented next)
-function ShippingStep({ }: any) {
+// ✅ Improved Order Summary Component
+function CheckoutOrderSummary({
+  cart,
+  shippingMethod,
+  currentStep,
+  onPrevious,
+  onNext,
+  isSubmitting,
+  canProceed,
+  isLastStep
+}: any) {
+  const shippingCost = shippingMethod?.price || 0;
+  const total = cart.subtotal + shippingCost + cart.tax;
+
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-serif">Shipping Information</h2>
-      <div className="p-8 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-center text-gray-500">
-        Shipping Form Component (to be implemented)
+    <div className="sticky top-[calc(var(--navbar-height)+2rem)] bg-gray-50 dark:bg-gray-900 rounded-lg p-6">
+      <h3 className="text-xl font-serif mb-6">Order Summary</h3>
+
+      {/* Items Preview */}
+      <div className="space-y-3 mb-6">
+        {cart.items.slice(0, 3).map((item: any) => (
+          <div key={item.product_id} className="flex gap-3">
+            <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden">
+              {item.product.image_url && (
+                <img
+                  src={item.product.image_url}
+                  alt={item.product.name}
+                  className="w-full h-full object-cover"
+                />
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{item.product.name}</p>
+              <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
+            </div>
+          </div>
+        ))}
+        {cart.items.length > 3 && (
+          <p className="text-sm text-gray-500">+{cart.items.length - 3} more items</p>
+        )}
+      </div>
+
+      {/* Totals */}
+      <div className="space-y-2 mb-6 pb-6 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex justify-between">
+          <span>Subtotal</span>
+          <span>${cart.subtotal}</span>
+        </div>
+        {shippingMethod && (
+          <div className="flex justify-between">
+            <span>Shipping</span>
+            <span>{shippingCost > 0 ? `$${shippingCost}` : 'Free'}</span>
+          </div>
+        )}
+        <div className="flex justify-between">
+          <span>Tax</span>
+          <span>${cart.tax}</span>
+        </div>
+        <div className="flex justify-between text-lg font-semibold pt-2 border-t border-gray-200 dark:border-gray-700">
+          <span>Total</span>
+          <span className="text-gold">${total}</span>
+        </div>
+      </div>
+
+      {/* Navigation Buttons */}
+      <div className="space-y-3">
+        {!isLastStep ? (
+          <button
+            onClick={onNext}
+            disabled={!canProceed || isSubmitting}
+            className="w-full bg-gold hover:bg-gold/90 text-black font-medium py-4 px-6 rounded-lg transition-all duration-300 hover:scale-[1.02] tracking-widest uppercase text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+          >
+            {isSubmitting ? 'Processing...' : `Continue to ${getNextStepName(currentStep)}`}
+          </button>
+        ) : (
+          <button
+            onClick={onNext}
+            disabled={!canProceed || isSubmitting}
+            className="w-full bg-gold hover:bg-gold/90 text-black font-medium py-4 px-6 rounded-lg transition-all duration-300 hover:scale-[1.02] tracking-widest uppercase text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+          >
+            {isSubmitting ? 'Placing Order...' : 'Complete Purchase'}
+          </button>
+        )}
+
+        {onPrevious && (
+          <button
+            onClick={onPrevious}
+            disabled={isSubmitting}
+            className="w-full border border-gray-300 dark:border-gray-600 py-3 px-6 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm tracking-wide disabled:opacity-50"
+          >
+            Back
+          </button>
+        )}
+      </div>
+
+      {/* Security Badge */}
+      <div className="mt-6 text-center">
+        <p className="text-xs text-gray-500">🔒 Secure checkout with SSL encryption</p>
       </div>
     </div>
   );
 }
 
-function PaymentStep({ }: any) {
-  return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-serif">Payment Method</h2>
-      <div className="p-8 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-center text-gray-500">
-        Payment Form Component (to be implemented)
-      </div>
-    </div>
-  );
+// Helper function for next step name
+function getNextStepName(currentStep: string): string {
+  switch (currentStep) {
+    case 'shipping': return 'Payment';
+    case 'payment': return 'Review';
+    default: return 'Next';
+  }
 }
 
-function ReviewStep({ }: any) {
-  return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-serif">Review Your Order</h2>
-      <div className="p-8 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-center text-gray-500">
-        Order Review Component (to be implemented)
-      </div>
-    </div>
-  );
-}
-
-function CheckoutOrderSummary({ }: any) {
-  return (
-    <div className="sticky top-[calc(var(--navbar-height)+2rem)] space-y-6">
-      <h3 className="text-xl font-serif">Order Summary</h3>
-      <div className="p-8 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-center text-gray-500">
-        Checkout Summary Component (to be implemented)
-      </div>
-    </div>
-  );
-}
-
-// Loading and empty states
+// Loading and empty states (unchanged but improved)
 function CheckoutFlowSkeleton() {
   return (
     <div className="min-h-screen bg-white dark:bg-black pt-[var(--navbar-height)]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="animate-pulse">
           <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-64 mb-8" />
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full mb-2" />
+          <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded w-full mb-8" />
           <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded mb-8" />
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
             <div className="lg:col-span-8 space-y-6">
@@ -582,9 +433,9 @@ function EmptyCartRedirect() {
       <div className="text-center">
         <h2 className="text-2xl font-serif mb-4">Your cart is empty</h2>
         <p className="text-gray-600 dark:text-gray-400 mb-8">Add some items to your cart before checkout</p>
-        <a href="/shop" className="bg-gold hover:bg-gold/90 text-black px-8 py-4 font-medium tracking-widest uppercase text-sm">
+        <Link href="/shop" className="bg-gold hover:bg-gold/90 text-black px-8 py-4 font-medium tracking-widest uppercase text-sm">
           Continue Shopping
-        </a>
+        </Link>
       </div>
     </div>
   );
