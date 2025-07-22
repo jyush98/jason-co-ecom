@@ -5,14 +5,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { ArrowLeft, ArrowRight, Check, Truck, CreditCard, FileText, Lock } from "lucide-react";
 import { CART_CONFIG } from "@/config/cartConfig";
-import { 
-  CheckoutStep, 
-  CheckoutState, 
-  CheckoutFormData, 
-  ShippingAddress, 
+import {
+  CheckoutStep,
+  CheckoutState,
+  CheckoutFormData,
+  ShippingAddress,
   ShippingMethod,
   PaymentMethod,
-  CheckoutOrderPreview 
+  CheckoutOrderPreview
 } from "@/types/cart";
 import { useCartData, useCartActions } from "@/app/store/cartStore";
 
@@ -81,25 +81,25 @@ export default function CheckoutFlow({
     icon: React.ReactNode;
     description: string;
   }> = [
-    {
-      key: 'shipping',
-      title: CART_CONFIG.messaging.checkout.stepTitles.shipping,
-      icon: <Truck size={20} />,
-      description: 'Enter your delivery details'
-    },
-    {
-      key: 'payment',
-      title: CART_CONFIG.messaging.checkout.stepTitles.payment,
-      icon: <CreditCard size={20} />,
-      description: 'Choose your payment method'
-    },
-    {
-      key: 'review',
-      title: CART_CONFIG.messaging.checkout.stepTitles.review,
-      icon: <FileText size={20} />,
-      description: 'Confirm your order'
-    }
-  ];
+      {
+        key: 'shipping',
+        title: CART_CONFIG.messaging.checkout.stepTitles.shipping,
+        icon: <Truck size={20} />,
+        description: 'Enter your delivery details'
+      },
+      {
+        key: 'payment',
+        title: CART_CONFIG.messaging.checkout.stepTitles.payment,
+        icon: <CreditCard size={20} />,
+        description: 'Choose your payment method'
+      },
+      {
+        key: 'review',
+        title: CART_CONFIG.messaging.checkout.stepTitles.review,
+        icon: <FileText size={20} />,
+        description: 'Confirm your order'
+      }
+    ];
 
   const currentStepIndex = steps.findIndex(step => step.key === checkoutState.current_step);
 
@@ -138,23 +138,31 @@ export default function CheckoutFlow({
   const canNavigateToStep = (step: CheckoutStep): boolean => {
     const stepIndex = steps.findIndex(s => s.key === step);
     const currentIndex = currentStepIndex;
-    
+
     // Can always go backward
     if (stepIndex <= currentIndex) return true;
-    
-    // Can only go forward if current step is valid
-    return isStepComplete(steps[stepIndex - 1]?.key);
+
+    // Can only go forward if ALL previous steps are complete
+    for (let i = 0; i < stepIndex; i++) {
+      if (!isStepComplete(steps[i].key)) {
+        return false;
+      }
+    }
+
+    return true;
   };
 
   const isStepComplete = (step: CheckoutStep): boolean => {
     switch (step) {
       case 'shipping':
-        return validateShippingAddress(checkoutState.form_data.shipping_address!) &&
-               !!checkoutState.selected_shipping_method;
+        // Use the correct variable name from your state
+        return validateShippingAddress(checkoutState.form_data.shipping_address!) && !!checkoutState.form_data.shipping_method;
       case 'payment':
-        return !!checkoutState.form_data.payment_method;
+        // Payment is complete when payment method exists with an ID
+        return !!checkoutState.form_data.payment_method?.id;
       case 'review':
-        return true;
+        // Review step is never "complete" until order is actually submitted
+        return false;
       default:
         return false;
     }
@@ -165,7 +173,7 @@ export default function CheckoutFlow({
     if (checkoutState.is_guest_checkout) {
       required.push('email');
     }
-    
+
     return required.every(field => {
       const value = address[field as keyof ShippingAddress];
       return typeof value === 'string' && value.trim().length > 0;
@@ -256,7 +264,7 @@ export default function CheckoutFlow({
       }
 
       const methods: ShippingMethod[] = await response.json();
-      
+
       setCheckoutState(prev => ({
         ...prev,
         available_shipping_methods: methods,
@@ -309,7 +317,7 @@ export default function CheckoutFlow({
       }
 
       const result = await response.json();
-      
+
       setCheckoutState(prev => ({ ...prev, is_submitting: false }));
       onOrderComplete?.(result.order_number);
 
@@ -331,7 +339,7 @@ export default function CheckoutFlow({
       const timer = setTimeout(() => {
         fetchShippingMethods();
       }, 500); // Debounce
-      
+
       return () => clearTimeout(timer);
     }
   }, [checkoutState.form_data.shipping_address, checkoutState.current_step]);
@@ -404,7 +412,7 @@ export default function CheckoutFlow({
                       <span className="text-sm font-medium">{index + 1}</span>
                     )}
                   </div>
-                  
+
                   <div className="hidden md:block text-left">
                     <div className="font-medium">{step.title}</div>
                     <div className="text-xs opacity-75">{step.description}</div>

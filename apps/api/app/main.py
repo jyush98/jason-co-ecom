@@ -16,6 +16,7 @@ from app.routes.products import router as products_router
 from app.routes.order import router as order_router
 from app.routes.custom_order import router as custom_order_router
 from app.routes.admin import router as admin_router
+from app.routes.payment import router as payment_router
 
 app = FastAPI()
 
@@ -42,6 +43,7 @@ app.include_router(products_router, prefix="/api", tags=["Products"])
 app.include_router(order_router, prefix="/api", tags=["Orders"])
 app.include_router(custom_order_router)
 app.include_router(admin_router, prefix="/api/admin", tags=["Admin"])
+app.include_router(payment_router, prefix="/payment", tags=["Payment"])
 
 
 @app.get("/")
