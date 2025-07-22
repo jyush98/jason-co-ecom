@@ -6,6 +6,7 @@ export interface OrderItem {
     product_name: string;
     unit_price: number;
     quantity: number;
+    display_theme?: string; // Added for display theme
     // From your enhanced model
     product_image_url?: string;
     product_category?: string;

@@ -172,7 +172,7 @@ export default function CartItem({
             {/* Product Image */}
             {showImage && (
                 <Link href={`/product/${item.product.id}`} className="flex-shrink-0">
-                    <div className={`relative ${styles.image} bg-white dark:bg-black rounded overflow-hidden group`}>
+                    <div className={`relative ${styles.image} ${item.product.display_theme === "dark" ? "bg-black" : "bg-white"} rounded overflow-hidden group`}>
                         <Image
                             src={item.product.image_url || '/placeholder-product.jpg'}
                             alt={item.product.name}
@@ -246,7 +246,7 @@ export default function CartItem({
                 {showActions && (
                     <div className={styles.controls}>
                         {/* Quantity Controls */}
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 text-black dark:text-white">
                             {variant === 'page' && <span className="text-sm font-medium">Quantity:</span>}
                             <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded">
                                 <button

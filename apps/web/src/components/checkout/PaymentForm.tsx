@@ -8,6 +8,7 @@ import { CreditCard, Lock, Check, AlertCircle, Loader2, Shield } from "lucide-re
 import { useAuth, useUser } from "@clerk/nextjs";
 import { CART_CONFIG } from "@/config/cartConfig";
 import { PaymentMethod, CheckoutFormData, ShippingAddress } from "@/types/cart";
+import { useTheme } from "next-themes";
 
 interface PaymentFormProps {
     formData: Partial<CheckoutFormData>;
@@ -34,6 +35,7 @@ export default function PaymentForm({
     const { user } = useUser();
     const stripe = useStripe();
     const elements = useElements();
+    const { resolvedTheme } = useTheme()
 
     const [isProcessingPayment, setIsProcessingPayment] = useState(false);
     const [paymentIntentClientSecret, setPaymentIntentClientSecret] = useState<string>('');
@@ -43,6 +45,8 @@ export default function PaymentForm({
     const [billingAddress, setBillingAddress] = useState<ShippingAddress>(
         formData.shipping_address || {} as ShippingAddress
     );
+
+    const placeholderColor = resolvedTheme === 'dark' ? '#ffffff' : '#9ca3af'
 
     // Create PaymentIntent when component mounts
     useEffect(() => {
@@ -227,7 +231,7 @@ export default function PaymentForm({
 
     return (
         <motion.div
-            className="max-w-2xl"
+            className="max-w-2xl text-black dark:text-white"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
@@ -269,10 +273,10 @@ export default function PaymentForm({
                             Card Details *
                         </label>
                         <div className={`p-4 border rounded-lg bg-white dark:bg-black transition-colors ${cardErrors.card
-                                ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
-                                : cardComplete
-                                    ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
-                                    : 'border-gray-300 dark:border-gray-600 focus-within:border-gold focus-within:ring-1 focus-within:ring-gold'
+                            ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
+                            : cardComplete
+                                ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
+                                : 'border-gray-300 dark:border-gray-600 focus-within:border-gold focus-within:ring-1 focus-within:ring-gold'
                             }`}>
                             <CardElement
                                 onChange={handleCardChange}
@@ -280,9 +284,10 @@ export default function PaymentForm({
                                     style: {
                                         base: {
                                             fontSize: '16px',
-                                            color: '#1f2937',
+                                            color: placeholderColor,
+                                            iconColor: placeholderColor,
                                             '::placeholder': {
-                                                color: '#9ca3af',
+                                                color: placeholderColor,
                                             },
                                             fontFamily: 'system-ui, sans-serif',
                                             lineHeight: '1.5',

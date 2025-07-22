@@ -60,7 +60,7 @@ export default function CartPage({
     const handleRemoveItem = async (productId: number, token: string) => {
         try {
             const result = await removeFromCart(productId, token);
-            return result; // Return the result for your CartItem component  
+            return result; // Return the result for your CartItem component
         } catch (error) {
             console.error('Failed to remove item:', error);
             return { success: false, error: 'Failed to remove item' };
@@ -247,8 +247,8 @@ function CartPageSummary({
     const isEligibleForFreeShipping = cart.subtotal >= freeShippingThreshold;
 
     return (
-        <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6">
-            <h3 className="text-xl font-serif mb-6 text-black dark:text-white">
+        <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 text-black dark:text-white">
+            <h3 className="text-xl font-serif mb-6">
                 Order Summary
             </h3>
 

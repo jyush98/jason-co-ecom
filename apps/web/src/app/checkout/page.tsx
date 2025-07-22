@@ -281,7 +281,7 @@ export default function CheckoutPage() {
                     {/* Progress Steps */}
                     <div className="flex items-center justify-between mb-8">
                         {steps.map((step, index) => (
-                            <div key={step.key} className="flex items-center flex-1">
+                            <div key={step.key} className="flex items-center flex-1 text-gray-900 dark:text-gray-100">
                                 <button
                                     onClick={() => goToStep(step.key)}
                                     disabled={!canNavigateToStep(step.key)}
@@ -406,14 +406,14 @@ export default function CheckoutPage() {
 // Order Summary component
 function CheckoutOrderSummary({ cart, shippingMethod, subtotal, shippingCost, tax, total }: any) {
     return (
-        <div className="sticky top-[calc(var(--navbar-height)+2rem)] bg-gray-50 dark:bg-gray-900 rounded-lg p-6">
+        <div className="sticky top-[calc(var(--navbar-height)+2rem)] bg-gray-50 dark:bg-gray-900 text-black dark:text-white rounded-lg p-6">
             <h3 className="text-xl font-serif mb-6">Order Summary</h3>
 
             {/* Items */}
             <div className="space-y-4 mb-6">
                 {cart.items.map((item: any) => (
                     <div key={item.product_id} className="flex gap-4">
-                        <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden">
+                        <div className={`w-16 h-16 ${item.product.display_theme === "dark" ? "bg-black" : "bg-white"} rounded overflow-hidden`}>
                             <img
                                 src={item.product.image_url}
                                 alt={item.product.name}

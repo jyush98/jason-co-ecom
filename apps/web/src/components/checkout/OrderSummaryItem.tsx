@@ -6,7 +6,7 @@ import { formatCartPrice } from "@/config";
 export function OrderSummaryItem({ item }: { item: any }) {
     return (
         <div className="flex gap-4">
-            <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden">
+            <div className={`w-16 h-16 ${item.product.display_theme === "dark" ? "bg-black" : "bg-white"} rounded overflow-hidden`}>
                 {item.product_image && (
                     <img
                         src={item.product_image}

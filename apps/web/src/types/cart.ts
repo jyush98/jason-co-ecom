@@ -14,6 +14,7 @@ export interface CartItem {
         image_url?: string;
         category?: string;
         description?: string;
+        display_theme?: string;
     };
     // Enhanced fields for premium cart experience
     saved_for_later?: boolean;
