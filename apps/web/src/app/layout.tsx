@@ -32,7 +32,7 @@ export default function RootLayout({
             rel="stylesheet"
           />
         </Head>
-        <body className="min-h-screen flex flex-col">
+        <body className="min-h-screen flex flex-col text-black dark:text-white">
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
             <ThemeInitializer />
             <Toaster position="top-center" />
