@@ -158,26 +158,85 @@ export const useCartStore = create<CartStoreState>()(
         try {
           const cartData = await getCart(token);
 
-          // Transform array response to Cart object structure
+          // Calculate subtotal
+          const subtotal = cartData.reduce((sum: number, item: CartItem) =>
+            sum + (item.product.price * item.quantity), 0);
+
+          // For now, set tax to 0 - it will be calculated when shipping address is provided
+          // In checkout, we'll call the tax calculation API
           const cart: Cart = {
-            items: cartData, // The API returns items directly as an array
-            subtotal: cartData.reduce((sum: number, item: CartItem) => sum + (item.product.price * item.quantity), 0),
-            tax: 0,
-            shipping: 0,
-            total: cartData.reduce((sum: number, item: CartItem) => sum + (item.product.price * item.quantity), 0),
-            item_count: cartData.length,
+            items: cartData,
+            subtotal,
+            tax: 0, // Will be calculated based on shipping address in checkout
+            shipping: 0, // Will be calculated based on shipping method
+            total: subtotal, // subtotal + tax + shipping
+            item_count: cartData.reduce((total: number, item: CartItem) => total + item.quantity, 0),
             currency: CART_CONFIG.currency.code,
             last_updated: new Date().toISOString(),
           };
 
           set({
             cart,
-            cartCount: cart.items.reduce((total, item) => total + item.quantity, 0), // Total quantity
+            cartCount: cart.items.reduce((total, item) => total + item.quantity, 0),
             isLoading: false,
             error: null,
           });
         } catch (error) {
-          // ... error handling stays the same
+          const errorMessage = error instanceof Error ? error.message : CART_CONFIG.messaging.errors.loadCartFailed;
+          set({
+            cart: null,
+            isLoading: false,
+            error: errorMessage,
+          });
+        }
+      },
+
+      calculateTax: async (state: string, subtotal: number, shipping: number = 0, token: string) => {
+        try {
+          const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+          const response = await fetch(`${API_BASE_URL}/cart/calculate-tax`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              state,
+              subtotal,
+              shipping,
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to calculate tax');
+          }
+
+          const taxData = await response.json();
+
+          // Update cart with calculated tax
+          const currentCart = get().cart;
+          if (currentCart) {
+            const updatedCart = {
+              ...currentCart,
+              tax: taxData.tax_amount,
+              total: currentCart.subtotal + taxData.tax_amount + (currentCart.shipping || 0),
+            };
+
+            set({ cart: updatedCart });
+          }
+
+          return {
+            success: true,
+            taxAmount: taxData.tax_amount,
+            taxRate: taxData.tax_rate,
+          };
+
+        } catch (error) {
+          console.error('Failed to calculate tax:', error);
+          return {
+            success: false,
+            error: 'Failed to calculate tax',
+          };
         }
       },
 
@@ -234,9 +293,6 @@ export const useCartStore = create<CartStoreState>()(
           };
         }
       },
-
-      // Fixed updateCartItem function for your cart store
-      // Replace the existing updateCartItem function in your cartStore.ts
 
       updateCartItem: async (productId, quantity, token) => {
         const currentCart = get().cart;

@@ -22,6 +22,7 @@ interface OrderReviewProps {
     cart: Cart;
     formData: Partial<CheckoutFormData>;
     shippingMethod: ShippingMethod;
+    tax: number,
     total: number;
     onPrevious: () => void;
     onPlaceOrder: () => void; // This will be called after successful order submission
@@ -31,9 +32,10 @@ export default function OrderReview({
     cart,
     formData,
     shippingMethod,
+    tax,
     total,
     onPrevious,
-    onPlaceOrder
+    onPlaceOrder,
 }: OrderReviewProps) {
     const { getToken } = useAuth();
     const router = useRouter();
@@ -103,7 +105,7 @@ export default function OrderReview({
 
     return (
         <motion.div
-            className="max-w-4xl"
+            className="max-w-4xl text-black dark:text-white"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
@@ -111,7 +113,7 @@ export default function OrderReview({
             <div className="space-y-8">
                 {/* Header */}
                 <motion.div variants={itemVariants}>
-                    <h2 className="text-2xl font-serif text-black dark:text-white mb-2">
+                    <h2 className="text-2xl font-serif mb-2">
                         Review Your Order
                     </h2>
                     <p className="text-gray-600 dark:text-gray-400">
@@ -269,7 +271,7 @@ export default function OrderReview({
 
                                 <div className="flex justify-between">
                                     <span>Tax</span>
-                                    <span>{formatCartPrice(cart.tax)}</span>
+                                    <span>{formatCartPrice(tax)}</span>
                                 </div>
 
                                 {cart.promo_discount && cart.promo_discount > 0 && (

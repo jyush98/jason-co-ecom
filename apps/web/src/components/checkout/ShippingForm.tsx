@@ -157,7 +157,7 @@ export default function ShippingForm({
 
     return (
         <motion.div
-            className="max-w-2xl"
+            className="max-w-2xl text-black dark:text-white"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
@@ -165,7 +165,7 @@ export default function ShippingForm({
             <form onSubmit={handleSubmit} className="space-y-8">
                 {/* Header */}
                 <motion.div variants={itemVariants}>
-                    <h2 className="text-2xl font-serif text-black dark:text-white mb-2">
+                    <h2 className="text-2xl font-serif mb-2">
                         {CART_CONFIG.messaging.checkout.shippingForm.title}
                     </h2>
                     <p className="text-gray-600 dark:text-gray-400">

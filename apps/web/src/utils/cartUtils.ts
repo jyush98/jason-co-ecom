@@ -360,3 +360,41 @@ export const calculatePromoDiscount = (
         message: `${promo.value}${promo.type === 'percentage' ? '%' : ''} discount applied!`
     };
 };
+
+// Tax calculation utilities
+
+export const getTaxRateForState = (state: string): number => {
+    if (!CART_CONFIG.tax.enabled) return 0;
+
+    const stateCode = state.toUpperCase();
+
+    // Check if state is exempt
+    if (CART_CONFIG.tax.exemptStates.includes(stateCode)) {
+        return 0;
+    }
+
+    // Get state-specific rate or default
+    return CART_CONFIG.tax.stateRates[stateCode] || CART_CONFIG.tax.defaultRate;
+};
+
+export const calculateTaxForAddress = (
+    subtotal: number,
+    shippingCost: number = 0,
+    state?: string
+): number => {
+    if (!CART_CONFIG.tax.enabled || !state) return 0;
+
+    const taxRate = getTaxRateForState(state);
+    if (taxRate === 0) return 0;
+
+    const taxableAmount = CART_CONFIG.tax.calculation === 'subtotal_plus_shipping'
+        ? subtotal + shippingCost
+        : subtotal;
+
+    return Math.round(taxableAmount * taxRate * 100) / 100; // Round to 2 decimal places
+};
+
+export const formatTaxRate = (state: string): string => {
+    const rate = getTaxRateForState(state);
+    return `${(rate * 100).toFixed(2)}%`;
+};

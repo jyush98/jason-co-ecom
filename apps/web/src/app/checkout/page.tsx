@@ -56,6 +56,8 @@ export default function CheckoutPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
+    const [tax, setTax] = useState(0);
+
     // Fetch cart on mount
     useEffect(() => {
         const loadCart = async () => {
@@ -74,6 +76,45 @@ export default function CheckoutPage() {
             loadShippingMethods();
         }
     }, [formData.shipping_address]);
+
+    useEffect(() => {
+        const calculateTaxes = async () => {
+            const address = formData.shipping_address;
+            if (address?.state && cart) {
+                try {
+                    const token = await getToken();
+                    if (token) {
+                        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+                        const response = await fetch(`${API_BASE_URL}/cart/calculate-tax`, {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                state: address.state,
+                                subtotal: cart.subtotal,
+                                shipping: selectedShippingMethod?.price || 0,
+                            }),
+                        });
+
+                        if (response.ok) {
+                            const taxData = await response.json();
+                            console.log('Tax calculated:', taxData); // Debug log
+                            setTax(taxData.tax_amount);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Failed to calculate tax:', error);
+                }
+            } else {
+                setTax(0); // Reset tax if no state selected
+            }
+        };
+
+        calculateTaxes();
+    }, [formData.shipping_address?.state, cart?.subtotal, selectedShippingMethod?.price, getToken]);
+
 
     const loadShippingMethods = async () => {
         setIsLoading(true);
@@ -240,7 +281,6 @@ export default function CheckoutPage() {
     // Calculate totals
     const subtotal = cart?.subtotal || 0;
     const shippingCost = selectedShippingMethod?.price || 0;
-    const tax = cart?.tax || 0;
     const total = subtotal + shippingCost + tax;
 
     // Handle successful order completion
@@ -377,6 +417,7 @@ export default function CheckoutPage() {
                                         cart={cart}
                                         formData={formData}
                                         shippingMethod={selectedShippingMethod!}
+                                        tax={tax}
                                         total={total}
                                         onPrevious={goToPreviousStep}
                                         onPlaceOrder={handleOrderSuccess}

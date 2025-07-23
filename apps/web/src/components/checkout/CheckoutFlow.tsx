@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Check, Lock } from "lucide-react";
 import Link from "next/link";
@@ -263,6 +263,7 @@ export default function CheckoutFlow({
                     cart={cart}
                     formData={formData}
                     shippingMethod={selectedShippingMethod!}
+                    tax={cart.tax} // TODO: Fix this?
                     total={cart.total}
                     onPrevious={goToPreviousStep}
                     onPlaceOrder={handleOrderComplete}
@@ -300,10 +301,11 @@ function CheckoutOrderSummary({
   onNext,
   isSubmitting,
   canProceed,
-  isLastStep
+  isLastStep,
+  tax
 }: any) {
   const shippingCost = shippingMethod?.price || 0;
-  const total = cart.subtotal + shippingCost + cart.tax;
+  const total = cart.subtotal + shippingCost + tax;
 
   return (
     <div className="sticky top-[calc(var(--navbar-height)+2rem)] bg-gray-50 dark:bg-gray-900 rounded-lg p-6">
