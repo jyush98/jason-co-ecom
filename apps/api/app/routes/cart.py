@@ -5,12 +5,32 @@ from app.models.cart import CartItem
 from app.models.product import Product
 from app.auth import verify_clerk_token  # ✅ Ensure user authentication
 from pydantic import BaseModel
+from sqlalchemy import func  # ✅ Add this import
 
 router = APIRouter()
 
 class CartItemRequest(BaseModel):
     product_id: int
     quantity: int
+
+# ✅ ADD THIS NEW ENDPOINT
+@router.get("/count")
+def get_cart_count(
+    user=Depends(verify_clerk_token),
+    db: Session = Depends(get_db)
+):
+    """Get the total number of items in user's cart"""
+    try:
+        # Count total quantity of all items in cart
+        cart_count = db.query(func.sum(CartItem.quantity)).filter(
+            CartItem.user_id == user["sub"]
+        ).scalar() or 0
+        
+        return {"count": int(cart_count)}
+        
+    except Exception as e:
+        print(f"Error getting cart count: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get cart count")
 
 @router.post("/add")
 def add_to_cart(
@@ -75,4 +95,3 @@ def update_cart(
 
     db.commit()
     return {"message": "Cart updated"}
-

@@ -332,18 +332,32 @@ export const useCartStore = create<CartStoreState>()(
         try {
           const result = await apiRemoveFromCart(productId, token);
 
-          if (result.error || !result.success) {
+          // ✅ FIXED: Your backend returns {"message": "Item removed from cart"}
+          // Check for actual error conditions instead of non-existent success property
+          if (result.error) {
             // Revert optimistic update
             set({ cart: currentCart });
-            throw new Error(result.error || result.message || 'Failed to remove item from cart');
+            throw new Error(result.error);
           }
 
-          // Fetch updated cart to ensure consistency
-          const updatedCart = await getCart(token);
+          // ✅ FIXED: Fetch updated cart to ensure consistency
+          const updatedCartData = await getCart(token);
+
+          // Transform array response to Cart object structure (same as in fetchCart)
+          const updatedCart: Cart = {
+            items: updatedCartData,
+            subtotal: updatedCartData.reduce((sum: number, item: CartItem) => sum + (item.product.price * item.quantity), 0),
+            tax: 0,
+            shipping: 0,
+            total: updatedCartData.reduce((sum: number, item: CartItem) => sum + (item.product.price * item.quantity), 0),
+            item_count: updatedCartData.reduce((total: number, item: CartItem) => total + item.quantity, 0),
+            currency: CART_CONFIG.currency.code,
+            last_updated: new Date().toISOString(),
+          };
 
           set({
             cart: updatedCart,
-            cartCount: updatedCart.item_count,
+            cartCount: updatedCart.items.reduce((total, item) => total + item.quantity, 0), // ✅ Update cart count too
           });
 
           return {

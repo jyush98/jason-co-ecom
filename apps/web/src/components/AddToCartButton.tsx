@@ -232,19 +232,40 @@ export default function AddToCartButton({
         whileHover={!isDisabled ? { scale: 1.02 } : {}}
         whileTap={!isDisabled ? { scale: 0.98 } : {}}
         className={`
-          ${buttonStyles}
-          ${sizeStyles[size]}
-          ${fullWidth ? "w-full" : "inline-flex"}
-          items-center justify-center gap-2
-          border font-medium tracking-widest uppercase
-          transition-all duration-300
-          disabled:cursor-not-allowed
-          focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2
-          ${className}
-        `}
+    ${buttonStyles}
+    ${sizeStyles[size]}
+    ${fullWidth ? "w-full" : "inline-flex"}
+    items-center justify-center gap-2
+    border font-medium tracking-widest uppercase
+    transition-all duration-300
+    disabled:cursor-not-allowed
+    focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2
+    ${className}
+  `}
         aria-label={`Add ${productName} to cart`}
       >
-        {getButtonContent()}
+        {/* ✅ FIXED: Proper flex container for icon + text alignment */}
+        <div className="flex items-center justify-center gap-2">
+          {showIcon && (
+            <motion.div
+              className="flex items-center justify-center"
+              variants={iconVariants}
+            >
+              {state === 'adding' && (
+                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              )}
+              {state === 'success' && <Check size={16} />}
+              {state === 'error' && <AlertCircle size={16} />}
+              {state === 'idle' && <ShoppingBag size={16} />}
+            </motion.div>
+          )}
+          <span className="flex items-center">
+            {state === 'adding' && 'Adding...'}
+            {state === 'success' && 'Added!'}
+            {state === 'error' && 'Try Again'}
+            {state === 'idle' && 'Add to Cart'}
+          </span>
+        </div>
       </motion.button>
 
       {/* Error Tooltip */}

@@ -54,7 +54,7 @@ export default function OrderConfirmationPage() {
     }
 
     return (
-        <div className="min-h-screen bg-white dark:bg-black pt-[var(--navbar-height)]">
+        <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white pt-[var(--navbar-height)]">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <motion.div
                     variants={containerVariants}
@@ -70,7 +70,7 @@ export default function OrderConfirmationPage() {
                         <div className="w-24 h-24 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
                             <Check size={48} className="text-green-600 dark:text-green-400" />
                         </div>
-                        <h1 className="text-3xl md:text-4xl font-serif text-black dark:text-white mb-4">
+                        <h1 className="text-3xl md:text-4xl font-serif mb-4">
                             Order Confirmed!
                         </h1>
                         <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
