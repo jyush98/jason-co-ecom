@@ -3,17 +3,19 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
+import { useUser, useAuth } from "@clerk/nextjs";
 import Link from "next/link";
-import { useUser, useClerk } from "@clerk/nextjs";
-import { 
-  User, 
-  Package, 
-  Heart, 
-  MapPin, 
-  Settings, 
-  LogOut,
+import {
+  LayoutDashboard,
+  Package,
+  Heart,
+  MapPin,
+  User,
+  Settings,
+  Bell,
   Menu,
   X,
+  LogOut,
   ChevronRight
 } from "lucide-react";
 
@@ -22,286 +24,309 @@ interface AccountLayoutProps {
 }
 
 interface NavItem {
+  name: string;
   href: string;
-  label: string;
   icon: React.ReactNode;
-  description: string;
+  description?: string;
+  badge?: number;
 }
 
 export default function AccountLayout({ children }: AccountLayoutProps) {
-  const { user, isLoaded } = useUser();
-  const { signOut } = useClerk();
+  const { user } = useUser();
+  const { signOut } = useAuth();
   const pathname = usePathname();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [wishlistCount, setWishlistCount] = useState(0);
 
-  // Navigation items
-  const navItems: NavItem[] = [
+  // Fetch wishlist count for badge
+  useEffect(() => {
+    const fetchWishlistCount = async () => {
+      // This would be integrated with your wishlist store
+      // For now, using placeholder
+      setWishlistCount(0);
+    };
+    fetchWishlistCount();
+  }, []);
+
+  const navigationItems: NavItem[] = [
     {
+      name: "Dashboard",
       href: "/account",
-      label: "Dashboard",
-      icon: <User size={20} />,
-      description: "Account overview and stats"
+      icon: <LayoutDashboard size={20} />,
+      description: "Account overview"
     },
     {
+      name: "Orders",
       href: "/account/orders",
-      label: "Order History",
       icon: <Package size={20} />,
-      description: "View your past orders"
+      description: "Order history & tracking"
     },
     {
+      name: "Wishlist",
       href: "/account/wishlist",
-      label: "Wishlist",
       icon: <Heart size={20} />,
-      description: "Saved items for later"
+      description: "Saved items",
+      badge: wishlistCount
     },
     {
+      name: "Addresses",
       href: "/account/addresses",
-      label: "Addresses",
       icon: <MapPin size={20} />,
-      description: "Manage shipping addresses"
+      description: "Shipping addresses"
     },
     {
+      name: "Profile",
+      href: "/account/profile",
+      icon: <User size={20} />,
+      description: "Personal information"
+    },
+    {
+      name: "Settings",
       href: "/account/settings",
-      label: "Settings",
       icon: <Settings size={20} />,
       description: "Account preferences"
+    },
+    {
+      name: "Notifications",
+      href: "/account/notifications",
+      icon: <Bell size={20} />,
+      description: "Email & SMS preferences"
     }
   ];
 
-  // Close mobile menu when route changes
-  useEffect(() => {
-    setIsMobileMenuOpen(false);
-  }, [pathname]);
-
-  // Handle sign out
-  const handleSignOut = () => {
-    signOut();
+  const isActive = (href: string) => {
+    if (href === "/account") {
+      return pathname === "/account";
+    }
+    return pathname.startsWith(href);
   };
 
-  // Loading state
-  if (!isLoaded) {
-    return <AccountLayoutSkeleton />;
-  }
+  const sidebarVariants = {
+    open: {
+      x: 0,
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 40,
+      },
+    },
+    closed: {
+      x: "-100%",
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 40,
+      },
+    },
+  };
 
-  // Not signed in - redirect handled by page components
-  if (!user) {
-    return null;
-  }
+  const backdropVariants = {
+    open: { opacity: 1 },
+    closed: { opacity: 0 },
+  };
 
   return (
     <div className="min-h-screen bg-white dark:bg-black pt-[var(--navbar-height)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Page Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-serif text-black dark:text-white">
-                My Account
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-2">
-                WHERE AMBITION MEETS ARTISTRY
-              </p>
-            </div>
-
-            {/* Mobile Menu Toggle */}
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Mobile Menu Button */}
+          <div className="lg:hidden">
             <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-              aria-label="Toggle menu"
+              onClick={() => setIsSidebarOpen(true)}
+              className="flex items-center gap-2 p-3 border border-gray-300 dark:border-gray-600 rounded-lg hover:border-gold transition-colors"
             >
-              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              <Menu size={20} />
+              <span className="font-medium">Account Menu</span>
             </button>
           </div>
 
-          {/* User Welcome */}
-          <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
-            <div className="w-12 h-12 bg-gold rounded-full flex items-center justify-center">
-              <User size={24} className="text-black" />
+          {/* Desktop Sidebar */}
+          <aside className="hidden lg:block w-80 flex-shrink-0">
+            <div className="sticky top-[calc(var(--navbar-height)+2rem)]">
+              <SidebarContent
+                user={user}
+                navigationItems={navigationItems}
+                isActive={isActive}
+                onSignOut={signOut}
+                onClose={() => setIsSidebarOpen(false)}
+              />
             </div>
-            <div>
-              <p className="text-lg font-medium text-black dark:text-white">
-                Welcome back, {user.firstName || 'Valued Customer'}!
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                {user.primaryEmailAddress?.emailAddress}
-              </p>
-            </div>
-          </div>
-        </div>
+          </aside>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Desktop Sidebar Navigation */}
-          <div className="hidden lg:block lg:col-span-3">
-            <AccountSidebar 
-              navItems={navItems}
-              currentPath={pathname}
-              onSignOut={handleSignOut}
-            />
-          </div>
-
-          {/* Mobile Navigation Menu */}
+          {/* Mobile Sidebar */}
           <AnimatePresence>
-            {isMobileMenuOpen && (
-              <motion.div
-                className="lg:hidden fixed inset-0 z-50 bg-black/50"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
+            {isSidebarOpen && (
+              <>
+                {/* Backdrop */}
                 <motion.div
-                  className="absolute top-0 left-0 w-80 h-full bg-white dark:bg-black shadow-xl"
-                  initial={{ x: -320 }}
-                  animate={{ x: 0 }}
-                  exit={{ x: -320 }}
-                  transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="p-6 border-b border-gray-200 dark:border-gray-800">
-                    <div className="flex items-center justify-between">
-                      <h2 className="text-xl font-serif">Account Menu</h2>
-                      <button
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
-                      >
-                        <X size={20} />
-                      </button>
-                    </div>
-                  </div>
+                  className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+                  variants={backdropVariants}
+                  initial="closed"
+                  animate="open"
+                  exit="closed"
+                  onClick={() => setIsSidebarOpen(false)}
+                />
 
-                  <div className="p-6">
-                    <AccountSidebar 
-                      navItems={navItems}
-                      currentPath={pathname}
-                      onSignOut={handleSignOut}
-                      mobile={true}
+                {/* Sidebar */}
+                <motion.aside
+                  className="fixed top-0 left-0 h-full w-80 bg-white dark:bg-black z-50 lg:hidden shadow-2xl"
+                  variants={sidebarVariants}
+                  initial="closed"
+                  animate="open"
+                  exit="closed"
+                >
+                  <div className="h-full overflow-y-auto">
+                    <SidebarContent
+                      user={user}
+                      navigationItems={navigationItems}
+                      isActive={isActive}
+                      onSignOut={signOut}
+                      onClose={() => setIsSidebarOpen(false)}
+                      showCloseButton={true}
                     />
                   </div>
-                </motion.div>
-              </motion.div>
+                </motion.aside>
+              </>
             )}
           </AnimatePresence>
 
-          {/* Main Content Area */}
-          <div className="lg:col-span-9">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              {children}
-            </motion.div>
-          </div>
+          {/* Main Content */}
+          <main className="flex-1 min-w-0">
+            {children}
+          </main>
         </div>
       </div>
     </div>
   );
 }
 
-// Sidebar Component
-function AccountSidebar({ 
-  navItems, 
-  currentPath, 
-  onSignOut, 
-  mobile = false 
+// Sidebar Content Component
+function SidebarContent({
+  user,
+  navigationItems,
+  isActive,
+  onSignOut,
+  onClose,
+  showCloseButton = false
 }: {
-  navItems: NavItem[];
-  currentPath: string;
+  user: any;
+  navigationItems: NavItem[];
+  isActive: (href: string) => boolean;
   onSignOut: () => void;
-  mobile?: boolean;
+  onClose: () => void;
+  showCloseButton?: boolean;
 }) {
   return (
-    <div className="space-y-2">
-      {navItems.map((item) => {
-        const isActive = currentPath === item.href || 
-          (item.href !== "/account" && currentPath.startsWith(item.href));
+    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+      {/* Mobile Close Button */}
+      {showCloseButton && (
+        <div className="flex justify-end mb-4 lg:hidden">
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+          >
+            <X size={20} />
+          </button>
+        </div>
+      )}
 
-        return (
+      {/* User Profile Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-4 mb-4">
+          <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">
+            {user?.imageUrl ? (
+              <img
+                src={user.imageUrl}
+                alt="Profile"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <User size={24} className="text-gray-400" />
+              </div>
+            )}
+          </div>
+          <div>
+            <h3 className="font-serif text-lg text-black dark:text-white">
+              {user?.firstName || "User"}
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {user?.primaryEmailAddress?.emailAddress}
+            </p>
+          </div>
+        </div>
+
+        <div className="h-px bg-gray-200 dark:border-gray-700"></div>
+      </div>
+
+      {/* Navigation Menu */}
+      <nav className="space-y-2">
+        {navigationItems.map((item) => (
           <Link
             key={item.href}
             href={item.href}
-            className={`
-              group flex items-center gap-3 p-4 rounded-lg transition-all duration-300
-              ${isActive
-                ? 'bg-gold text-black'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-              }
-            `}
+            onClick={onClose}
+            className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-300 group ${isActive(item.href)
+                ? "bg-gold text-black shadow-md"
+                : "hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
+              }`}
           >
-            <div className={`
-              flex items-center justify-center
-              ${isActive ? 'text-black' : 'text-gray-500 group-hover:text-current'}
-            `}>
+            <span className={`${isActive(item.href) ? "text-black" : "text-gold"
+              }`}>
               {item.icon}
-            </div>
-            
+            </span>
+
             <div className="flex-1 min-w-0">
-              <div className={`font-medium ${isActive ? 'text-black' : ''}`}>
-                {item.label}
+              <div className="flex items-center justify-between">
+                <span className="font-medium">{item.name}</span>
+                {item.badge && item.badge > 0 && (
+                  <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full min-w-[20px] text-center">
+                    {item.badge > 99 ? '99+' : item.badge}
+                  </span>
+                )}
               </div>
-              {!mobile && (
-                <div className={`text-xs mt-1 ${
-                  isActive 
-                    ? 'text-black/70' 
-                    : 'text-gray-500 dark:text-gray-400'
-                }`}>
+              {item.description && (
+                <p className={`text-xs mt-1 ${isActive(item.href)
+                    ? "text-black/70"
+                    : "text-gray-500 dark:text-gray-400"
+                  }`}>
                   {item.description}
-                </div>
+                </p>
               )}
             </div>
 
-            {!isActive && (
-              <ChevronRight 
-                size={16} 
-                className="text-gray-400 group-hover:text-current opacity-0 group-hover:opacity-100 transition-opacity" 
-              />
-            )}
+            <ChevronRight
+              size={16}
+              className={`transition-transform ${isActive(item.href) ? "rotate-90" : "group-hover:translate-x-1"
+                }`}
+            />
           </Link>
-        );
-      })}
+        ))}
+      </nav>
 
       {/* Sign Out Button */}
-      <div className="pt-4 mt-6 border-t border-gray-200 dark:border-gray-800">
+      <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
         <button
-          onClick={onSignOut}
-          className="w-full flex items-center gap-3 p-4 text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 rounded-lg transition-all duration-300"
+          onClick={() => {
+            onSignOut();
+            onClose();
+          }}
+          className="flex items-center gap-3 p-3 w-full text-left rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition-colors group"
         >
           <LogOut size={20} />
           <span className="font-medium">Sign Out</span>
+          <ChevronRight size={16} className="ml-auto group-hover:translate-x-1 transition-transform" />
         </button>
       </div>
-    </div>
-  );
-}
 
-// Loading Skeleton
-function AccountLayoutSkeleton() {
-  return (
-    <div className="min-h-screen bg-white dark:bg-black pt-[var(--navbar-height)]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="animate-pulse">
-          {/* Header Skeleton */}
-          <div className="mb-8">
-            <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-64 mb-4" />
-            <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-96 mb-6" />
-            <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded" />
-          </div>
-
-          {/* Content Grid Skeleton */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div className="hidden lg:block lg:col-span-3">
-              <div className="space-y-2">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded" />
-                ))}
-              </div>
-            </div>
-            <div className="lg:col-span-9">
-              <div className="h-96 bg-gray-200 dark:bg-gray-700 rounded" />
-            </div>
-          </div>
-        </div>
+      {/* Brand Footer */}
+      <div className="mt-6 pt-4 text-center">
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          Jason & Co.
+        </p>
+        <p className="text-xs text-gold font-medium">
+          WHERE AMBITION MEETS ARTISTRY
+        </p>
       </div>
     </div>
   );
