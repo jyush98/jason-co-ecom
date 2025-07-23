@@ -11,4 +11,8 @@ class User(Base):
     first_name = Column(String, nullable=True)
     last_name = Column(String, nullable=True)
     
+    # Existing relationships
     cart_items = relationship("CartItem", back_populates="user")
+    
+    # NEW: Wishlist relationship
+    wishlist_items = relationship("WishlistItem", back_populates="user", cascade="all, delete-orphan")

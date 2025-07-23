@@ -74,7 +74,16 @@ export default function AccountDashboard() {
           throw new Error('Failed to fetch orders');
         }
 
+        const wishlistResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/wishlist/stats`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
         const ordersData = await ordersResponse.json();
+        const wishlistData = wishlistResponse.ok ? await wishlistResponse.json() : { total_items: 0 };
+
 
         // Calculate stats from orders
         const totalSpent = ordersData.orders?.reduce((sum: number, order: any) => sum + order.total_price, 0) || 0;
@@ -85,7 +94,7 @@ export default function AccountDashboard() {
             total_spent: totalSpent,
             recent_orders: ordersData.orders || []
           },
-          wishlist_count: 0, // TODO: Implement wishlist API
+          wishlist_count: wishlistData.total_items || 0, // TODO: Implement wishlist API
           addresses_count: 0, // TODO: Implement addresses API
         };
 

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Share2, Heart, Bookmark, Copy, Check } from "lucide-react";
 import { Product } from "@/types/product";
+import AddToWishlistButton from "../wishlist/AddToWishListButton";
 
 interface SocialShareProps {
     product: Product;
@@ -82,7 +83,7 @@ export default function SocialShare({ product, isDark = false }: SocialShareProp
     return (
         <div className="space-y-6">
             {/* Action Buttons Row */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 justify-center">
                 {/* Share Button */}
                 <div className="relative">
                     <motion.button
@@ -178,25 +179,21 @@ export default function SocialShare({ product, isDark = false }: SocialShareProp
                 </div>
 
                 {/* Wishlist Button */}
-                <motion.button
-                    onClick={toggleWishlist}
-                    className={`flex items-center gap-2 px-4 py-2 border transition-all duration-300 text-sm tracking-wide ${isWishlisted
-                            ? 'border-gold text-gold bg-gold/10'
-                            : 'border-gray-300 dark:border-gray-600 hover:border-gold hover:text-gold'
-                        }`}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                >
-                    <Heart size={16} className={isWishlisted ? 'fill-current' : ''} />
-                    <span>{isWishlisted ? 'Wishlisted' : 'Wishlist'}</span>
-                </motion.button>
+                <AddToWishlistButton
+                    product={product}
+                    variant="default"
+                    size="md"
+                    onSuccess={(isInWishlist: boolean) => {
+                        console.log(`Product ${isInWishlist ? 'added to' : 'removed from'} wishlist`);
+                    }}
+                />
 
                 {/* Save Button */}
                 <motion.button
                     onClick={toggleSaved}
                     className={`flex items-center gap-2 px-4 py-2 border transition-all duration-300 text-sm tracking-wide ${isSaved
-                            ? 'border-gold text-gold bg-gold/10'
-                            : 'border-gray-300 dark:border-gray-600 hover:border-gold hover:text-gold'
+                        ? 'border-gold text-gold bg-gold/10'
+                        : 'border-gray-300 dark:border-gray-600 hover:border-gold hover:text-gold'
                         }`}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
