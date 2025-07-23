@@ -392,9 +392,9 @@ function QuickActionCard({
 // Empty Orders State
 function EmptyOrdersState() {
   return (
-    <div className="text-center py-12 bg-gray-50 dark:bg-gray-900 rounded-lg">
+    <div className="text-center py-12 bg-gray-50 dark:bg-gray-900 rounded-lg text-black dark:text-white">
       <Package size={48} className="mx-auto text-gray-400 mb-4" />
-      <h4 className="text-lg font-medium text-black dark:text-white mb-2">
+      <h4 className="text-lg font-medium mb-2">
         No orders yet
       </h4>
       <p className="text-gray-600 dark:text-gray-400 mb-6">
