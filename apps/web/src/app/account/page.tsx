@@ -24,7 +24,7 @@ import ProfileSettings from "@/components/account/ProfileSettings";
 import WishlistPage from "@/components/wishlist/WishlistPage";
 import AddressBook from "@/components/account/AddressBook";
 import NotificationSettings from "@/components/account/NotificationSettings";
-// import NotificationSettings from "@/components/account/NotificationSettings";
+import AccountSettings from "@/components/account/AccountSettings";
 
 interface TabConfig {
   id: string;
@@ -130,7 +130,7 @@ export default function UnifiedAccountPage() {
       name: 'Settings',
       icon: <Settings size={20} />,
       description: 'Account preferences',
-      component: () => <div className="p-8 text-center">Settings Component (Coming Soon)</div> // Placeholder
+      component: () => <AccountSettings />
     },
     {
       id: 'notifications',
