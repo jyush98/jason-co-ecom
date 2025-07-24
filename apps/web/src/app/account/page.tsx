@@ -1,50 +1,51 @@
+// app/account/page.tsx - Unified Account Page
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useUser, useAuth } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
 import {
+  LayoutDashboard,
   Package,
   Heart,
   MapPin,
-  CreditCard,
-  TrendingUp,
-  Clock,
-  ShoppingBag,
-  Star,
-  ArrowRight,
-  Calendar
+  User,
+  Settings,
+  Bell,
+  Menu,
+  X
 } from "lucide-react";
-import AccountLayout from "@/components/account/AccountLayout";
 
-interface OrderSummary {
-  total_orders: number;
-  total_spent: number;
-  recent_orders: Array<{
-    order_number: string;
-    status: string;
-    total_price: number;
-    created_at: string;
-    item_count: number;
-  }>;
+// Import all account components
+import AccountDashboard from "@/components/account/AccountDashboard";
+import OrderHistory from "@/components/account/OrderHistory";
+import ProfileSettings from "@/components/account/ProfileSettings";
+import WishlistPage from "@/components/wishlist/WishlistPage";
+// import AddressBook from "@/components/account/AddressBook";
+// import NotificationSettings from "@/components/account/NotificationSettings";
+
+interface TabConfig {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+  description: string;
+  component: React.ComponentType;
+  badge?: number;
 }
 
-interface DashboardStats {
-  orders: OrderSummary;
-  wishlist_count: number;
-  addresses_count: number;
-}
-
-export default function AccountDashboard() {
+export default function UnifiedAccountPage() {
   const { user, isLoaded } = useUser();
   const { getToken } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [wishlistCount, setWishlistCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Get current tab from URL params
+  const currentTab = searchParams?.get('tab') || 'dashboard';
 
   // Redirect if not signed in
   useEffect(() => {
@@ -53,27 +54,15 @@ export default function AccountDashboard() {
     }
   }, [isLoaded, user, router]);
 
-  // Fetch dashboard data
+  // Fetch account data (wishlist count, etc.)
   useEffect(() => {
-    const fetchDashboardData = async () => {
+    const fetchAccountData = async () => {
       if (!user) return;
 
       try {
-        setLoading(true);
         const token = await getToken();
 
-        // Fetch recent orders from your existing API
-        const ordersResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/payment/orders?limit=3`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!ordersResponse.ok) {
-          throw new Error('Failed to fetch orders');
-        }
-
+        // Fetch wishlist count
         const wishlistResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/wishlist/stats`, {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -81,369 +70,361 @@ export default function AccountDashboard() {
           },
         });
 
-        const ordersData = await ordersResponse.json();
-        const wishlistData = wishlistResponse.ok ? await wishlistResponse.json() : { total_items: 0 };
-
-
-        // Calculate stats from orders
-        const totalSpent = ordersData.orders?.reduce((sum: number, order: any) => sum + order.total_price, 0) || 0;
-
-        const dashboardStats: DashboardStats = {
-          orders: {
-            total_orders: ordersData.orders?.length || 0,
-            total_spent: totalSpent,
-            recent_orders: ordersData.orders || []
-          },
-          wishlist_count: wishlistData.total_items || 0, // TODO: Implement wishlist API
-          addresses_count: 0, // TODO: Implement addresses API
-        };
-
-        setStats(dashboardStats);
-      } catch (err) {
-        console.error('Dashboard data fetch error:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load dashboard data');
+        if (wishlistResponse.ok) {
+          const wishlistData = await wishlistResponse.json();
+          setWishlistCount(wishlistData.total_items || 0);
+        }
+      } catch (error) {
+        console.error('Failed to fetch account data:', error);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
     if (isLoaded && user) {
-      fetchDashboardData();
+      fetchAccountData();
     }
   }, [isLoaded, user, getToken]);
 
-  // Show loading skeleton while Clerk loads
-  if (!isLoaded || !user) {
-    return (
-      <AccountLayout>
-        <DashboardSkeleton />
-      </AccountLayout>
-    );
+  // Tab configuration
+  const tabs: TabConfig[] = [
+    {
+      id: 'dashboard',
+      name: 'Dashboard',
+      icon: <LayoutDashboard size={20} />,
+      description: 'Account overview',
+      component: AccountDashboard
+    },
+    {
+      id: 'orders',
+      name: 'Orders',
+      icon: <Package size={20} />,
+      description: 'Order history & tracking',
+      component: OrderHistory
+    },
+    {
+      id: 'wishlist',
+      name: 'Wishlist',
+      icon: <Heart size={20} />,
+      description: 'Saved items',
+      component: () => <WishlistPage />,
+      badge: wishlistCount
+    },
+    {
+      id: 'addresses',
+      name: 'Addresses',
+      icon: <MapPin size={20} />,
+      description: 'Shipping addresses',
+      component: () => <div className="p-8 text-center">Address Book Component (Coming Soon)</div> // Placeholder
+    },
+    {
+      id: 'profile',
+      name: 'Profile',
+      icon: <User size={20} />,
+      description: 'Personal information',
+      component: ProfileSettings
+    },
+    {
+      id: 'settings',
+      name: 'Settings',
+      icon: <Settings size={20} />,
+      description: 'Account preferences',
+      component: () => <div className="p-8 text-center">Settings Component (Coming Soon)</div> // Placeholder
+    },
+    {
+      id: 'notifications',
+      name: 'Notifications',
+      icon: <Bell size={20} />,
+      description: 'Email & SMS preferences',
+      component: () => <div className="p-8 text-center">Notification Settings (Coming Soon)</div> // Placeholder
+    }
+  ];
+
+  // Handle tab change
+  const handleTabChange = (tabId: string) => {
+    const params = new URLSearchParams(searchParams?.toString());
+    if (tabId === 'dashboard') {
+      params.delete('tab'); // Default tab doesn't need param
+    } else {
+      params.set('tab', tabId);
+    }
+
+    const newUrl = params.toString() ? `/account?${params.toString()}` : '/account';
+    router.push(newUrl, { scroll: false });
+    setIsSidebarOpen(false); // Close mobile sidebar
+  };
+
+  // Get current tab config
+  const activeTab = tabs.find(tab => tab.id === currentTab) || tabs[0];
+
+  // Show loading while Clerk loads
+  if (!isLoaded || isLoading) {
+    return <AccountPageSkeleton />;
   }
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5, ease: "easeOut" },
-    },
-  };
+  // Redirect if no user
+  if (!user) {
+    return null;
+  }
 
   return (
-    <AccountLayout>
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="space-y-8"
-      >
-        {/* Welcome Section */}
-        <motion.div variants={itemVariants}>
-          <h2 className="text-2xl font-serif text-black dark:text-white mb-2">
-            Welcome back, {user.firstName}!
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400">
-            Here's an overview of your account activity and saved items.
-          </p>
-        </motion.div>
-
-        {/* Error State */}
-        {error && (
-          <motion.div
-            variants={itemVariants}
-            className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
-          >
-            <p className="text-red-600 dark:text-red-400">{error}</p>
-          </motion.div>
-        )}
-
-        {/* Stats Grid */}
-        {loading ? (
-          <DashboardSkeleton />
-        ) : (
-          <>
-            {/* Quick Stats Cards */}
-            <motion.div
-              variants={itemVariants}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+    <div className="min-h-screen bg-white dark:bg-black pt-[var(--navbar-height)]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Mobile Menu Button */}
+          <div className="lg:hidden">
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="flex items-center gap-2 p-3 border border-gray-300 dark:border-gray-600 rounded-lg hover:border-gold transition-colors"
             >
-              <StatCard
-                icon={<Package className="text-gold" size={24} />}
-                title="Total Orders"
-                value={stats?.orders.total_orders.toString() || "0"}
-                description="Lifetime purchases"
-                href="/account/orders"
-              />
+              <Menu size={20} />
+              <span className="font-medium">Account Menu</span>
+            </button>
+          </div>
 
-              <StatCard
-                icon={<TrendingUp className="text-green-600" size={24} />}
-                title="Total Spent"
-                value={`$${stats?.orders.total_spent.toFixed(2) || "0.00"}`}
-                description="All-time spending"
-                href="/account/orders"
+          {/* Desktop Sidebar */}
+          <aside className="hidden lg:block w-80 flex-shrink-0">
+            <div className="sticky top-[calc(var(--navbar-height)+2rem)]">
+              <AccountSidebar
+                user={user}
+                tabs={tabs}
+                activeTab={activeTab.id}
+                onTabChange={handleTabChange}
+                onClose={() => setIsSidebarOpen(false)}
               />
+            </div>
+          </aside>
 
-              <StatCard
-                icon={<Heart className="text-red-500" size={24} />}
-                title="Wishlist Items"
-                value={stats?.wishlist_count.toString() || "0"}
-                description="Saved for later"
-                href="/account/wishlist"
-              />
+          {/* Mobile Sidebar */}
+          <AnimatePresence>
+            {isSidebarOpen && (
+              <>
+                {/* Backdrop */}
+                <motion.div
+                  className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setIsSidebarOpen(false)}
+                />
 
-              <StatCard
-                icon={<MapPin className="text-blue-600" size={24} />}
-                title="Saved Addresses"
-                value={stats?.addresses_count.toString() || "0"}
-                description="Shipping locations"
-                href="/account/addresses"
-              />
-            </motion.div>
-
-            {/* Recent Orders Section */}
-            <motion.div variants={itemVariants}>
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-serif text-black dark:text-white">
-                  Recent Orders
-                </h3>
-                <Link
-                  href="/account/orders"
-                  className="text-gold hover:text-gold/80 font-medium text-sm flex items-center gap-1 transition-colors"
+                {/* Sidebar */}
+                <motion.aside
+                  className="fixed top-0 left-0 h-full w-80 bg-white dark:bg-black z-50 lg:hidden shadow-2xl"
+                  initial={{ x: "-100%" }}
+                  animate={{ x: 0 }}
+                  exit={{ x: "-100%" }}
+                  transition={{ type: "spring", stiffness: 300, damping: 40 }}
                 >
-                  View All
-                  <ArrowRight size={16} />
-                </Link>
-              </div>
+                  <div className="h-full overflow-y-auto">
+                    <AccountSidebar
+                      user={user}
+                      tabs={tabs}
+                      activeTab={activeTab.id}
+                      onTabChange={handleTabChange}
+                      onClose={() => setIsSidebarOpen(false)}
+                      showCloseButton={true}
+                    />
+                  </div>
+                </motion.aside>
+              </>
+            )}
+          </AnimatePresence>
 
-              {stats?.orders.recent_orders.length ? (
-                <div className="space-y-4">
-                  {stats.orders.recent_orders.map((order, index) => (
-                    <RecentOrderCard key={order.order_number} order={order} index={index} />
-                  ))}
-                </div>
-              ) : (
-                <EmptyOrdersState />
-              )}
+          {/* Main Content Area */}
+          <main className="flex-1 min-w-0">
+            {/* Page Header */}
+            <motion.div
+              className="mb-8"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <span className="text-gold">{activeTab.icon}</span>
+                <h1 className="text-3xl font-serif text-black dark:text-white">
+                  {activeTab.name}
+                </h1>
+                {activeTab.badge && activeTab.badge > 0 && (
+                  <span className="bg-red-500 text-white text-sm font-bold px-2 py-1 rounded-full">
+                    {activeTab.badge}
+                  </span>
+                )}
+              </div>
+              <p className="text-gray-600 dark:text-gray-400">
+                {activeTab.description}
+              </p>
             </motion.div>
 
-            {/* Quick Actions */}
-            <motion.div variants={itemVariants}>
-              <h3 className="text-xl font-serif text-black dark:text-white mb-6">
-                Quick Actions
-              </h3>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <QuickActionCard
-                  icon={<ShoppingBag className="text-gold" size={24} />}
-                  title="Continue Shopping"
-                  description="Explore our latest collections"
-                  href="/shop"
-                />
-
-                <QuickActionCard
-                  icon={<Star className="text-purple-600" size={24} />}
-                  title="Custom Order"
-                  description="Create your perfect piece"
-                  href="/custom"
-                />
-
-                <QuickActionCard
-                  icon={<CreditCard className="text-blue-600" size={24} />}
-                  title="Payment Methods"
-                  description="Manage your payment options"
-                  href="/account/settings"
-                />
-              </div>
-            </motion.div>
-          </>
-        )}
-      </motion.div>
-    </AccountLayout>
+            {/* Dynamic Content */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab.id}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+              >
+                <activeTab.component />
+              </motion.div>
+            </AnimatePresence>
+          </main>
+        </div>
+      </div>
+    </div>
   );
 }
 
-// Stat Card Component
-function StatCard({
-  icon,
-  title,
-  value,
-  description,
-  href
+// Account Sidebar Component
+function AccountSidebar({
+  user,
+  tabs,
+  activeTab,
+  onTabChange,
+  onClose,
+  showCloseButton = false
 }: {
-  icon: React.ReactNode;
-  title: string;
-  value: string;
-  description: string;
-  href: string;
+  user: any;
+  tabs: TabConfig[];
+  activeTab: string;
+  onTabChange: (tabId: string) => void;
+  onClose: () => void;
+  showCloseButton?: boolean;
 }) {
+  const { signOut } = useAuth();
+
   return (
-    <Link href={href} className="group">
-      <div className="p-6 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gold dark:hover:border-gold transition-all duration-300 hover:shadow-lg">
-        <div className="flex items-center gap-4 mb-3">
-          {icon}
-          <div className="text-2xl font-bold text-black dark:text-white group-hover:text-gold transition-colors">
-            {value}
+    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+      {/* Mobile Close Button */}
+      {showCloseButton && (
+        <div className="flex justify-end mb-4 lg:hidden">
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+          >
+            <X size={20} />
+          </button>
+        </div>
+      )}
+
+      {/* User Profile Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-4 mb-4">
+          <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">
+            {user?.imageUrl ? (
+              <img
+                src={user.imageUrl}
+                alt="Profile"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <User size={24} className="text-gray-400" />
+              </div>
+            )}
+          </div>
+          <div>
+            <h3 className="font-serif text-lg text-black dark:text-white">
+              {user?.firstName || "User"}
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {user?.primaryEmailAddress?.emailAddress}
+            </p>
           </div>
         </div>
-        <h4 className="font-medium text-black dark:text-white mb-1">
-          {title}
-        </h4>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          {description}
-        </p>
+        <div className="h-px bg-gray-200 dark:bg-gray-700"></div>
       </div>
-    </Link>
-  );
-}
 
-// Recent Order Card Component
-function RecentOrderCard({ order, index }: { order: any; index: number }) {
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
+      {/* Navigation Tabs */}
+      <nav className="space-y-2">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => onTabChange(tab.id)}
+            className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-300 text-left ${activeTab === tab.id
+                ? "bg-gold text-black shadow-md"
+                : "hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
+              }`}
+          >
+            <span className={`${activeTab === tab.id ? "text-black" : "text-gold"
+              }`}>
+              {tab.icon}
+            </span>
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'completed':
-      case 'delivered':
-        return 'text-green-600 bg-green-50 dark:bg-green-900/20';
-      case 'processing':
-      case 'confirmed':
-        return 'text-blue-600 bg-blue-50 dark:bg-blue-900/20';
-      case 'shipped':
-        return 'text-purple-600 bg-purple-50 dark:bg-purple-900/20';
-      default:
-        return 'text-gray-600 bg-gray-50 dark:bg-gray-900/20';
-    }
-  };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.4, delay: index * 0.1 }}
-    >
-      <Link href={`/account/orders/${order.order_number}`}>
-        <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-gold dark:hover:border-gold transition-all duration-300 hover:shadow-md">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h4 className="font-medium text-black dark:text-white">
-                Order {order.order_number}
-              </h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
-                <Calendar size={14} />
-                {formatDate(order.created_at)}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between">
+                <span className="font-medium">{tab.name}</span>
+                {tab.badge && tab.badge > 0 && (
+                  <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full min-w-[20px] text-center">
+                    {tab.badge > 99 ? '99+' : tab.badge}
+                  </span>
+                )}
+              </div>
+              <p className={`text-xs mt-1 ${activeTab === tab.id
+                  ? "text-black/70"
+                  : "text-gray-500 dark:text-gray-400"
+                }`}>
+                {tab.description}
               </p>
             </div>
-            <div className="text-right">
-              <div className="text-lg font-semibold text-gold">
-                ${order.total_price.toFixed(2)}
-              </div>
-              <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
-                {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-              </span>
-            </div>
-          </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            {order.item_count} item{order.item_count !== 1 ? 's' : ''}
-          </div>
-        </div>
-      </Link>
-    </motion.div>
-  );
-}
+          </button>
+        ))}
+      </nav>
 
-// Quick Action Card Component
-function QuickActionCard({
-  icon,
-  title,
-  description,
-  href
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  href: string;
-}) {
-  return (
-    <Link href={href} className="group">
-      <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-gold dark:hover:border-gold transition-all duration-300 hover:shadow-md">
-        <div className="flex items-center gap-3 mb-2">
-          {icon}
-          <h4 className="font-medium text-black dark:text-white group-hover:text-gold transition-colors">
-            {title}
-          </h4>
-        </div>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          {description}
+      {/* Sign Out Button */}
+      <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+        <button
+          onClick={() => {
+            signOut();
+            onClose();
+          }}
+          className="flex items-center gap-3 p-3 w-full text-left rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition-colors"
+        >
+          <Settings size={20} />
+          <span className="font-medium">Sign Out</span>
+        </button>
+      </div>
+
+      {/* Brand Footer */}
+      <div className="mt-6 pt-4 text-center">
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          Jason & Co.
+        </p>
+        <p className="text-xs text-gold font-medium">
+          WHERE AMBITION MEETS ARTISTRY
         </p>
       </div>
-    </Link>
-  );
-}
-
-// Empty Orders State
-function EmptyOrdersState() {
-  return (
-    <div className="text-center py-12 bg-gray-50 dark:bg-gray-900 rounded-lg text-black dark:text-white">
-      <Package size={48} className="mx-auto text-gray-400 mb-4" />
-      <h4 className="text-lg font-medium mb-2">
-        No orders yet
-      </h4>
-      <p className="text-gray-600 dark:text-gray-400 mb-6">
-        Start exploring our collection to make your first purchase
-      </p>
-      <Link
-        href="/shop"
-        className="inline-block bg-gold hover:bg-gold/90 text-black font-medium px-6 py-3 rounded-lg transition-all duration-300 hover:scale-105"
-      >
-        Start Shopping
-      </Link>
     </div>
   );
 }
 
 // Loading Skeleton
-function DashboardSkeleton() {
+function AccountPageSkeleton() {
   return (
-    <div className="space-y-8">
-      {/* Stats Grid Skeleton */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="p-6 bg-gray-50 dark:bg-gray-900 rounded-lg animate-pulse">
-            <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded mb-3" />
-            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded mb-2" />
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3" />
-          </div>
-        ))}
-      </div>
-
-      {/* Recent Orders Skeleton */}
-      <div>
-        <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-48 mb-6" />
-        <div className="space-y-4">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg animate-pulse">
-              <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded mb-2" />
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3" />
+    <div className="min-h-screen bg-white dark:bg-black pt-[var(--navbar-height)]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Sidebar Skeleton */}
+          <aside className="w-80 flex-shrink-0">
+            <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 animate-pulse">
+              <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded mb-6" />
+              <div className="space-y-3">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="h-12 bg-gray-200 dark:bg-gray-700 rounded" />
+                ))}
+              </div>
             </div>
-          ))}
+          </aside>
+
+          {/* Content Skeleton */}
+          <main className="flex-1 min-w-0">
+            <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded mb-8 animate-pulse" />
+            <div className="space-y-6">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="h-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+              ))}
+            </div>
+          </main>
         </div>
       </div>
     </div>
