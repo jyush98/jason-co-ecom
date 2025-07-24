@@ -23,6 +23,7 @@ import OrderHistory from "@/components/account/OrderHistory";
 import ProfileSettings from "@/components/account/ProfileSettings";
 import WishlistPage from "@/components/wishlist/WishlistPage";
 import AddressBook from "@/components/account/AddressBook";
+import NotificationSettings from "@/components/account/NotificationSettings";
 // import NotificationSettings from "@/components/account/NotificationSettings";
 
 interface TabConfig {
@@ -136,7 +137,7 @@ export default function UnifiedAccountPage() {
       name: 'Notifications',
       icon: <Bell size={20} />,
       description: 'Email & SMS preferences',
-      component: () => <div className="p-8 text-center">Notification Settings (Coming Soon)</div> // Placeholder
+      component: () => <NotificationSettings />
     }
   ];
 
