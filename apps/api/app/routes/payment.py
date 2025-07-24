@@ -1,4 +1,4 @@
-# app/routes/payment.py - Updated with Order Storage & Email - EMAIL BUG FIXED
+# app/routes/payment.py - Complete with Order Storage & Notification Integration
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -8,10 +8,15 @@ import os
 from datetime import datetime
 from app.core.db import get_db
 from app.models.cart import CartItem
-from app.models.order import Order, OrderItem, create_order_from_payment  # NEW IMPORTS
+from app.models.order import Order, OrderItem
+from app.models.user import User
 from app.auth import verify_clerk_token
-from app.services.email_service import send_order_confirmation_email
+from app.services.email_service import EmailService
+import asyncio
+import logging
 
+# Configure logging
+logger = logging.getLogger(__name__)
 
 # Configure Stripe
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
@@ -32,10 +37,12 @@ class OrderSubmissionRequest(BaseModel):
     order_notes: Optional[str] = None
     payment_intent_id: str
 
+# Initialize email service
+email_service = EmailService()
 
 def schedule_confirmation_email(background_tasks: BackgroundTasks, email: str, order_number: str, order_details: dict):
     """Schedule email as background task"""
-    background_tasks.add_task(send_order_confirmation_email, email, order_number, order_details)
+    background_tasks.add_task(email_service.send_order_confirmation_email, email, order_number, order_details)
 
 @router.post("/create-intent")
 def create_payment_intent(
@@ -57,7 +64,7 @@ def create_payment_intent(
         shipping = 15 if subtotal < 100 else 0  # Free shipping over $100
         total = subtotal + tax + shipping
         
-        print(f"Creating payment intent for ${total}")  # Debug log
+        logger.info(f"Creating payment intent for ${total}")
         
         # Create PaymentIntent
         intent = stripe.PaymentIntent.create(
@@ -77,25 +84,24 @@ def create_payment_intent(
         }
         
     except stripe.error.StripeError as e:
-        print(f"Stripe error: {e}")
+        logger.error(f"Stripe error: {e}")
         raise HTTPException(status_code=400, detail=f"Stripe error: {str(e)}")
     except Exception as e:
-        print(f"Payment intent error: {e}")
+        logger.error(f"Payment intent error: {e}")
         raise HTTPException(status_code=500, detail=f"Payment intent creation failed: {str(e)}")
 
 @router.post("/submit-order")
 def submit_order(
     request: OrderSubmissionRequest,
-    background_tasks: BackgroundTasks,  # NEW: For email background tasks
+    background_tasks: BackgroundTasks,
     user=Depends(verify_clerk_token),
     db: Session = Depends(get_db)
 ):
     """Submit the final order after successful payment."""
     try:
         # 🔍 DEBUG: Let's see what we're working with
-        print(f"\n🔍 EMAIL DEBUG - User object: {user}")
-        print(f"🔍 EMAIL DEBUG - User keys: {list(user.keys()) if user else 'No user'}")
-        print(f"🔍 EMAIL DEBUG - Shipping address: {request.shipping_address}")
+        logger.info(f"Processing order for user: {user['sub']}")
+        logger.debug(f"User object keys: {list(user.keys()) if user else 'No user'}")
         
         # Verify the payment was successful
         intent = stripe.PaymentIntent.retrieve(request.payment_intent_id)
@@ -121,14 +127,13 @@ def submit_order(
         # Create order number
         order_number = f"ORD-{intent.id[-8:].upper()}"
         
-        print(f"Creating order {order_number} for user {user['sub']}")
+        logger.info(f"Creating order {order_number} for user {user['sub']}")
         
-        # 🔧 FIXED: Multiple fallbacks for customer email
+        # 🔧 ROBUST EMAIL DETECTION - Multiple fallbacks
         customer_email = None
         
-        # Try different ways to get the email
+        # Try different ways to get the email from Clerk user object
         if user:
-            # Try common Clerk user email fields
             customer_email = (
                 user.get('email') or 
                 user.get('email_address') or 
@@ -151,26 +156,25 @@ def submit_order(
                 request.billing_address.get('email_address')
             )
         
-        print(f"🔍 EMAIL DEBUG - Final customer email: {customer_email}")
+        logger.info(f"Customer email resolved: {customer_email}")
         
         if not customer_email:
-            print("❌ WARNING: No customer email found! Email will not be sent.")
-            print(f"   User object: {user}")
-            print(f"   Shipping address: {request.shipping_address}")
-            print(f"   Billing address: {request.billing_address}")
+            logger.warning("No customer email found! Email will not be sent.")
+            logger.debug(f"User object: {user}")
+            logger.debug(f"Shipping address: {request.shipping_address}")
         
-        # ✅ COMPLETED TODO: Create order record in database
+        # Create order with enhanced tracking
         order = Order(
             order_number=order_number,
             user_id=user["sub"],
-            total_price=total,  # Using your existing field name
-            status="confirmed",  # Your existing status
+            total_price=total,
+            status="confirmed",
             created_at=datetime.utcnow(),
             
-            # Enhanced fields
+            # Enhanced customer information
             customer_first_name=request.shipping_address.get('first_name'),
             customer_last_name=request.shipping_address.get('last_name'),
-            customer_email=customer_email,  # 🔧 FIXED: Using our robust email detection
+            customer_email=customer_email,  # 🔧 FIXED: Robust email detection
             customer_phone=request.shipping_address.get('phone'),
             
             # Financial breakdown
@@ -180,7 +184,7 @@ def submit_order(
             discount_amount=0.0,
             currency="USD",
             
-            # Addresses
+            # Addresses (stored as JSON)
             shipping_address=request.shipping_address,
             billing_address=request.billing_address or request.shipping_address,
             
@@ -201,23 +205,23 @@ def submit_order(
             order_notes=request.order_notes,
             
             # Email tracking
-            confirmation_email_sent=False  # Will be set to True after email
+            confirmation_email_sent=False
         )
         
         db.add(order)
         db.flush()  # Get the order ID
         
-        # ✅ COMPLETED TODO: Create order items
+        # ✅ Create order items with enhanced tracking
         for cart_item in cart_items:
             order_item = OrderItem(
                 order_id=order.id,
                 product_id=cart_item.product_id,
-                product_name=cart_item.product.name,  # Store product name for history
+                product_name=cart_item.product.name,
                 unit_price=cart_item.product.price,
                 quantity=cart_item.quantity,
-                line_total=cart_item.product.price * cart_item.quantity,  # NEW: Line total
+                line_total=cart_item.product.price * cart_item.quantity,
                 
-                # Enhanced fields
+                # Enhanced product snapshot
                 product_sku=getattr(cart_item.product, 'sku', None),
                 product_description=getattr(cart_item.product, 'description', None),
                 product_image_url=getattr(cart_item.product, 'image_url', None),
@@ -237,64 +241,101 @@ def submit_order(
         # Commit all changes
         db.commit()
         
-        print(f"✅ Order {order_number} created successfully, cart cleared")
+        logger.info(f"✅ Order {order_number} created successfully, cart cleared")
         
-        # ✅ COMPLETED TODO: Send confirmation email (only if we have an email)
+        # ✅ ENHANCED NOTIFICATION SYSTEM
+        notification_sent = False
         if customer_email:
-            order_details = {
-                "order_number": order_number,
-                "total": total,
-                "customer_name": f"{order.customer_first_name} {order.customer_last_name}",
-                "items": [
-                    {
-                        "name": item.product_name,
-                        "quantity": item.quantity,
-                        "price": item.unit_price
-                    }
-                    for item in order.items
-                ]
-            }
-            
-            print(f"📧 Scheduling confirmation email to: {customer_email}")
-            
-            # Schedule email as background task
-            schedule_confirmation_email(
-                background_tasks, 
-                customer_email,  # 🔧 FIXED: Now guaranteed to be not None
-                order_number, 
-                order_details
-            )
-            
-            # Mark email as scheduled
-            order.confirmation_email_sent = True
-            db.commit()
-            
-            print(f"✅ Email scheduled for {customer_email}")
+            try:
+                # Get user database record for notification preferences
+                user_record = db.query(User).filter(User.clerk_id == user['sub']).first()
+                
+                # Prepare comprehensive order details for email
+                order_details = {
+                    "order_number": order_number,
+                    "total": total,
+                    "subtotal": subtotal,
+                    "tax": tax,
+                    "shipping": shipping_cost,
+                    "customer_name": f"{order.customer_first_name} {order.customer_last_name}",
+                    "shipping_address": request.shipping_address,
+                    "shipping_method": request.shipping_method,
+                    "payment_method": request.payment_method,
+                    "is_gift": order.is_gift,
+                    "gift_message": order.gift_message,
+                    "items": [
+                        {
+                            "name": item.product_name,
+                            "quantity": item.quantity,
+                            "unit_price": item.unit_price,
+                            "line_total": item.line_total,
+                            "image_url": item.product_image_url
+                        }
+                        for item in order.items
+                    ],
+                    "estimated_delivery": "3-5 business days",
+                    "order_date": order.created_at.strftime("%B %d, %Y"),
+                    "support_email": "support@jasonjewels.com"
+                }
+                
+                logger.info(f"📧 Scheduling confirmation email to: {customer_email}")
+                
+                # Schedule email as background task
+                schedule_confirmation_email(
+                    background_tasks, 
+                    customer_email,
+                    order_number, 
+                    order_details
+                )
+                
+                # Mark email as scheduled
+                order.confirmation_email_sent = True
+                notification_sent = True
+                
+                logger.info(f"✅ Email scheduled for {customer_email}")
+                
+                # 🚀 FUTURE: Enhanced notification system integration
+                # Uncomment when you implement the notification service:
+                # if user_record:
+                #     try:
+                #         from app.services.order_events import trigger_order_confirmed
+                #         asyncio.create_task(trigger_order_confirmed(db, order, user['sub']))
+                #         logger.info(f"Enhanced notification queued for user {user_record.id}")
+                #     except ImportError:
+                #         logger.warning("Enhanced notification service not available")
+                
+            except Exception as e:
+                logger.error(f"Failed to send order confirmation: {str(e)}")
+                order.confirmation_email_sent = False
+                # Don't fail the order if email fails
         else:
-            print("⚠️ No email address found - email not sent")
+            logger.warning("No email address found - confirmation email not sent")
             order.confirmation_email_sent = False
-            db.commit()
+        
+        # Final commit with email status
+        db.commit()
         
         return {
             "success": True,
             "order_number": order_number,
-            "order_id": order.id,  # NEW: Return order ID
+            "order_id": order.id,
             "total": total,
+            "currency": "USD",
             "estimated_delivery": "3-5 business days",
-            "confirmation_email_sent": bool(customer_email),  # 🔧 FIXED: Accurate status
-            "message": "Order placed successfully!"
+            "confirmation_email_sent": notification_sent,
+            "customer_email": customer_email if customer_email else "Not provided",
+            "message": "Order placed successfully! You will receive a confirmation email shortly." if notification_sent else "Order placed successfully!"
         }
         
     except stripe.error.StripeError as e:
         db.rollback()
-        print(f"Stripe error during order submission: {e}")
+        logger.error(f"Stripe error during order submission: {e}")
         raise HTTPException(status_code=400, detail=f"Stripe error: {str(e)}")
     except Exception as e:
         db.rollback()
-        print(f"Order submission error: {e}")
+        logger.error(f"Order submission error: {e}")
         raise HTTPException(status_code=500, detail=f"Order submission failed: {str(e)}")
 
-# NEW ENDPOINTS: Order tracking and history
 @router.get("/orders/{order_number}")
 def get_order(
     order_number: str,
@@ -320,20 +361,34 @@ def get_order(
                 "order_number": order.order_number,
                 "status": order.status,
                 "total_price": order.total_price,
+                "subtotal": getattr(order, 'subtotal', order.total_price),
+                "tax_amount": getattr(order, 'tax_amount', 0),
+                "shipping_amount": getattr(order, 'shipping_amount', 0),
+                "currency": getattr(order, 'currency', 'USD'),
                 "created_at": order.created_at.isoformat(),
                 "customer_name": f"{order.customer_first_name} {order.customer_last_name}",
+                "customer_email": order.customer_email,
                 "shipping_address": order.shipping_address,
-                "is_gift": order.is_gift,
-                "gift_message": order.gift_message,
-                "tracking_number": getattr(order, 'shipping_tracking_number', None)
+                "billing_address": getattr(order, 'billing_address', None),
+                "shipping_method": getattr(order, 'shipping_method_name', None),
+                "payment_status": getattr(order, 'payment_status', 'completed'),
+                "is_gift": getattr(order, 'is_gift', False),
+                "gift_message": getattr(order, 'gift_message', None),
+                "order_notes": getattr(order, 'order_notes', None),
+                "tracking_number": getattr(order, 'shipping_tracking_number', None),
+                "estimated_delivery": "3-5 business days",
+                "confirmation_email_sent": getattr(order, 'confirmation_email_sent', False)
             },
             "items": [
                 {
+                    "product_id": item.product_id,
                     "product_name": item.product_name,
                     "quantity": item.quantity,
                     "unit_price": item.unit_price,
-                    "line_total": item.line_total,
-                    "product_image_url": item.product_image_url
+                    "line_total": getattr(item, 'line_total', item.unit_price * item.quantity),
+                    "product_image_url": getattr(item, 'product_image_url', None),
+                    "product_category": getattr(item, 'product_category', None),
+                    "custom_options": getattr(item, 'custom_options', None)
                 }
                 for item in items
             ]
@@ -342,7 +397,7 @@ def get_order(
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error retrieving order: {e}")
+        logger.error(f"Error retrieving order: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve order")
 
 @router.get("/orders")
@@ -365,13 +420,39 @@ def get_user_orders(
                     "order_number": order.order_number,
                     "status": order.status,
                     "total_price": order.total_price,
+                    "currency": getattr(order, 'currency', 'USD'),
                     "created_at": order.created_at.isoformat(),
-                    "item_count": len(order.items) if hasattr(order, 'items') else 0
+                    "customer_name": f"{order.customer_first_name or ''} {order.customer_last_name or ''}".strip(),
+                    "item_count": len(order.items) if hasattr(order, 'items') and order.items else 0,
+                    "payment_status": getattr(order, 'payment_status', 'completed'),
+                    "is_gift": getattr(order, 'is_gift', False)
                 }
                 for order in orders
-            ]
+            ],
+            "total_orders": len(orders)
         }
         
     except Exception as e:
-        print(f"Error retrieving user orders: {e}")
+        logger.error(f"Error retrieving user orders: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve orders")
+
+# Health check endpoint
+@router.get("/health")
+def payment_health_check():
+    """Health check for payment service"""
+    try:
+        # Test Stripe connection
+        stripe.Account.retrieve()
+        return {
+            "status": "healthy",
+            "stripe_connected": True,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Payment health check failed: {e}")
+        return {
+            "status": "unhealthy",
+            "stripe_connected": False,
+            "error": str(e),
+            "timestamp": datetime.utcnow().isoformat()
+        }

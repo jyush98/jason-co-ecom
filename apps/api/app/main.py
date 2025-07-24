@@ -19,7 +19,10 @@ from app.routes.admin import router as admin_router
 from app.routes.payment import router as payment_router
 from app.routes.wishlist import router as wishlist_router
 from app.routes.account import router as account_router
+from app.routes.account_settings import router as account_settings_router
+from app.routes.notification_preferences import router as notification_preferences_router
 
+# Then add these two lines where you include your other routers
 app = FastAPI()
 
 # CORS settings to allow frontend to communicate with backend
@@ -48,6 +51,8 @@ app.include_router(admin_router, prefix="/api/admin", tags=["Admin"])
 app.include_router(payment_router, prefix="/payment", tags=["Payment"])
 app.include_router(wishlist_router, prefix="/wishlist", tags=["Wishlist"])
 app.include_router(account_router, prefix="/account", tags=["Account"])
+app.include_router(account_settings_router, prefix="/account", tags=["Account Settings"])
+app.include_router(notification_preferences_router, prefix="/account", tags=["Notification Preferences"])
 
 
 @app.get("/")

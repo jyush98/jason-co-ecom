@@ -22,8 +22,10 @@ class User(Base):
     wishlist_items = relationship("WishlistItem", back_populates="user", cascade="all, delete-orphan")
     addresses = relationship("UserAddress", back_populates="user", cascade="all, delete-orphan")
     
-    # NEW: Settings relationship
+    # Settings relationship
     user_settings = relationship("UserSetting", back_populates="user", cascade="all, delete-orphan")
+    notification_preferences = relationship("NotificationPreference", back_populates="user", uselist=False, cascade="all, delete-orphan")
+
     
     # Optional convenience methods for settings
     def get_setting(self, key: str, default=None):
