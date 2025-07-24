@@ -8,4 +8,5 @@ from app.models.cart import CartItem
 from app.models.order import OrderItem, Order
 from app.models.custom_order import CustomOrder
 from app.models.wishlist import WishlistItem
+from app.models.user_address import UserAddress
 # Import other models here

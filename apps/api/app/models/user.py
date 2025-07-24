@@ -16,3 +16,4 @@ class User(Base):
     
     # NEW: Wishlist relationship
     wishlist_items = relationship("WishlistItem", back_populates="user", cascade="all, delete-orphan")
+    addresses = relationship("UserAddress", back_populates="user", cascade="all, delete-orphan")

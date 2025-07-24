@@ -18,6 +18,7 @@ from app.routes.custom_order import router as custom_order_router
 from app.routes.admin import router as admin_router
 from app.routes.payment import router as payment_router
 from app.routes.wishlist import router as wishlist_router
+from app.routes.account import router as account_router
 
 app = FastAPI()
 
@@ -46,6 +47,7 @@ app.include_router(custom_order_router)
 app.include_router(admin_router, prefix="/api/admin", tags=["Admin"])
 app.include_router(payment_router, prefix="/payment", tags=["Payment"])
 app.include_router(wishlist_router, prefix="/wishlist", tags=["Wishlist"])
+app.include_router(account_router, prefix="/account", tags=["Account"])
 
 
 @app.get("/")

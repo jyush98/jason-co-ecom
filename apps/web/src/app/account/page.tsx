@@ -22,7 +22,7 @@ import AccountDashboard from "@/components/account/AccountDashboard";
 import OrderHistory from "@/components/account/OrderHistory";
 import ProfileSettings from "@/components/account/ProfileSettings";
 import WishlistPage from "@/components/wishlist/WishlistPage";
-// import AddressBook from "@/components/account/AddressBook";
+import AddressBook from "@/components/account/AddressBook";
 // import NotificationSettings from "@/components/account/NotificationSettings";
 
 interface TabConfig {
@@ -115,7 +115,7 @@ export default function UnifiedAccountPage() {
       name: 'Addresses',
       icon: <MapPin size={20} />,
       description: 'Shipping addresses',
-      component: () => <div className="p-8 text-center">Address Book Component (Coming Soon)</div> // Placeholder
+      component: () => <AddressBook/>
     },
     {
       id: 'profile',
