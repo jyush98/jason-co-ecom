@@ -44,7 +44,7 @@ export default function AuthLayout({
     return (
         <AuthBackground variant="luxury">
             <div className="bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-black dark:to-gray-800 justify-center items-start">
-                <div className="pt-[var(--navbar-height)] pb-10 min-h-screen flex">
+                <div className="pt-[var(--navbar-height)] pb-10 min-h-screen flex items-center justify-center">
                     {/* Left Side - Brand & Imagery */}
                     <motion.div
                         className="hidden lg:w-1/2 relative"
