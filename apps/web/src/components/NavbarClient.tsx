@@ -3,8 +3,8 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, X, ShoppingCart, Sun, Moon } from "lucide-react";
-import { SignedIn, SignedOut, SignInButton, UserButton, useAuth } from "@clerk/nextjs";
+import { Menu, X, ShoppingCart, Sun, Moon, User } from "lucide-react";
+import { SignedIn, SignedOut, UserButton, useAuth } from "@clerk/nextjs";
 import { useCartStore } from "@/app/store/cartStore";
 import { getCart } from "@/utils/cart";
 import { motion, AnimatePresence } from "framer-motion";
@@ -121,9 +121,18 @@ export default function NavbarClient() {
               </span>
             )}
           </Link>
+
+          {/* ✅ UPDATED: Custom Sign-In Link */}
           <SignedOut>
-            <SignInButton />
+            <Link
+              href="/sign-in"
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium hover:text-gold transition-colors duration-200"
+            >
+              <User className="w-4 h-4" />
+              <span className="hidden sm:inline">Sign In</span>
+            </Link>
           </SignedOut>
+
           <SignedIn>
             <UserButton />
           </SignedIn>
