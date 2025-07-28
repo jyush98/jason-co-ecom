@@ -1,4 +1,4 @@
-# app/routes/payment.py - Complete with Order Storage & Notification Integration
+# app/routes/payment.py - FIXED with proper user lookup
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -40,6 +40,17 @@ class OrderSubmissionRequest(BaseModel):
 # Initialize email service
 email_service = EmailService()
 
+# ✅ ADD THIS HELPER FUNCTION
+def get_db_user_from_clerk(db: Session, clerk_id: str) -> User:
+    """Get database user by Clerk ID, raise 404 if not found."""
+    db_user = db.query(User).filter(User.clerk_id == clerk_id).first()
+    if not db_user:
+        raise HTTPException(
+            status_code=404, 
+            detail=f"User not found in database. Clerk ID: {clerk_id}. Please contact support."
+        )
+    return db_user
+
 def schedule_confirmation_email(background_tasks: BackgroundTasks, email: str, order_number: str, order_details: dict):
     """Schedule email as background task"""
     background_tasks.add_task(email_service.send_order_confirmation_email, email, order_number, order_details)
@@ -52,8 +63,12 @@ def create_payment_intent(
 ):
     """Create a Stripe PaymentIntent for checkout."""
     try:
-        # Get user's cart to validate amount
-        cart_items = db.query(CartItem).filter(CartItem.user_id == user["sub"]).all()
+        # ✅ FIXED: Get database user first
+        db_user = get_db_user_from_clerk(db, user["sub"])
+        logger.info(f"Creating payment intent for user: {db_user.clerk_id} (DB ID: {db_user.id})")
+        
+        # ✅ FIXED: Use database user.id for cart query
+        cart_items = db.query(CartItem).filter(CartItem.user_id == db_user.id).all()
         
         if not cart_items:
             raise HTTPException(status_code=400, detail="Cart is empty")
@@ -72,6 +87,7 @@ def create_payment_intent(
             currency=request.currency,
             metadata={
                 'user_id': user['sub'],
+                'db_user_id': db_user.id,  # ✅ ADDED: Store both IDs for reference
                 'cart_items_count': len(cart_items)
             }
         )
@@ -103,6 +119,10 @@ def submit_order(
         logger.info(f"Processing order for user: {user['sub']}")
         logger.debug(f"User object keys: {list(user.keys()) if user else 'No user'}")
         
+        # ✅ FIXED: Get database user first
+        db_user = get_db_user_from_clerk(db, user["sub"])
+        logger.info(f"Found DB user: ID={db_user.id}, Clerk ID={db_user.clerk_id}")
+        
         # Verify the payment was successful
         intent = stripe.PaymentIntent.retrieve(request.payment_intent_id)
         
@@ -112,8 +132,8 @@ def submit_order(
                 detail=f"Payment not successful. Status: {intent.status}"
             )
         
-        # Get user's cart
-        cart_items = db.query(CartItem).filter(CartItem.user_id == user["sub"]).all()
+        # ✅ FIXED: Get user's cart using database user.id
+        cart_items = db.query(CartItem).filter(CartItem.user_id == db_user.id).all()
         
         if not cart_items:
             raise HTTPException(status_code=400, detail="Cart is empty")
@@ -142,6 +162,10 @@ def submit_order(
                 (user.get('email_addresses', [{}])[0].get('email_address') if user.get('email_addresses') else None)
             )
         
+        # Fallback to database user email
+        if not customer_email and db_user:
+            customer_email = db_user.email
+        
         # Fallback to shipping address email
         if not customer_email and request.shipping_address:
             customer_email = (
@@ -161,12 +185,13 @@ def submit_order(
         if not customer_email:
             logger.warning("No customer email found! Email will not be sent.")
             logger.debug(f"User object: {user}")
+            logger.debug(f"DB user email: {db_user.email if db_user else 'No DB user'}")
             logger.debug(f"Shipping address: {request.shipping_address}")
         
         # Create order with enhanced tracking
         order = Order(
             order_number=order_number,
-            user_id=user["sub"],
+            user_id=user["sub"],  # Keep Clerk ID for order tracking
             total_price=total,
             status="confirmed",
             created_at=datetime.utcnow(),
@@ -235,8 +260,9 @@ def submit_order(
             )
             db.add(order_item)
         
-        # Clear the user's cart
-        db.query(CartItem).filter(CartItem.user_id == user["sub"]).delete()
+        # ✅ FIXED: Clear the user's cart using database user.id
+        deleted_count = db.query(CartItem).filter(CartItem.user_id == db_user.id).delete()
+        logger.info(f"Cleared {deleted_count} items from cart for user {db_user.id}")
         
         # Commit all changes
         db.commit()
@@ -247,8 +273,8 @@ def submit_order(
         notification_sent = False
         if customer_email:
             try:
-                # Get user database record for notification preferences
-                user_record = db.query(User).filter(User.clerk_id == user['sub']).first()
+                # Use the database user record for notification preferences
+                user_record = db_user  # We already have it!
                 
                 # Prepare comprehensive order details for email
                 order_details = {

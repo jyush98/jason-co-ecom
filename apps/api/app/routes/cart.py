@@ -3,9 +3,10 @@ from sqlalchemy.orm import Session
 from app.core.db import get_db
 from app.models.cart import CartItem
 from app.models.product import Product
-from app.auth import verify_clerk_token  # ✅ Ensure user authentication
+from app.models.user import User  # ✅ ADD THIS IMPORT
+from app.auth import verify_clerk_token
 from pydantic import BaseModel
-from sqlalchemy import func  # ✅ Add this import
+from sqlalchemy import func
 
 router = APIRouter()
 
@@ -13,7 +14,18 @@ class CartItemRequest(BaseModel):
     product_id: int
     quantity: int
 
-# ✅ ADD THIS NEW ENDPOINT
+# ✅ ADD THIS HELPER FUNCTION
+def get_db_user_from_clerk(db: Session, clerk_id: str) -> User:
+    """Get database user by Clerk ID, raise 404 if not found."""
+    db_user = db.query(User).filter(User.clerk_id == clerk_id).first()
+    if not db_user:
+        raise HTTPException(
+            status_code=404, 
+            detail=f"User not found in database. Clerk ID: {clerk_id}. Please contact support."
+        )
+    return db_user
+
+# ✅ FIXED - Cart count using database user ID
 @router.get("/count")
 def get_cart_count(
     user=Depends(verify_clerk_token),
@@ -21,9 +33,12 @@ def get_cart_count(
 ):
     """Get the total number of items in user's cart"""
     try:
-        # Count total quantity of all items in cart
+        # ✅ Get database user first
+        db_user = get_db_user_from_clerk(db, user["sub"])
+        
+        # Count total quantity using database user.id
         cart_count = db.query(func.sum(CartItem.quantity)).filter(
-            CartItem.user_id == user["sub"]
+            CartItem.user_id == db_user.id  # ✅ Use db_user.id instead of clerk_id
         ).scalar() or 0
         
         return {"count": int(cart_count)}
@@ -32,39 +47,80 @@ def get_cart_count(
         print(f"Error getting cart count: {e}")
         raise HTTPException(status_code=500, detail="Failed to get cart count")
 
+# ✅ FIXED - Add to cart using database user ID
 @router.post("/add")
 def add_to_cart(
-    item: CartItemRequest,  # ✅ Expect JSON body
+    item: CartItemRequest,
     user=Depends(verify_clerk_token),
     db: Session = Depends(get_db)
 ):
     """Adds a product to the cart."""
+    
+    print(f"🛒 ADD TO CART: Clerk user = {user['sub']}")  # Debug log
+    
+    # ✅ Get database user first
+    try:
+        db_user = get_db_user_from_clerk(db, user["sub"])
+        print(f"✅ Found DB user: ID={db_user.id}, Clerk ID={db_user.clerk_id}")
+    except HTTPException as e:
+        print(f"❌ User lookup failed: {e.detail}")
+        raise e
+    
+    # ✅ Check existing item using database user.id
     existing_item = db.query(CartItem).filter(
-        CartItem.user_id == user["sub"], CartItem.product_id == item.product_id
+        CartItem.user_id == db_user.id,  # ✅ Use db_user.id
+        CartItem.product_id == item.product_id
     ).first()
 
     if existing_item:
         existing_item.quantity += item.quantity
+        print(f"✅ Updated existing cart item: quantity now {existing_item.quantity}")
     else:
-        cart_item = CartItem(user_id=user["sub"], product_id=item.product_id, quantity=item.quantity)
+        cart_item = CartItem(
+            user_id=db_user.id,  # ✅ Use db_user.id instead of clerk_id
+            product_id=item.product_id, 
+            quantity=item.quantity
+        )
         db.add(cart_item)
+        print(f"✅ Created new cart item: user_id={db_user.id}, product_id={item.product_id}")
 
-    db.commit()
-    return {"message": "Item added to cart"}
+    try:
+        db.commit()
+        print("✅ Cart item saved successfully!")
+        return {"message": "Item added to cart", "user_db_id": db_user.id}
+    except Exception as e:
+        db.rollback()
+        print(f"❌ Database commit failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to add item to cart: {str(e)}")
 
+# ✅ FIXED - Get cart using database user ID
 @router.get("")
 def get_cart(user=Depends(verify_clerk_token), db: Session = Depends(get_db)):
     """Fetches the user's cart."""
-    cart_items = db.query(CartItem).filter(CartItem.user_id == user["sub"]).all()
+    
+    # ✅ Get database user first
+    db_user = get_db_user_from_clerk(db, user["sub"])
+    
+    # ✅ Query cart items using database user.id
+    cart_items = db.query(CartItem).filter(CartItem.user_id == db_user.id).all()
+    
     for item in cart_items:
         item.product = db.query(Product).filter(Product.id == item.product_id).first()
+    
     return cart_items
 
+# ✅ FIXED - Remove from cart using database user ID
 @router.delete("/remove/{product_id}")
 def remove_from_cart(product_id: int, user=Depends(verify_clerk_token), db: Session = Depends(get_db)):
     """Removes an item from the cart."""
+    
+    # ✅ Get database user first
+    db_user = get_db_user_from_clerk(db, user["sub"])
+    
+    # ✅ Find cart item using database user.id
     cart_item = db.query(CartItem).filter(
-        CartItem.user_id == user["sub"], CartItem.product_id == product_id
+        CartItem.user_id == db_user.id,  # ✅ Use db_user.id
+        CartItem.product_id == product_id
     ).first()
 
     if not cart_item:
@@ -74,6 +130,7 @@ def remove_from_cart(product_id: int, user=Depends(verify_clerk_token), db: Sess
     db.commit()
     return {"message": "Item removed from cart"}
 
+# ✅ UNCHANGED - Tax calculation doesn't need user lookup
 @router.post("/calculate-tax")
 def calculate_tax(
     request: dict,
@@ -120,15 +177,22 @@ def calculate_tax(
         print(f"Error calculating tax: {e}")
         raise HTTPException(status_code=500, detail="Failed to calculate tax")
 
+# ✅ FIXED - Update cart using database user ID
 @router.patch("/update")
 def update_cart(
-    item: CartItemRequest,  # JSON Body
+    item: CartItemRequest,
     user=Depends(verify_clerk_token),
     db: Session = Depends(get_db)
 ):
     """Updates the quantity of an item in the cart."""
+    
+    # ✅ Get database user first
+    db_user = get_db_user_from_clerk(db, user["sub"])
+    
+    # ✅ Find cart item using database user.id
     cart_item = db.query(CartItem).filter(
-        CartItem.user_id == user["sub"], CartItem.product_id == item.product_id
+        CartItem.user_id == db_user.id,  # ✅ Use db_user.id
+        CartItem.product_id == item.product_id
     ).first()
 
     if not cart_item:

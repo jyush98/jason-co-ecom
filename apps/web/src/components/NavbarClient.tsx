@@ -246,8 +246,8 @@ export default function NavbarClient() {
       {menuOpen && (
         <FullScreenMenu
           categories={categories}
-          hoverImage={hoverImage}
-          setHoverImage={setHoverImage}
+          // hoverImage={hoverImage}
+          // setHoverImage={setHoverImage}
           onClose={() => setMenuOpen(false)}
         />
       )}

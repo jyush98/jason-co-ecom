@@ -21,6 +21,11 @@ module.exports = {
       spacing: {
         navbar: '165px',
       },
+      extend: {
+        backgroundImage: {
+          'gradient-radial': 'radial-gradient(ellipse at center, var(--tw-gradient-stops))',
+        }
+      }
     },
   },
   plugins: [],
