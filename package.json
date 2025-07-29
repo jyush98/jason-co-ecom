@@ -25,6 +25,7 @@
     "@clerk/nextjs": "^6.11.1",
     "@fontsource/inter": "^5.2.5",
     "@fontsource/unbounded": "^5.2.5",
+    "@headlessui/react": "^2.2.6",
     "framer-motion": "^12.6.2",
     "keen-slider": "^6.8.6",
     "lucide-react": "^0.485.0",
