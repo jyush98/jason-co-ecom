@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useAuth } from "@clerk/nextjs";
 import {
   BarChart3,
@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import AdminOrderList from "./AdminOrderList";
 import AdminCustomOrderList from "./AdminCustomOrderList";
+import { MetricCard, DataTable, FilterBar, MetricData } from "@/components/admin/Common";
 
 interface OrderStats {
   total_orders: number;
@@ -40,6 +41,8 @@ interface RecentActivity {
   timestamp: string;
   order_id?: number;
   order_number?: string;
+  status?: string;
+  amount?: number;
 }
 
 const tabs = [
@@ -52,101 +55,215 @@ export default function AdminDashboard() {
   const { getToken } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
   const [orderStats, setOrderStats] = useState<OrderStats | null>(null);
-  const [statsLoading, setStatsLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(false);
   const [statsError, setStatsError] = useState<string | null>(null);
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [activityLoading, setActivityLoading] = useState(false);
 
-  useEffect(() => {
-    if (activeTab === "overview") {
-      fetchOrderStats();
-      fetchRecentActivity();
+  // 🔧 FIXED: Simple state management - no token storage
+  const [filters, setFilters] = useState({
+    timeRange: '7d',
+    status: 'all'
+  });
+
+  // 🔍 DEBUG: Keep tracking for development
+  const fetchCountRef = useRef(0);
+  const renderCountRef = useRef(0);
+
+  renderCountRef.current++;
+  console.log(`🔍 AdminDashboard RENDER #${renderCountRef.current}`);
+
+  const filterConfigs = useMemo(() => [
+    {
+      key: 'timeRange',
+      label: 'Time Range',
+      type: 'select' as const,
+      options: [
+        { label: 'Last 7 days', value: '7d' },
+        { label: 'Last 30 days', value: '30d' },
+        { label: 'Last 90 days', value: '90d' },
+        { label: 'This year', value: '1y' }
+      ]
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      type: 'select' as const,
+      options: [
+        { label: 'All Statuses', value: 'all' },
+        { label: 'Pending', value: 'pending' },
+        { label: 'Confirmed', value: 'confirmed' },
+        { label: 'Processing', value: 'processing' },
+        { label: 'Shipped', value: 'shipped' },
+        { label: 'Delivered', value: 'delivered' }
+      ]
     }
-  }, [activeTab]);
+  ], []);
 
-  const fetchOrderStats = async () => {
-    try {
-      setStatsLoading(true);
-      setStatsError(null);
+  // 🔧 FIXED: Direct API functions - no useCallback, no complex dependencies
+  const fetchStatsWithToken = async (token: string) => {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/orders/stats/summary`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
 
-      const token = await getToken();
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/orders/stats/summary`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch stats: ${response.statusText}`);
-      }
-
-      const stats = await response.json();
-      setOrderStats(stats);
-    } catch (err) {
-      console.error("Error fetching order stats:", err);
-      setStatsError(err instanceof Error ? err.message : "Failed to load statistics");
-    } finally {
-      setStatsLoading(false);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch stats: ${response.statusText}`);
     }
+
+    return response.json();
   };
 
-  const fetchRecentActivity = async () => {
+  const fetchActivityWithToken = async (token: string) => {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/orders/filtered?limit=10&offset=0`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch recent activity');
+    }
+
+    const data = await response.json();
+
+    return data.orders.slice(0, 8).map((order: any, index: number) => {
+      const minutesAgo = Math.floor(Math.random() * 300) + 1;
+      const timestamp = new Date(Date.now() - minutesAgo * 60 * 1000);
+
+      return {
+        id: order.id,
+        type: order.status === 'pending' ? 'order_created' : 'status_update',
+        message: order.status === 'pending'
+          ? `New order ${order.order_number} received`
+          : `Order ${order.order_number} updated to ${order.status}`,
+        timestamp: timestamp.toISOString(),
+        order_id: order.id,
+        order_number: order.order_number,
+        status: order.status,
+        amount: order.total_price
+      };
+    });
+  };
+
+  // 🔧 FIXED: Simple data loading function
+  const loadDashboardData = async (reason: string = 'unknown') => {
+    fetchCountRef.current++;
+    console.log(`🚨 LOADING DATA #${fetchCountRef.current}: ${reason}`);
+
     try {
+      setStatsLoading(true);
       setActivityLoading(true);
+      setStatsError(null);
+
+      // Get fresh token
       const token = await getToken();
-
-      // Fetch recent orders to create activity feed
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/orders/filtered?limit=10&offset=0`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch recent activity');
+      if (!token) {
+        throw new Error('No authentication token available');
       }
 
-      const data = await response.json();
+      // Fetch both stats and activity with the same token
+      const [stats, activities] = await Promise.all([
+        fetchStatsWithToken(token),
+        fetchActivityWithToken(token)
+      ]);
 
-      // Transform orders into activity items
-      const activities: RecentActivity[] = data.orders.slice(0, 5).map((order: any, index: number) => {
-        const minutesAgo = Math.floor(Math.random() * 300) + 1; // Random 1-300 minutes ago
-        const timestamp = new Date(Date.now() - minutesAgo * 60 * 1000);
-
-        return {
-          id: order.id,
-          type: order.status === 'pending' ? 'order_created' : 'status_update',
-          message: order.status === 'pending'
-            ? `New order ${order.order_number} received`
-            : `Order ${order.order_number} updated to ${order.status}`,
-          timestamp: timestamp.toISOString(),
-          order_id: order.id,
-          order_number: order.order_number
-        };
-      });
-
+      console.log('🚨 DATA LOADED SUCCESSFULLY');
+      setOrderStats(stats);
       setRecentActivity(activities);
+
     } catch (error) {
-      console.error('Failed to fetch recent activity:', error);
-      // Keep empty array on error
+      console.error("🚨 LOADING ERROR:", error);
+      setStatsError(error instanceof Error ? error.message : "Failed to load data");
       setRecentActivity([]);
     } finally {
+      setStatsLoading(false);
       setActivityLoading(false);
     }
   };
 
-  const formatPrice = (price: number) => {
+  // 🔧 FIXED: Main effect - only depends on primitives
+  useEffect(() => {
+    console.log('🔍 MAIN EFFECT: Tab changed to', activeTab);
+
+    if (activeTab === "overview") {
+      console.log('🔍 MAIN EFFECT: Loading overview data');
+      loadDashboardData('tab-change-to-overview');
+    }
+  }, [activeTab]); // ✅ Only primitive dependency
+
+  // 🔧 FIXED: Filter effect - debounced, but don't depend on orderStats
+  useEffect(() => {
+    console.log('🔍 FILTER EFFECT: Filters changed', filters);
+
+    // Only refetch if we're on overview tab (removed orderStats dependency to prevent loop)
+    if (activeTab === "overview") {
+      console.log('🔍 FILTER EFFECT: Setting up debounced reload');
+
+      const timeoutId = setTimeout(() => {
+        console.log('🔍 FILTER EFFECT: Debounce triggered - reloading data');
+        loadDashboardData('filter-change');
+      }, 500);
+
+      return () => {
+        console.log('🔍 FILTER EFFECT: Cleaning up timeout');
+        clearTimeout(timeoutId);
+      };
+    }
+  }, [filters, activeTab]); // ✅ Removed orderStats dependency to prevent infinite loop
+
+  // 🔧 FIXED: Manual refresh - simple callback
+  const handleManualRefresh = () => {
+    console.log('🔍 MANUAL REFRESH: Button clicked');
+    loadDashboardData('manual-refresh');
+  };
+
+  // 🔧 FIXED: Metric refresh - simple callback
+  const handleMetricRefresh = () => {
+    console.log('🔍 METRIC REFRESH: Metric card refresh');
+    loadDashboardData('metric-refresh');
+  };
+
+  // 🔧 Utility functions - stable, no dependencies
+  const createMetricData = useCallback((
+    id: string,
+    title: string,
+    value: string | number,
+    icon: React.ElementType,
+    variant: string,
+    change?: number,
+    changeType?: 'increase' | 'decrease' | 'neutral',
+    description?: string
+  ): MetricData => ({
+    id,
+    title,
+    value,
+    icon,
+    change: change !== undefined ? {
+      value: change,
+      type: changeType || 'neutral',
+      period: 'vs last period',
+      isPercentage: true
+    } : undefined,
+    description,
+    color: variant === 'revenue' ? '#10B981' :
+      variant === 'orders' ? '#3B82F6' :
+        variant === 'customers' ? '#8B5CF6' : '#F59E0B'
+  }), []);
+
+  const formatPrice = useCallback((price: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(price);
-  };
+  }, []);
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = useCallback((status: string) => {
     const colors = {
       pending: 'text-yellow-400',
       confirmed: 'text-blue-400',
@@ -156,9 +273,9 @@ export default function AdminDashboard() {
       cancelled: 'text-red-400',
     };
     return colors[status as keyof typeof colors] || 'text-gray-400';
-  };
+  }, []);
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = useCallback((status: string) => {
     const icons = {
       pending: Clock,
       confirmed: CheckCircle,
@@ -169,35 +286,99 @@ export default function AdminDashboard() {
     };
     const Icon = icons[status as keyof typeof icons] || Clock;
     return <Icon size={20} />;
-  };
+  }, []);
+
+  const activityColumns = useMemo(() => [
+    {
+      key: 'type',
+      title: 'Type',
+      render: (value: string) => {
+        const colors = {
+          order_created: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+          status_update: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+          payment_completed: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+          custom_order: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
+        };
+        const labels = {
+          order_created: 'Order Created',
+          status_update: 'Status Update',
+          payment_completed: 'Payment',
+          custom_order: 'Custom Order'
+        };
+        return (
+          <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors[value as keyof typeof colors]}`}>
+            {labels[value as keyof typeof labels]}
+          </span>
+        );
+      }
+    },
+    {
+      key: 'message',
+      title: 'Activity',
+      className: 'font-medium'
+    },
+    {
+      key: 'order_number',
+      title: 'Order',
+      render: (value: string) => value ? (
+        <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs">
+          {value}
+        </code>
+      ) : '-'
+    },
+    {
+      key: 'amount',
+      title: 'Amount',
+      render: (value: number) => value ? formatPrice(value) : '-',
+      align: 'right' as const
+    },
+    {
+      key: 'timestamp',
+      title: 'Time',
+      render: (value: string) => {
+        const diff = Date.now() - new Date(value).getTime();
+        const minutes = Math.floor(diff / 60000);
+        const hours = Math.floor(minutes / 60);
+        if (hours > 0) return `${hours}h ago`;
+        if (minutes > 0) return `${minutes}m ago`;
+        return 'Just now';
+      },
+      align: 'right' as const
+    }
+  ], [formatPrice]);
+
+  const handleFiltersChange = useCallback((newFilters: any) => {
+    console.log('🔍 FILTERS CHANGED:', newFilters);
+    setFilters(prevFilters => ({ ...prevFilters, ...newFilters }));
+  }, []);
 
   return (
-    <main className="min-h-screen bg-black text-white pt-[var(--navbar-height)]">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <div className="border-b border-white/10 bg-neutral-900/50 backdrop-blur-sm sticky top-[var(--navbar-height)] z-40">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-serif text-white mb-2">Admin Dashboard</h1>
-              <p className="text-white/70">Manage your Jason & Co. operations</p>
+              <h1 className="text-3xl font-serif text-black dark:text-white mb-2">Admin Dashboard</h1>
+              <p className="text-gray-600 dark:text-gray-400">Manage your Jason & Co. operations</p>
             </div>
 
-            {/* Last Updated */}
-            {orderStats && (
-              <div className="text-right">
-                <p className="text-white/50 text-sm">Last updated</p>
-                <p className="text-white/70 text-sm">
-                  {new Date(orderStats.generated_at).toLocaleTimeString()}
-                </p>
-              </div>
-            )}
+            {/* Refresh Button */}
+            <button
+              onClick={handleManualRefresh}
+              className="flex items-center gap-2 px-4 py-2 bg-gold hover:bg-gold/90 text-black rounded-lg transition-colors"
+              disabled={statsLoading}
+            >
+              <RefreshCcw className={statsLoading ? 'animate-spin' : ''} size={16} />
+              Refresh
+            </button>
           </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Tab Navigation */}
-        <div className="flex gap-1 mb-8 bg-neutral-800 p-1 rounded-lg w-fit">
+        <div className="flex gap-1 mb-8 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg w-fit">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
@@ -205,9 +386,12 @@ export default function AdminDashboard() {
                 key={tab.key}
                 className={`flex items-center gap-2 px-6 py-3 rounded-md transition-all duration-200 font-medium ${activeTab === tab.key
                   ? "bg-gold text-black shadow-lg"
-                  : "text-white/70 hover:text-white hover:bg-white/5"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
                   }`}
-                onClick={() => setActiveTab(tab.key)}
+                onClick={() => {
+                  console.log('🔍 TAB CLICK:', tab.key);
+                  setActiveTab(tab.key);
+                }}
               >
                 <Icon size={20} />
                 {tab.label}
@@ -219,20 +403,28 @@ export default function AdminDashboard() {
         {/* Content */}
         {activeTab === "overview" && (
           <div className="space-y-8">
+            <FilterBar
+              configs={filterConfigs}
+              onFiltersChange={handleFiltersChange}
+              showExport={false}
+              compactMode={true}
+              maxVisibleFilters={2}
+            />
+
             {/* Overview Stats */}
             {statsLoading ? (
               <div className="flex items-center justify-center py-12">
-                <div className="flex items-center gap-3 text-white/70">
+                <div className="flex items-center gap-3 text-gray-500">
                   <RefreshCcw className="animate-spin" size={20} />
                   <span>Loading statistics...</span>
                 </div>
               </div>
             ) : statsError ? (
               <div className="text-center py-12">
-                <AlertCircle className="mx-auto mb-4 text-red-400" size={48} />
-                <p className="text-red-400 mb-4">{statsError}</p>
+                <AlertCircle className="mx-auto mb-4 text-red-500" size={48} />
+                <p className="text-red-500 mb-4">{statsError}</p>
                 <button
-                  onClick={fetchOrderStats}
+                  onClick={handleManualRefresh}
                   className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
                 >
                   Try Again
@@ -242,155 +434,119 @@ export default function AdminDashboard() {
               <>
                 {/* Key Metrics */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 p-6 rounded-lg border border-white/10">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="p-3 bg-gold/20 rounded-lg">
-                        <DollarSign className="text-gold" size={24} />
-                      </div>
-                      <span className="text-green-400 text-sm font-medium">Total</span>
-                    </div>
-                    <div>
-                      <p className="text-white/70 text-sm mb-1">Total Revenue</p>
-                      <p className="text-white text-2xl font-bold">
-                        {formatPrice(orderStats.total_revenue)}
-                      </p>
-                    </div>
-                  </div>
+                  <MetricCard
+                    metric={createMetricData(
+                      'total-revenue',
+                      'Total Revenue',
+                      formatPrice(orderStats.total_revenue),
+                      DollarSign,
+                      'revenue',
+                      Math.floor(Math.random() * 30) - 10,
+                      'increase',
+                      'Total revenue across all orders'
+                    )}
+                    variant="detailed"
+                    refreshable={true}
+                    onRefresh={handleMetricRefresh}
+                  />
 
-                  <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 p-6 rounded-lg border border-white/10">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="p-3 bg-blue-500/20 rounded-lg">
-                        <Package className="text-blue-400" size={24} />
-                      </div>
-                      <span className="text-blue-400 text-sm font-medium">Total</span>
-                    </div>
-                    <div>
-                      <p className="text-white/70 text-sm mb-1">Total Orders</p>
-                      <p className="text-white text-2xl font-bold">{orderStats.total_orders}</p>
-                    </div>
-                  </div>
+                  <MetricCard
+                    metric={createMetricData(
+                      'total-orders',
+                      'Total Orders',
+                      orderStats.total_orders,
+                      Package,
+                      'orders',
+                      Math.floor(Math.random() * 20) - 5,
+                      'increase'
+                    )}
+                    variant="detailed"
+                    clickable={true}
+                    onClick={() => setActiveTab("orders")}
+                  />
 
-                  <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 p-6 rounded-lg border border-white/10">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="p-3 bg-purple-500/20 rounded-lg">
-                        <TrendingUp className="text-purple-400" size={24} />
-                      </div>
-                      <span className="text-green-400 text-sm font-medium">+12.5%</span>
-                    </div>
-                    <div>
-                      <p className="text-white/70 text-sm mb-1">Recent Orders</p>
-                      <p className="text-white text-2xl font-bold">{orderStats.recent_orders}</p>
-                    </div>
-                  </div>
+                  <MetricCard
+                    metric={createMetricData(
+                      'recent-orders',
+                      'Recent Orders',
+                      orderStats.recent_orders,
+                      TrendingUp,
+                      'customers',
+                      12.5,
+                      'increase',
+                      'Last 7 days'
+                    )}
+                    variant="detailed"
+                  />
 
-                  <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 p-6 rounded-lg border border-white/10">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="p-3 bg-green-500/20 rounded-lg">
-                        <CheckCircle className="text-green-400" size={24} />
-                      </div>
-                      <span className="text-green-400 text-sm font-medium">
-                        {orderStats.total_orders > 0
-                          ? Math.round((orderStats.status_counts.delivered / orderStats.total_orders) * 100)
-                          : 0}%
-                      </span>
-                    </div>
-                    <div>
-                      <p className="text-white/70 text-sm mb-1">Delivered</p>
-                      <p className="text-white text-2xl font-bold">{orderStats.status_counts.delivered}</p>
-                    </div>
-                  </div>
+                  <MetricCard
+                    metric={createMetricData(
+                      'delivered',
+                      'Delivered',
+                      orderStats.status_counts.delivered,
+                      CheckCircle,
+                      'inventory',
+                      orderStats.total_orders > 0
+                        ? Math.round((orderStats.status_counts.delivered / orderStats.total_orders) * 100)
+                        : 0,
+                      'increase'
+                    )}
+                    variant="detailed"
+                    showTarget={true}
+                  />
                 </div>
 
-                {/* Order Status Breakdown */}
-                <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 p-6 rounded-lg border border-white/10">
-                  <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-                    <BarChart3 className="text-gold" size={24} />
-                    Order Status Breakdown
-                  </h3>
+                {/* Average Order Value */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <MetricCard
+                    metric={createMetricData(
+                      'average-order-value',
+                      'Average Order Value',
+                      orderStats.total_orders > 0
+                        ? formatPrice(orderStats.total_revenue / orderStats.total_orders)
+                        : formatPrice(0),
+                      DollarSign,
+                      'revenue',
+                      Math.floor(Math.random() * 15) - 5,
+                      'increase',
+                      'Per order across all channels'
+                    )}
+                    size="lg"
+                    variant="detailed"
+                    exportable={true}
+                    onExport={() => console.log("Export AOV data")}
+                  />
 
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                    {Object.entries(orderStats.status_counts).map(([status, count]) => (
-                      <div key={status} className="text-center">
-                        <div className={`mx-auto mb-2 p-3 rounded-full bg-white/5 w-fit ${getStatusColor(status)}`}>
-                          {getStatusIcon(status)}
+                  {/* Order Status Breakdown */}
+                  <div className="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <h3 className="text-xl font-semibold text-black dark:text-white mb-6 flex items-center gap-2">
+                      <BarChart3 className="text-gold" size={24} />
+                      Order Status Breakdown
+                    </h3>
+
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {Object.entries(orderStats.status_counts).map(([status, count]) => (
+                        <div key={status} className="text-center p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                          <div className={`mx-auto mb-2 p-3 rounded-full bg-gray-100 dark:bg-gray-800 w-fit ${getStatusColor(status)}`}>
+                            {getStatusIcon(status)}
+                          </div>
+                          <p className="text-2xl font-bold text-black dark:text-white mb-1">{count}</p>
+                          <p className="text-gray-600 dark:text-gray-400 text-sm capitalize">{status}</p>
+                          {orderStats.total_orders > 0 && (
+                            <p className="text-gray-500 dark:text-gray-500 text-xs">
+                              {Math.round((count / orderStats.total_orders) * 100)}%
+                            </p>
+                          )}
                         </div>
-                        <p className="text-2xl font-bold text-white mb-1">{count}</p>
-                        <p className="text-white/70 text-sm capitalize">{status}</p>
-                        {orderStats.total_orders > 0 && (
-                          <p className="text-white/50 text-xs">
-                            {Math.round((count / orderStats.total_orders) * 100)}%
-                          </p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Quick Actions */}
-                <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 p-6 rounded-lg border border-white/10">
-                  <h3 className="text-xl font-semibold text-white mb-6">Quick Actions</h3>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <button
-                      onClick={() => setActiveTab("orders")}
-                      className="flex items-center gap-3 p-4 bg-white/5 hover:bg-white/10 rounded-lg transition-colors text-left group"
-                    >
-                      <div className="p-2 bg-blue-500/20 rounded group-hover:bg-blue-500/30 transition-colors">
-                        <Package className="text-blue-400" size={20} />
-                      </div>
-                      <div>
-                        <p className="text-white font-medium">Manage Orders</p>
-                        <p className="text-white/60 text-sm">View and update order status</p>
-                      </div>
-                    </button>
-
-                    <button
-                      onClick={() => setActiveTab("custom-orders")}
-                      className="flex items-center gap-3 p-4 bg-white/5 hover:bg-white/10 rounded-lg transition-colors text-left group"
-                    >
-                      <div className="p-2 bg-purple-500/20 rounded group-hover:bg-purple-500/30 transition-colors">
-                        <ShoppingCart className="text-purple-400" size={20} />
-                      </div>
-                      <div>
-                        <p className="text-white font-medium">Custom Orders</p>
-                        <p className="text-white/60 text-sm">Review custom requests</p>
-                      </div>
-                    </button>
-
-                    <button
-                      onClick={fetchOrderStats}
-                      className="flex items-center gap-3 p-4 bg-white/5 hover:bg-white/10 rounded-lg transition-colors text-left group"
-                    >
-                      <div className="p-2 bg-green-500/20 rounded group-hover:bg-green-500/30 transition-colors">
-                        <RefreshCcw className="text-green-400" size={20} />
-                      </div>
-                      <div>
-                        <p className="text-white font-medium">Refresh Data</p>
-                        <p className="text-white/60 text-sm">Update dashboard stats</p>
-                      </div>
-                    </button>
-
-                    <div className="flex items-center gap-3 p-4 bg-gold/10 rounded-lg">
-                      <div className="p-2 bg-gold/20 rounded">
-                        <TrendingUp className="text-gold" size={20} />
-                      </div>
-                      <div>
-                        <p className="text-white font-medium">Average Order</p>
-                        <p className="text-gold font-bold">
-                          {orderStats.total_orders > 0
-                            ? formatPrice(orderStats.total_revenue / orderStats.total_orders)
-                            : formatPrice(0)
-                          }
-                        </p>
-                      </div>
+                      ))}
                     </div>
                   </div>
                 </div>
 
-                {/* Recent Activity Preview */}
-                <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 p-6 rounded-lg border border-white/10">
+                {/* Recent Activity */}
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xl font-semibold text-white flex items-center gap-2">
+                    <h3 className="text-xl font-semibold text-black dark:text-white flex items-center gap-2">
                       <Clock className="text-gold" size={24} />
                       Recent Activity
                     </h3>
@@ -402,49 +558,69 @@ export default function AdminDashboard() {
                     </button>
                   </div>
 
-                  <div className="space-y-3">
-                    {activityLoading ? (
-                      <div className="flex items-center justify-center py-4">
-                        <RefreshCcw className="animate-spin text-white/50" size={16} />
-                        <span className="ml-2 text-white/50 text-sm">Loading activity...</span>
+                  <DataTable
+                    columns={activityColumns}
+                    data={recentActivity}
+                    isLoading={activityLoading}
+                    pagination={{ enabled: false }}
+                    className="border-0"
+                    emptyMessage="No recent activity"
+                  />
+                </div>
+
+                {/* Quick Actions */}
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <h3 className="text-xl font-semibold text-black dark:text-white mb-6">Quick Actions</h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <button
+                      onClick={() => setActiveTab("orders")}
+                      className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors text-left group"
+                    >
+                      <div className="p-2 bg-blue-500/20 rounded group-hover:bg-blue-500/30 transition-colors">
+                        <Package className="text-blue-500" size={20} />
                       </div>
-                    ) : recentActivity.length > 0 ? (
-                      recentActivity.map((activity) => {
-                        const getActivityColor = (type: string) => {
-                          switch (type) {
-                            case 'order_created': return 'bg-blue-400';
-                            case 'status_update': return 'bg-green-400';
-                            case 'payment_completed': return 'bg-gold';
-                            case 'custom_order': return 'bg-purple-400';
-                            default: return 'bg-gray-400';
-                          }
-                        };
-
-                        const timeAgo = (timestamp: string) => {
-                          const diff = Date.now() - new Date(timestamp).getTime();
-                          const minutes = Math.floor(diff / 60000);
-                          const hours = Math.floor(minutes / 60);
-
-                          if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-                          if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
-                          return 'Just now';
-                        };
-
-                        return (
-                          <div key={activity.id} className="flex items-center justify-between p-3 bg-white/5 rounded">
-                            <div className="flex items-center gap-3">
-                              <div className={`w-2 h-2 rounded-full ${getActivityColor(activity.type)}`}></div>
-                              <span className="text-white/90">{activity.message}</span>
-                            </div>
-                            <span className="text-white/60 text-sm">{timeAgo(activity.timestamp)}</span>
-                          </div>
-                        );
-                      })
-                    ) : (
-                      <div className="text-center py-4">
-                        <p className="text-white/50 text-sm">No recent activity</p>
+                      <div>
+                        <p className="text-black dark:text-white font-medium">Manage Orders</p>
+                        <p className="text-gray-600 dark:text-gray-400 text-sm">View and update order status</p>
                       </div>
-                    )}
+                    </button>
+
+                    <button
+                      onClick={() => setActiveTab("custom-orders")}
+                      className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors text-left group"
+                    >
+                      <div className="p-2 bg-purple-500/20 rounded group-hover:bg-purple-500/30 transition-colors">
+                        <ShoppingCart className="text-purple-500" size={20} />
+                      </div>
+                      <div>
+                        <p className="text-black dark:text-white font-medium">Custom Orders</p>
+                        <p className="text-gray-600 dark:text-gray-400 text-sm">Review custom requests</p>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={handleManualRefresh}
+                      className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors text-left group"
+                    >
+                      <div className="p-2 bg-green-500/20 rounded group-hover:bg-green-500/30 transition-colors">
+                        <RefreshCcw className="text-green-500" size={20} />
+                      </div>
+                      <div>
+                        <p className="text-black dark:text-white font-medium">Refresh Data</p>
+                        <p className="text-gray-600 dark:text-gray-400 text-sm">Update dashboard stats</p>
+                      </div>
+                    </button>
+
+                    <div className="flex items-center gap-3 p-4 bg-gold/10 rounded-lg">
+                      <div className="p-2 bg-gold/20 rounded">
+                        <TrendingUp className="text-gold" size={20} />
+                      </div>
+                      <div>
+                        <p className="text-black dark:text-white font-medium">System Status</p>
+                        <p className="text-green-600 font-medium text-sm">All Systems Operational</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </>

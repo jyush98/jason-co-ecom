@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, Fragment } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
 import {
   Package,
@@ -8,16 +8,21 @@ import {
   DollarSign,
   Calendar,
   Eye,
-  Search,
-  Filter,
-  Download,
-  RefreshCcw,
-  AlertCircle,
   CheckCircle,
   Clock,
-  Truck
+  Truck,
+  AlertCircle,
+  RefreshCcw,
+  Edit
 } from "lucide-react";
 import { Dialog, Transition } from "@headlessui/react";
+import { Fragment } from "react";
+import {
+  DataTable,
+  LoadingSpinner,
+  type DataTableColumn,
+  type DataTableAction
+} from '@/components/admin/Common';
 
 interface OrderItem {
   id: number;
@@ -57,47 +62,123 @@ export default function AdminOrderList() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState<number | null>(null);
 
-  // ✅ FIXED: Use useMemo to prevent infinite re-calculations
-  const filteredOrders = useMemo(() => {
-    console.log("🔍 FILTERING - Orders:", orders.length, "Search:", searchTerm, "Status:", statusFilter);
-
-    const result = orders.filter(order => {
-      // Status filter
-      const matchesStatus = statusFilter === "all" || order.status === statusFilter;
-
-      // Search filter
-      if (!searchTerm?.trim()) {
-        return matchesStatus; // No search term, just use status filter
+  // ✅ DataTable columns configuration with built-in filtering
+  const columns: DataTableColumn<Order>[] = [
+    {
+      key: 'order_number',
+      title: 'Order',
+      sortable: true,
+      render: (value, order) => (
+        <div>
+          <p className="text-white font-medium">{order.order_number}</p>
+          <p className="text-white/50 text-sm">{order.items?.length || 0} items</p>
+        </div>
+      )
+    },
+    {
+      key: 'customer_email',
+      title: 'Customer',
+      sortable: true,
+      filterable: true,
+      filterType: 'text',
+      render: (value, order) => (
+        <div>
+          <p className="text-white">{order.customer_first_name} {order.customer_last_name}</p>
+          <p className="text-white/50 text-sm">{order.customer_email}</p>
+        </div>
+      )
+    },
+    {
+      key: 'total_price',
+      title: 'Total',
+      sortable: true,
+      filterable: true,
+      filterType: 'number',
+      render: (value, order) => (
+        <div>
+          <p className="text-white font-medium">{formatPrice(order.total_price)}</p>
+          <p className="text-white/50 text-sm">{order.payment_status}</p>
+        </div>
+      )
+    },
+    {
+      key: 'status',
+      title: 'Status',
+      sortable: true,
+      filterable: true,
+      filterType: 'select',
+      filterOptions: ORDER_STATUSES.map(status => ({
+        label: status.label,
+        value: status.value
+      })),
+      render: (value, order) => {
+        const statusInfo = getStatusInfo(order.status);
+        const StatusIcon = statusInfo.icon;
+        return (
+          <div className="flex items-center gap-2">
+            <div className={`w-2 h-2 rounded-full ${statusInfo.color}`} />
+            <StatusIcon size={16} className="text-white/70" />
+            <span className="text-white/90 text-sm">{statusInfo.label}</span>
+          </div>
+        );
       }
+    },
+    {
+      key: 'payment_status',
+      title: 'Payment',
+      sortable: true,
+      filterable: true,
+      filterType: 'select',
+      filterOptions: [
+        { label: 'Pending', value: 'pending' },
+        { label: 'Completed', value: 'completed' },
+        { label: 'Failed', value: 'failed' },
+        { label: 'Refunded', value: 'refunded' }
+      ],
+      render: (value, order) => (
+        <span className={`text-sm ${order.payment_status === 'completed' ? 'text-green-400' :
+          order.payment_status === 'failed' ? 'text-red-400' :
+            order.payment_status === 'refunded' ? 'text-yellow-400' :
+              'text-white/70'
+          }`}>
+          {order.payment_status}
+        </span>
+      )
+    },
+    {
+      key: 'created_at',
+      title: 'Date',
+      sortable: true,
+      filterable: true,
+      filterType: 'daterange',
+      render: (value, order) => (
+        <p className="text-white/90 text-sm">{formatDate(order.created_at)}</p>
+      )
+    }
+  ];
 
-      const searched = searchTerm.toLowerCase().trim();
-      const searchString = [
-        order.order_number,
-        order.customer_first_name,
-        order.customer_last_name,
-        order.customer_email,
-        `${order.customer_first_name || ""} ${order.customer_last_name || ""}`
-      ]
-        .filter(Boolean) // Remove null/undefined
-        .join(" ")
-        .toLowerCase();
-
-      const matchesSearch = searchString.includes(searched);
-      console.log(`🔎 Order ${order.id} - Matches Status: ${matchesStatus}, Matches Search: ${matchesSearch}`);
-      console.log(order);
-
-      return matchesStatus && matchesSearch;
-    });
-
-    console.log("📊 FILTERING COMPLETE - Found:", result.length, "orders");
-    return result;
-  }, [orders, searchTerm, statusFilter]); // Only re-run when these change
+  // ✅ DataTable actions configuration
+  const actions: DataTableAction<Order>[] = [
+    {
+      label: 'View Details',
+      icon: Eye,
+      onClick: (order) => openOrderModal(order),
+      variant: 'default'
+    },
+    {
+      label: 'Edit Status',
+      icon: Edit,
+      onClick: (order) => {
+        // You could open a status edit modal here
+        console.log('Edit status for order:', order.order_number);
+      },
+      variant: 'primary'
+    }
+  ];
 
   useEffect(() => {
     fetchOrders();
@@ -190,30 +271,6 @@ export default function AdminOrderList() {
     });
   };
 
-  const exportToCSV = () => {
-    const csvData = filteredOrders.map(order => ({
-      'Order Number': order.order_number,
-      'Customer': order.customer_first_name + ' ' + order.customer_last_name,
-      'Email': order.customer_email,
-      'Total': order.total_price,
-      'Status': order.status,
-      'Payment Status': order.payment_status,
-      'Date': formatDate(order.created_at),
-    }));
-
-    const csv = [
-      Object.keys(csvData[0]).join(','),
-      ...csvData.map(row => Object.values(row).join(','))
-    ].join('\n');
-
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `orders-${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-  };
-
   const openOrderModal = (order: Order) => {
     setSelectedOrder(order);
     setIsModalOpen(true);
@@ -224,24 +281,25 @@ export default function AdminOrderList() {
     setSelectedOrder(null);
   };
 
-  // Clean event handlers
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-  };
-
-  const handleStatusFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setStatusFilter(e.target.value);
-  };
+  // ✅ Handle export with custom data transformation
+  const handleExport = useCallback((filteredData: Order[]) => {
+    return filteredData.map(order => ({
+      'Order Number': order.order_number,
+      'Customer Name': `${order.customer_first_name} ${order.customer_last_name}`,
+      'Customer Email': order.customer_email,
+      'Total Amount': order.total_price,
+      'Status': order.status,
+      'Payment Status': order.payment_status,
+      'Items Count': order.items?.length || 0,
+      'Order Date': formatDate(order.created_at),
+      'Shipping Address': order.shipping_address ?
+        `${order.shipping_address.address_line_1}, ${order.shipping_address.city}, ${order.shipping_address.state}` :
+        'N/A'
+    }));
+  }, []);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="flex items-center gap-3 text-white/70">
-          <RefreshCcw className="animate-spin" size={20} />
-          <span>Loading orders...</span>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner message="Loading orders..." />;
   }
 
   if (error) {
@@ -263,64 +321,24 @@ export default function AdminOrderList() {
 
   return (
     <>
-      {/* Controls */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
-        {/* Search */}
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50" size={20} />
-          <input
-            type="text"
-            placeholder="Search by order number, customer name, or email..."
-            value={searchTerm}
-            onChange={handleSearchChange}
-            className="w-full pl-10 pr-4 py-2 bg-neutral-800 border border-white/20 text-white rounded-lg focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold"
-          />
+      {/* ✅ Simple header - DataTable handles filtering internally */}
+      <div className="mb-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-white mb-2">Order Management</h1>
+            <p className="text-white/70">Manage and track all customer orders</p>
+          </div>
         </div>
-
-        {/* Status Filter */}
-        <div className="relative">
-          <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50" size={20} />
-          <select
-            value={statusFilter}
-            onChange={handleStatusFilterChange}
-            className="pl-10 pr-8 py-2 bg-neutral-800 border border-white/20 text-white rounded-lg focus:outline-none focus:border-gold appearance-none cursor-pointer"
-          >
-            <option value="all">All Statuses</option>
-            {ORDER_STATUSES.map(status => (
-              <option key={status.value} value={status.value}>
-                {status.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Export Button */}
-        <button
-          onClick={exportToCSV}
-          className="flex items-center gap-2 px-4 py-2 bg-gold hover:bg-gold/90 text-black rounded-lg transition-colors font-medium"
-        >
-          <Download size={20} />
-          Export CSV
-        </button>
-
-        {/* Refresh Button */}
-        <button
-          onClick={fetchOrders}
-          className="flex items-center gap-2 px-4 py-2 bg-neutral-700 hover:bg-neutral-600 text-white rounded-lg transition-colors"
-        >
-          <RefreshCcw size={20} />
-          Refresh
-        </button>
       </div>
 
-      {/* Stats */}
+      {/* ✅ Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="bg-neutral-800 p-4 rounded-lg border border-white/10">
           <div className="flex items-center gap-3">
             <Package className="text-gold" size={24} />
             <div>
               <p className="text-white/70 text-sm">Total Orders</p>
-              <p className="text-white text-xl font-semibold">{filteredOrders.length}</p>
+              <p className="text-white text-xl font-semibold">{orders.length}</p>
             </div>
           </div>
         </div>
@@ -331,7 +349,7 @@ export default function AdminOrderList() {
             <div>
               <p className="text-white/70 text-sm">Total Revenue</p>
               <p className="text-white text-xl font-semibold">
-                {formatPrice(filteredOrders.reduce((sum, order) => sum + order.total_price, 0))}
+                {formatPrice(orders.reduce((sum, order) => sum + order.total_price, 0))}
               </p>
             </div>
           </div>
@@ -343,7 +361,7 @@ export default function AdminOrderList() {
             <div>
               <p className="text-white/70 text-sm">Confirmed</p>
               <p className="text-white text-xl font-semibold">
-                {filteredOrders.filter(order => order.status === 'confirmed').length}
+                {orders.filter(order => order.status === 'confirmed').length}
               </p>
             </div>
           </div>
@@ -355,109 +373,75 @@ export default function AdminOrderList() {
             <div>
               <p className="text-white/70 text-sm">Pending</p>
               <p className="text-white text-xl font-semibold">
-                {filteredOrders.filter(order => order.status === 'pending').length}
+                {orders.filter(order => order.status === 'pending').length}
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Orders Table */}
-      {filteredOrders.length === 0 ? (
-        <div className="text-center py-12">
-          <Package className="mx-auto mb-4 text-white/30" size={48} />
-          <p className="text-white/50">
-            {searchTerm || statusFilter !== "all"
-              ? "No orders found matching your criteria."
-              : "No orders found."
-            }
-          </p>
-        </div>
-      ) : (
-        <div className="bg-neutral-800 rounded-lg border border-white/10 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-white/10 bg-neutral-900">
-                  <th className="text-left p-4 text-white/70 font-medium">Order</th>
-                  <th className="text-left p-4 text-white/70 font-medium">Customer</th>
-                  <th className="text-left p-4 text-white/70 font-medium">Total</th>
-                  <th className="text-left p-4 text-white/70 font-medium">Status</th>
-                  <th className="text-left p-4 text-white/70 font-medium">Date</th>
-                  <th className="text-left p-4 text-white/70 font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredOrders.map((order) => {
-                  const statusInfo = getStatusInfo(order.status);
-                  const StatusIcon = statusInfo.icon;
+      {/* ✅ Enhanced DataTable with built-in FilterBar and all features */}
+      <DataTable
+        columns={columns}
+        data={orders}
+        actions={actions}
+        isLoading={loading}
+        error={error}
 
-                  return (
-                    <tr key={order.id} className="border-b border-white/5 hover:bg-neutral-700/50 transition-colors">
-                      <td className="p-4">
-                        <div>
-                          <p className="text-white font-medium">{order.order_number}</p>
-                          <p className="text-white/50 text-sm">{order.items?.length || 0} items</p>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <div>
-                          <p className="text-white">{order.customer_first_name} {order.customer_last_name}</p>
-                          <p className="text-white/50 text-sm">{order.customer_email}</p>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <p className="text-white font-medium">{formatPrice(order.total_price)}</p>
-                        <p className="text-white/50 text-sm">{order.payment_status}</p>
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-2 h-2 rounded-full ${statusInfo.color}`} />
-                          <StatusIcon size={16} className="text-white/70" />
-                          <span className="text-white/90 text-sm">{statusInfo.label}</span>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <p className="text-white/90 text-sm">{formatDate(order.created_at)}</p>
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => openOrderModal(order)}
-                            className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded transition-colors"
-                            title="View Details"
-                          >
-                            <Eye size={16} />
-                          </button>
+        // ✅ Enable advanced filtering (your DataTable's built-in FilterBar)
+        enableAdvancedFiltering={true}
 
-                          <select
-                            value={order.status}
-                            onChange={(e) => updateOrderStatus(order.id, e.target.value)}
-                            disabled={updatingStatus === order.id}
-                            className="text-xs bg-neutral-700 border border-white/20 text-white rounded px-2 py-1 focus:outline-none focus:border-gold"
-                          >
-                            {ORDER_STATUSES.map(status => (
-                              <option key={status.value} value={status.value}>
-                                {status.label}
-                              </option>
-                            ))}
-                          </select>
+        // ✅ Search configuration
+        searchable={true}
+        searchKeys={['order_number', 'customer_first_name', 'customer_last_name', 'customer_email']}
+        searchPlaceholder="Search orders, customers..."
 
-                          {updatingStatus === order.id && (
-                            <RefreshCcw className="animate-spin text-gold" size={16} />
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+        // ✅ Export functionality
+        exportable={true}
+        onExport={handleExport}
 
-      {/* Order Detail Modal */}
+        // ✅ Refresh functionality
+        refreshable={true}
+        onRefresh={fetchOrders}
+
+        // ✅ Selection (disabled for now)
+        selectable={false}
+
+        // ✅ Pagination
+        pagination={{
+          enabled: true,
+          pageSize: 25,
+          showSizeSelector: true
+        }}
+
+        // ✅ Quick filters for common use cases
+        quickFilters={[
+          {
+            label: 'Pending Orders',
+            filters: { status: 'pending' },
+            icon: <Clock size={16} />
+          },
+          {
+            label: 'Confirmed Orders',
+            filters: { status: 'confirmed' },
+            icon: <CheckCircle size={16} />
+          },
+          {
+            label: 'Today\'s Orders',
+            filters: { created_at: new Date().toISOString().split('T')[0] },
+            icon: <Calendar size={16} />
+          }
+        ]}
+
+        // ✅ Customization
+        emptyMessage="No orders found. Orders will appear here once customers place them."
+        loadingMessage="Loading orders..."
+        persistFilters={true}
+        storageKey="admin-orders-filters"
+        className="mb-6"
+      />
+
+      {/* ✅ Enhanced Order Detail Modal */}
       <Transition appear show={isModalOpen} as={Fragment}>
         <Dialog as="div" className="relative z-50" onClose={closeOrderModal}>
           <Transition.Child
@@ -486,8 +470,12 @@ export default function AdminOrderList() {
                 <Dialog.Panel className="w-full max-w-4xl transform overflow-hidden rounded-lg bg-neutral-900 border border-white/20 p-6 text-left align-middle shadow-xl transition-all">
                   {selectedOrder && (
                     <>
-                      <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-white mb-6">
-                        Order Details: {selectedOrder.order_number}
+                      <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-white mb-6 flex items-center justify-between">
+                        <span>Order Details: {selectedOrder.order_number}</span>
+                        <div className="flex items-center gap-2">
+                          <div className={`w-3 h-3 rounded-full ${getStatusInfo(selectedOrder.status).color}`} />
+                          <span className="text-sm text-white/70">{getStatusInfo(selectedOrder.status).label}</span>
+                        </div>
                       </Dialog.Title>
 
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -550,7 +538,7 @@ export default function AdminOrderList() {
                           {/* Order Items */}
                           <div>
                             <h5 className="text-white/90 font-medium mb-2">Order Items</h5>
-                            <div className="space-y-2">
+                            <div className="space-y-2 max-h-60 overflow-y-auto">
                               {selectedOrder.items?.map((item) => (
                                 <div key={item.id} className="bg-neutral-800 p-3 rounded border border-white/10 flex justify-between items-center">
                                   <div>
@@ -565,10 +553,33 @@ export default function AdminOrderList() {
                               ))}
                             </div>
                           </div>
+
+                          {/* Status Update within Modal */}
+                          <div>
+                            <h5 className="text-white/90 font-medium mb-2">Update Status</h5>
+                            <div className="flex items-center gap-3">
+                              <select
+                                value={selectedOrder.status}
+                                onChange={(e) => updateOrderStatus(selectedOrder.id, e.target.value)}
+                                disabled={updatingStatus === selectedOrder.id}
+                                className="px-3 py-2 bg-neutral-700 border border-white/20 text-white rounded focus:outline-none focus:border-gold"
+                              >
+                                {ORDER_STATUSES.map(status => (
+                                  <option key={status.value} value={status.value}>
+                                    {status.label}
+                                  </option>
+                                ))}
+                              </select>
+
+                              {updatingStatus === selectedOrder.id && (
+                                <RefreshCcw className="animate-spin text-gold" size={16} />
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </div>
 
-                      <div className="mt-6 flex justify-end">
+                      <div className="mt-6 flex justify-end gap-3">
                         <button
                           type="button"
                           className="px-4 py-2 bg-neutral-700 hover:bg-neutral-600 text-white rounded transition-colors"
