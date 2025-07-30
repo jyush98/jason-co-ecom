@@ -40,6 +40,8 @@ import {
 } from 'recharts';
 import DataTable, { DataTableColumn, DataTableAction } from '../Common/DataTable';
 import { MetricCardGrid, createRevenueMetric, createOrdersMetric, createCustomersMetric, createInventoryMetric } from '../Common/MetricCard';
+import { RevenueChart } from '../Analytics/charts/RevenueChart';
+import { formatCurrency, formatGrowth, formatGrowthNumber } from "@/utils/analyticsUtils";
 
 // Types for Analytics
 interface AnalyticsData {
@@ -98,6 +100,23 @@ interface AnalyticsFilters {
     region?: string;
 }
 
+// Revenue API types
+interface RevenueDataPoint {
+    date: string;
+    revenue: number;
+    orders: number;
+    averageOrderValue: number;
+    previousPeriodRevenue?: number;
+}
+
+interface RevenueMetrics {
+    totalRevenue: number;
+    growth: number;
+    totalOrders: number;
+    averageOrderValue: number;
+    topCategory: string;
+}
+
 export default function AdvancedAnalytics() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -109,6 +128,12 @@ export default function AdvancedAnalytics() {
         }
     });
     const [activeTab, setActiveTab] = useState<'overview' | 'revenue' | 'customers' | 'products'>('overview');
+
+    // Revenue chart state
+    const [revenueData, setRevenueData] = useState<RevenueDataPoint[] | null>(null);
+    const [revenueMetrics, setRevenueMetrics] = useState<RevenueMetrics | null>(null);
+    const [revenueLoading, setRevenueLoading] = useState(true);
+    const [revenueError, setRevenueError] = useState<string | null>(null);
 
     // Mock analytics data - replace with real API calls
     const [analyticsData, setAnalyticsData] = useState<AnalyticsData>({
@@ -169,12 +194,46 @@ export default function AdvancedAnalytics() {
         ]
     });
 
+    // Fetch revenue data from API
+    const fetchRevenueData = async () => {
+        setRevenueLoading(true);
+        setRevenueError(null);
+        try {
+            const periodParam = getPeriodParam(filters.dateRange.label);
+            const response = await fetch(`/api/admin/analytics/revenue?period=${periodParam}&comparison=true`);
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch revenue data: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            setRevenueData(data.data);
+            setRevenueMetrics(data.metrics);
+        } catch (err) {
+            console.error('Revenue data fetch error:', err);
+            setRevenueError(err instanceof Error ? err.message : 'Failed to load revenue data');
+        } finally {
+            setRevenueLoading(false);
+        }
+    };
+
+    // Convert date range label to API period parameter
+    const getPeriodParam = (label: string): string => {
+        switch (label) {
+            case 'Last 7 Days': return '7d';
+            case 'Last 30 Days': return '30d';
+            case 'Last 90 Days': return '90d';
+            case 'This Year': return '1y';
+            default: return '30d';
+        }
+    };
+
     // Load analytics data
     useEffect(() => {
         const loadAnalytics = async () => {
             setIsLoading(true);
             try {
-                // Simulate API call
+                // Simulate API call for main analytics
                 await new Promise(resolve => setTimeout(resolve, 1500));
                 // In real app: const data = await fetchAnalytics(filters);
                 setIsLoading(false);
@@ -185,19 +244,27 @@ export default function AdvancedAnalytics() {
         };
 
         loadAnalytics();
+        fetchRevenueData();
     }, [filters]);
 
     // Key metrics for overview
     const keyMetrics = useMemo(() => [
-        createRevenueMetric(analyticsData.revenue.total, analyticsData.revenue.change),
-        createOrdersMetric(analyticsData.orders.total, analyticsData.orders.change, analyticsData.orders.target),
+        createRevenueMetric(
+            revenueMetrics?.totalRevenue || analyticsData.revenue.total,
+            revenueMetrics?.growth || analyticsData.revenue.change
+        ),
+        createOrdersMetric(
+            revenueMetrics?.totalOrders || analyticsData.orders.total,
+            analyticsData.orders.change,
+            formatGrowthNumber(analyticsData.orders.target)
+        ),
         createCustomersMetric(analyticsData.customers.total, analyticsData.customers.change),
         createInventoryMetric(analyticsData.products.lowStock, 3),
         {
             id: 'conversion',
             title: 'Conversion Rate',
             value: analyticsData.orders.conversion,
-            formattedValue: `${analyticsData.orders.conversion}%`,
+            formattedValue: `${formatGrowth(analyticsData.orders.conversion)}`,
             change: {
                 value: 0.8,
                 type: 'increase' as const,
@@ -211,8 +278,8 @@ export default function AdvancedAnalytics() {
         {
             id: 'aov',
             title: 'Avg Order Value',
-            value: Math.round(analyticsData.revenue.total / analyticsData.orders.total),
-            formattedValue: `$${Math.round(analyticsData.revenue.total / analyticsData.orders.total)}`,
+            value: revenueMetrics?.averageOrderValue || Math.round(analyticsData.revenue.total / analyticsData.orders.total),
+            formattedValue: `${formatCurrency(revenueMetrics?.averageOrderValue || Math.round(analyticsData.revenue.total / analyticsData.orders.total))}`,
             change: {
                 value: 12.5,
                 type: 'increase' as const,
@@ -223,7 +290,7 @@ export default function AdvancedAnalytics() {
             color: 'green',
             status: 'success' as const
         }
-    ], [analyticsData]);
+    ], [analyticsData, revenueMetrics]);
 
     // Chart colors
     const chartColors = {
@@ -258,12 +325,22 @@ export default function AdvancedAnalytics() {
         setIsLoading(true);
         // Simulate refresh
         await new Promise(resolve => setTimeout(resolve, 1000));
+        await fetchRevenueData();
         setIsLoading(false);
+    };
+
+    const handleRevenueRefresh = () => {
+        fetchRevenueData();
     };
 
     const handleExport = () => {
         // Implement export functionality
         console.log('Exporting analytics data...');
+    };
+
+    const handleRevenueExport = () => {
+        // Implement revenue data export
+        console.log('Exporting revenue data...');
     };
 
     // Product columns for DataTable
@@ -418,8 +495,8 @@ export default function AdvancedAnalytics() {
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id as any)}
                             className={`flex items-center gap-2 py-2 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === tab.id
-                                    ? 'border-gold text-gold'
-                                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                                ? 'border-gold text-gold'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
                                 }`}
                         >
                             <tab.icon size={16} />
@@ -439,128 +516,114 @@ export default function AdvancedAnalytics() {
                     transition={{ duration: 0.3 }}
                 >
                     {activeTab === 'overview' && (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                            {/* Revenue Trend */}
-                            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Revenue Trend</h3>
-                                <ResponsiveContainer width="100%" height={300}>
-                                    <AreaChart data={analyticsData.revenue.byPeriod}>
-                                        <defs>
-                                            <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor={chartColors.primary} stopOpacity={0.3} />
-                                                <stop offset="95%" stopColor={chartColors.primary} stopOpacity={0} />
-                                            </linearGradient>
-                                        </defs>
-                                        <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                                        <XAxis
-                                            dataKey="date"
-                                            axisLine={false}
-                                            tickLine={false}
-                                            tick={{ fontSize: 12 }}
-                                            tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                        />
-                                        <YAxis
-                                            axisLine={false}
-                                            tickLine={false}
-                                            tick={{ fontSize: 12 }}
-                                            tickFormatter={(value) => `$${(value / 1000)}K`}
-                                        />
-                                        <Tooltip
-                                            formatter={(value: any) => [`$${value.toLocaleString()}`, 'Revenue']}
-                                            labelFormatter={(label) => new Date(label).toLocaleDateString()}
-                                        />
-                                        <Area
-                                            type="monotone"
-                                            dataKey="amount"
-                                            stroke={chartColors.primary}
-                                            fillOpacity={1}
-                                            fill="url(#colorRevenue)"
-                                            strokeWidth={2}
-                                        />
-                                    </AreaChart>
-                                </ResponsiveContainer>
-                            </div>
+                        <div className="space-y-8">
+                            {/* Revenue Chart - Full Width */}
+                            <motion.div variants={itemVariants}>
+                                <RevenueChart
+                                    data={revenueData || undefined}
+                                    metrics={revenueMetrics || undefined}
+                                    isLoading={revenueLoading}
+                                    error={revenueError}
+                                    onRefresh={handleRevenueRefresh}
+                                    onExport={handleRevenueExport}
+                                />
+                            </motion.div>
 
-                            {/* Order Status Distribution */}
-                            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Order Status</h3>
-                                <ResponsiveContainer width="100%" height={300}>
-                                    <RechartsPieChart>
-                                        <Tooltip formatter={(value: any) => [value, 'Orders']} />
-                                        <RechartsPieChart data={analyticsData.orders.byStatus}>
-                                            {analyticsData.orders.byStatus.map((entry, index) => (
-                                                <Cell
-                                                    key={`cell-${index}`}
-                                                    fill={[chartColors.success, chartColors.warning, chartColors.secondary, chartColors.danger][index]}
-                                                />
-                                            ))}
-                                        </RechartsPieChart>
-                                        <Legend />
-                                    </RechartsPieChart>
-                                </ResponsiveContainer>
-                            </div>
-
-                            {/* Customer Segments */}
-                            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Customer Segments</h3>
-                                <div className="space-y-4">
-                                    {analyticsData.customers.segments.map((segment, index) => (
-                                        <div key={segment.segment} className="flex items-center justify-between">
-                                            <div className="flex-1">
-                                                <div className="flex items-center justify-between mb-1">
-                                                    <span className="text-sm font-medium text-gray-900 dark:text-white">
-                                                        {segment.segment}
-                                                    </span>
-                                                    <span className="text-sm text-gray-500">
-                                                        {segment.count} customers
-                                                    </span>
-                                                </div>
-                                                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                                    <div
-                                                        className={`h-2 rounded-full bg-${['green', 'blue', 'purple', 'red'][index]}-500`}
-                                                        style={{ width: `${(segment.value / 52300) * 100}%` }}
+                            {/* Other Analytics Charts */}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                {/* Order Status Distribution */}
+                                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Order Status</h3>
+                                    <ResponsiveContainer width="100%" height={300}>
+                                        <RechartsPieChart>
+                                            <Tooltip formatter={(value: any) => [value, 'Orders']} />
+                                            <RechartsPieChart data={analyticsData.orders.byStatus}>
+                                                {analyticsData.orders.byStatus.map((entry, index) => (
+                                                    <Cell
+                                                        key={`cell-${index}`}
+                                                        fill={[chartColors.success, chartColors.warning, chartColors.secondary, chartColors.danger][index]}
                                                     />
-                                                </div>
-                                            </div>
-                                            <div className="ml-4 text-right">
-                                                <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                                    ${(segment.value / 1000).toFixed(1)}K
-                                                </div>
-                                                <div className={`text-xs ${segment.growth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                                    {segment.growth >= 0 ? '+' : ''}{segment.growth}%
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
+                                                ))}
+                                            </RechartsPieChart>
+                                            <Legend />
+                                        </RechartsPieChart>
+                                    </ResponsiveContainer>
                                 </div>
-                            </div>
 
-                            {/* Geographic Distribution */}
-                            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Sales by Region</h3>
-                                <ResponsiveContainer width="100%" height={300}>
-                                    <BarChart data={analyticsData.geographic} layout="horizontal">
-                                        <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                                        <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
-                                        <YAxis
-                                            type="category"
-                                            dataKey="region"
-                                            axisLine={false}
-                                            tickLine={false}
-                                            tick={{ fontSize: 12 }}
-                                            width={100}
-                                        />
-                                        <Tooltip formatter={(value: any) => [value, 'Sales']} />
-                                        <Bar dataKey="sales" fill={chartColors.secondary} radius={[0, 4, 4, 0]} />
-                                    </BarChart>
-                                </ResponsiveContainer>
+                                {/* Customer Segments */}
+                                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Customer Segments</h3>
+                                    <div className="space-y-4">
+                                        {analyticsData.customers.segments.map((segment, index) => (
+                                            <div key={segment.segment} className="flex items-center justify-between">
+                                                <div className="flex-1">
+                                                    <div className="flex items-center justify-between mb-1">
+                                                        <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                                            {segment.segment}
+                                                        </span>
+                                                        <span className="text-sm text-gray-500">
+                                                            {segment.count} customers
+                                                        </span>
+                                                    </div>
+                                                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                                        <div
+                                                            className={`h-2 rounded-full bg-${['green', 'blue', 'purple', 'red'][index]}-500`}
+                                                            style={{ width: `${(segment.value / 52300) * 100}%` }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="ml-4 text-right">
+                                                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                                        ${(segment.value / 1000).toFixed(1)}K
+                                                    </div>
+                                                    <div className={`text-xs ${segment.growth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                                        {segment.growth >= 0 ? '+' : ''}{segment.growth}%
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Geographic Distribution */}
+                                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 lg:col-span-2">
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Sales by Region</h3>
+                                    <ResponsiveContainer width="100%" height={300}>
+                                        <BarChart data={analyticsData.geographic} layout="horizontal">
+                                            <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                                            <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+                                            <YAxis
+                                                type="category"
+                                                dataKey="region"
+                                                axisLine={false}
+                                                tickLine={false}
+                                                tick={{ fontSize: 12 }}
+                                                width={100}
+                                            />
+                                            <Tooltip formatter={(value: any) => [value, 'Sales']} />
+                                            <Bar dataKey="sales" fill={chartColors.secondary} radius={[0, 4, 4, 0]} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
                             </div>
                         </div>
                     )}
 
                     {activeTab === 'revenue' && (
                         <div className="space-y-8">
-                            {/* Revenue Analytics */}
+                            {/* Full Revenue Analytics */}
+                            <motion.div variants={itemVariants}>
+                                <RevenueChart
+                                    data={revenueData || undefined}
+                                    metrics={revenueMetrics || undefined}
+                                    isLoading={revenueLoading}
+                                    error={revenueError}
+                                    onRefresh={handleRevenueRefresh}
+                                    onExport={handleRevenueExport}
+                                />
+                            </motion.div>
+
+                            {/* Revenue vs Orders Combined Chart */}
                             <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
                                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Revenue vs Orders</h3>
                                 <ResponsiveContainer width="100%" height={400}>

@@ -22,6 +22,7 @@ import {
     ArrowUpRight,
     ArrowDownRight
 } from "lucide-react";
+import { formatGrowth, formatGrowthNumber } from "@/utils/analyticsUtils";
 
 // Types for MetricCard
 export interface MetricData {
@@ -589,9 +590,9 @@ export const createOrdersMetric = (value: number, change: number, target?: numbe
         isPercentage: true
     },
     target: target ? {
-        value: target,
+        value: formatGrowthNumber(target),
         label: 'Monthly Target',
-        progress: (value / target) * 100
+        progress: formatGrowthNumber((value / target) * 100)
     } : undefined,
     icon: ShoppingCart,
     color: 'blue',

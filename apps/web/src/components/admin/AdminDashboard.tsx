@@ -18,6 +18,7 @@ import {
 import AdminOrderList from "./AdminOrderList";
 import AdminCustomOrderList from "./AdminCustomOrderList";
 import { MetricCard, DataTable, FilterBar, MetricData } from "@/components/admin/Common";
+import AdvancedAnalytics from "./Analytics/AdvancedAnalytics";
 
 interface OrderStats {
   total_orders: number;
@@ -49,6 +50,7 @@ const tabs = [
   { key: "overview", label: "Overview", icon: BarChart3 },
   { key: "orders", label: "Orders", icon: Package },
   { key: "custom-orders", label: "Custom Orders", icon: ShoppingCart },
+  { key: "advanced", label: "Advanced Analytics", icon: TrendingUp }
 ];
 
 export default function AdminDashboard() {
@@ -630,6 +632,7 @@ export default function AdminDashboard() {
 
         {activeTab === "orders" && <AdminOrderList />}
         {activeTab === "custom-orders" && <AdminCustomOrderList />}
+        {activeTab === "advanced" && <AdvancedAnalytics />}
       </div>
     </main>
   );
