@@ -1,12 +1,7 @@
 // app/api/admin/analytics/revenue/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { Pool } from 'pg';
-
-// Database connection
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+import { pool } from '@/lib/db'; // Assuming you have a configured PostgreSQL pool
 
 // Types for revenue analytics
 interface RevenueDataPoint {

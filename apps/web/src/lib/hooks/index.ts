@@ -16,3 +16,5 @@ export type {
 export type { UseCartDrawerReturn } from './useCartDrawer';
 export type { UseCheckoutFlowReturn } from './useCheckoutFlow';
 export type { UseOrderTrackingReturn } from './useOrderTracking';
+
+export { useAnalytics } from './useAnalytics';
