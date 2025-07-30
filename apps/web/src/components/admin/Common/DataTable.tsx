@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     ChevronUp,
@@ -19,15 +19,22 @@ import {
     ChevronRight,
     ChevronsLeft,
     ChevronsRight,
-    ArrowUpDown
+    ArrowUpDown,
+    Calendar,
+    DollarSign,
+    Package,
+    Users
 } from "lucide-react";
+import FilterBar, { FilterConfig, FilterValue } from "./FilterBar";
 
-// Types for the DataTable
+// Enhanced DataTable types with FilterBar integration
 export interface DataTableColumn<T = any> {
     key: string;
     title: string;
     sortable?: boolean;
     filterable?: boolean;
+    filterType?: 'select' | 'multiselect' | 'date' | 'daterange' | 'number' | 'text' | 'boolean';
+    filterOptions?: Array<{ label: string; value: string | number; count?: number }>;
     render?: (value: any, row: T, index: number) => React.ReactNode;
     width?: string;
     align?: 'left' | 'center' | 'right';
@@ -49,46 +56,88 @@ export interface DataTableProps<T = any> {
     actions?: DataTableAction<T>[];
     isLoading?: boolean;
     error?: string | null;
+
+    // Enhanced filtering options
+    enableAdvancedFiltering?: boolean;
+    quickFilters?: Array<{
+        label: string;
+        filters: FilterValue;
+        icon?: React.ReactNode;
+    }>;
+
+    // Search configuration
     searchable?: boolean;
-    filterable?: boolean;
+    searchKeys?: string[]; // Specific keys to search within
+    searchPlaceholder?: string;
+
+    // Export and refresh
     exportable?: boolean;
     refreshable?: boolean;
+    onExport?: (filteredData: T[]) => void;
+    onRefresh?: () => void;
+
+    // Selection
     selectable?: boolean;
+    onSelectionChange?: (selectedRows: T[]) => void;
+
+    // Pagination
     pagination?: {
         enabled: boolean;
         pageSize?: number;
         showSizeSelector?: boolean;
     };
-    onSearch?: (query: string) => void;
-    onFilter?: (filters: Record<string, any>) => void;
-    onExport?: () => void;
-    onRefresh?: () => void;
-    onSelectionChange?: (selectedRows: T[]) => void;
+
+    // Callbacks
+    onSearch?: (query: string, searchKeys: string[]) => void;
+    onFiltersChange?: (filters: FilterValue) => void;
+
+    // Customization
     className?: string;
     emptyMessage?: string;
     loadingMessage?: string;
+    persistFilters?: boolean;
+    storageKey?: string;
 }
 
-export default function DataTable<T extends Record<string, any>>({
+export default function EnhancedDataTable<T extends Record<string, any>>({
     columns,
     data,
     actions = [],
     isLoading = false,
     error = null,
+
+    // Advanced filtering
+    enableAdvancedFiltering = true,
+    quickFilters = [],
+
+    // Search
     searchable = true,
-    filterable = true,
+    searchKeys = [],
+    searchPlaceholder = "Search all columns...",
+
+    // Actions
     exportable = true,
     refreshable = true,
-    selectable = false,
-    pagination = { enabled: true, pageSize: 10, showSizeSelector: true },
-    onSearch,
-    onFilter,
     onExport,
     onRefresh,
+
+    // Selection
+    selectable = false,
     onSelectionChange,
+
+    // Pagination
+    pagination = { enabled: true, pageSize: 10, showSizeSelector: true },
+
+    // Callbacks
+    onSearch,
+    onFiltersChange,
+
+    // Customization
     className = "",
     emptyMessage = "No data available",
-    loadingMessage = "Loading data..."
+    loadingMessage = "Loading data...",
+    persistFilters = true,
+    storageKey = "datatable-filters"
 }: DataTableProps<T>) {
 
     // State management
@@ -100,34 +149,84 @@ export default function DataTable<T extends Record<string, any>>({
     const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(pagination.pageSize || 10);
-    const [showFilters, setShowFilters] = useState(false);
-    const [filters, setFilters] = useState<Record<string, any>>({});
+    const [filters, setFilters] = useState<FilterValue>({});
 
-    // Filtered and sorted data
+    // Generate filter configurations from columns
+    const filterConfigs: FilterConfig[] = useMemo(() => {
+        return columns
+            .filter(col => col.filterable)
+            .map(col => ({
+                key: col.key,
+                label: col.title,
+                type: col.filterType || 'text',
+                options: col.filterOptions,
+                placeholder: `Filter by ${col.title.toLowerCase()}`,
+                icon: getFilterIcon(col.key, col.filterType)
+            }));
+    }, [columns]);
+
+    // Helper function to get appropriate icons for filters
+    function getFilterIcon(key: string, type?: string) {
+        if (type === 'date' || type === 'daterange') return <Calendar size={16} />;
+        if (type === 'number' || key.includes('price') || key.includes('amount')) return <DollarSign size={16} />;
+        if (key.includes('customer') || key.includes('user')) return <Users size={16} />;
+        if (key.includes('product') || key.includes('item')) return <Package size={16} />;
+        return undefined;
+    }
+
+    // Enhanced data processing with advanced filtering
     const processedData = useMemo(() => {
         let filtered = [...data];
 
-        // Apply search
-        if (searchQuery && searchable) {
-            filtered = filtered.filter(row =>
-                Object.values(row).some(value =>
-                    String(value).toLowerCase().includes(searchQuery.toLowerCase())
-                )
-            );
-        }
-
-        // Apply filters
+        // Apply advanced filters from FilterBar
         Object.entries(filters).forEach(([key, value]) => {
             if (value !== undefined && value !== "" && value !== null) {
                 filtered = filtered.filter(row => {
                     const rowValue = row[key];
-                    if (typeof value === 'string') {
-                        return String(rowValue).toLowerCase().includes(value.toLowerCase());
+                    const column = columns.find(col => col.key === key);
+
+                    // Handle different filter types
+                    switch (column?.filterType) {
+                        case 'multiselect':
+                            return Array.isArray(value) && value.includes(rowValue);
+
+                        case 'daterange':
+                            if (value.start && value.end) {
+                                const rowDate = new Date(rowValue);
+                                const startDate = new Date(value.start);
+                                const endDate = new Date(value.end);
+                                return rowDate >= startDate && rowDate <= endDate;
+                            }
+                            return true;
+
+                        case 'date':
+                            return new Date(rowValue).toDateString() === new Date(value).toDateString();
+
+                        case 'number':
+                            return Number(rowValue) === Number(value);
+
+                        case 'boolean':
+                            return Boolean(rowValue) === Boolean(value);
+
+                        case 'select':
+                            return rowValue === value;
+
+                        default: // text
+                            return String(rowValue).toLowerCase().includes(String(value).toLowerCase());
                     }
-                    return rowValue === value;
                 });
             }
         });
+
+        // Apply search query
+        if (searchQuery && searchable) {
+            const keysToSearch = searchKeys.length > 0 ? searchKeys : Object.keys(data[0] || {});
+            filtered = filtered.filter(row =>
+                keysToSearch.some(key =>
+                    String(row[key] || '').toLowerCase().includes(searchQuery.toLowerCase())
+                )
+            );
+        }
 
         // Apply sorting
         if (sortConfig) {
@@ -137,13 +236,21 @@ export default function DataTable<T extends Record<string, any>>({
 
                 if (aValue === bValue) return 0;
 
-                const comparison = aValue < bValue ? -1 : 1;
+                let comparison = 0;
+                if (typeof aValue === 'number' && typeof bValue === 'number') {
+                    comparison = aValue - bValue;
+                } else if (aValue instanceof Date && bValue instanceof Date) {
+                    comparison = aValue.getTime() - bValue.getTime();
+                } else {
+                    comparison = String(aValue).localeCompare(String(bValue));
+                }
+
                 return sortConfig.direction === 'desc' ? comparison * -1 : comparison;
             });
         }
 
         return filtered;
-    }, [data, searchQuery, sortConfig, filters, searchable]);
+    }, [data, searchQuery, sortConfig, filters, searchable, searchKeys, columns]);
 
     // Pagination
     const totalPages = Math.ceil(processedData.length / pageSize);
@@ -153,8 +260,26 @@ export default function DataTable<T extends Record<string, any>>({
         ? processedData.slice(startIndex, endIndex)
         : processedData;
 
+    // Handle filter changes from FilterBar
+    const handleFiltersChange = useCallback((newFilters: FilterValue, searchTerm: string) => {
+        setFilters(newFilters);
+        setSearchQuery(searchTerm);
+        setCurrentPage(1); // Reset to first page when filters change
+
+        // Call parent callbacks
+        onFiltersChange?.(newFilters);
+        if (searchTerm !== searchQuery) {
+            onSearch?.(searchTerm, searchKeys);
+        }
+    }, [onFiltersChange, onSearch, searchKeys, searchQuery]);
+
+    // Handle export with filtered data
+    const handleExport = useCallback(() => {
+        onExport?.(processedData);
+    }, [onExport, processedData]);
+
     // Handle sorting
-    const handleSort = (key: string) => {
+    const handleSort = useCallback((key: string) => {
         const column = columns.find(col => col.key === key);
         if (!column?.sortable) return;
 
@@ -166,17 +291,10 @@ export default function DataTable<T extends Record<string, any>>({
             }
             return { key, direction: 'asc' };
         });
-    };
-
-    // Handle search
-    const handleSearch = (query: string) => {
-        setSearchQuery(query);
-        setCurrentPage(1);
-        onSearch?.(query);
-    };
+    }, [columns]);
 
     // Handle selection
-    const handleSelectRow = (index: number) => {
+    const handleSelectRow = useCallback((index: number) => {
         if (!selectable) return;
 
         const newSelected = new Set(selectedRows);
@@ -189,10 +307,10 @@ export default function DataTable<T extends Record<string, any>>({
 
         const selectedData = Array.from(newSelected).map(i => paginatedData[i]);
         onSelectionChange?.(selectedData);
-    };
+    }, [selectable, selectedRows, paginatedData, onSelectionChange]);
 
     // Handle select all
-    const handleSelectAll = () => {
+    const handleSelectAll = useCallback(() => {
         if (!selectable) return;
 
         const allSelected = selectedRows.size === paginatedData.length;
@@ -204,7 +322,7 @@ export default function DataTable<T extends Record<string, any>>({
             setSelectedRows(allIndices);
             onSelectionChange?.(paginatedData);
         }
-    };
+    }, [selectable, selectedRows.size, paginatedData, onSelectionChange]);
 
     // Reset page when data changes
     useEffect(() => {
@@ -230,272 +348,230 @@ export default function DataTable<T extends Record<string, any>>({
 
     return (
         <motion.div
-            className={`bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 ${className}`}
+            className={`space-y-6 ${className}`}
             variants={containerVariants}
             initial="hidden"
             animate="visible"
         >
-            {/* Table Header */}
-            <motion.div
-                variants={itemVariants}
-                className="p-6 border-b border-gray-200 dark:border-gray-700"
-            >
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    {/* Left side - Search */}
-                    <div className="flex items-center gap-4 flex-1">
-                        {searchable && (
-                            <div className="relative max-w-sm">
-                                <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                                <input
-                                    type="text"
-                                    placeholder="Search..."
-                                    value={searchQuery}
-                                    onChange={(e) => handleSearch(e.target.value)}
-                                    className="pl-10 pr-4 py-2 w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
-                                />
-                            </div>
-                        )}
-
-                        {/* Results count */}
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                            {processedData.length} {processedData.length === 1 ? 'result' : 'results'}
-                            {selectedRows.size > 0 && (
-                                <span className="ml-2">({selectedRows.size} selected)</span>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Right side - Actions */}
-                    <div className="flex items-center gap-2">
-                        {filterable && (
-                            <button
-                                onClick={() => setShowFilters(!showFilters)}
-                                className={`p-2 rounded-lg border transition-colors ${showFilters || Object.keys(filters).length > 0
-                                        ? 'border-gold bg-gold/10 text-gold'
-                                        : 'border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                                    }`}
-                            >
-                                <Filter size={16} />
-                            </button>
-                        )}
-
-                        {refreshable && (
-                            <button
-                                onClick={onRefresh}
-                                disabled={isLoading}
-                                className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors disabled:opacity-50"
-                            >
-                                <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
-                            </button>
-                        )}
-
-                        {exportable && (
-                            <button
-                                onClick={onExport}
-                                className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-                            >
-                                <Download size={16} />
-                            </button>
-                        )}
-                    </div>
-                </div>
-
-                {/* Filters Row */}
-                <AnimatePresence>
-                    {showFilters && filterable && (
-                        <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="overflow-hidden"
-                        >
-                            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                                <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-                                    {columns.filter(col => col.filterable).map(column => (
-                                        <div key={column.key}>
-                                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                                {column.title}
-                                            </label>
-                                            <input
-                                                type="text"
-                                                placeholder={`Filter by ${column.title.toLowerCase()}`}
-                                                value={filters[column.key] || ''}
-                                                onChange={(e) => {
-                                                    const newFilters = { ...filters, [column.key]: e.target.value };
-                                                    setFilters(newFilters);
-                                                    onFilter?.(newFilters);
-                                                }}
-                                                className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-gold focus:border-transparent"
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </motion.div>
-
-            {/* Error State */}
-            {error && (
-                <motion.div
-                    variants={itemVariants}
-                    className="p-6 text-center"
-                >
-                    <div className="text-red-500 text-sm">{error}</div>
-                </motion.div>
-            )}
-
-            {/* Loading State */}
-            {isLoading && (
-                <motion.div
-                    variants={itemVariants}
-                    className="p-12 text-center"
-                >
-                    <div className="flex items-center justify-center gap-3">
-                        <RefreshCw size={20} className="animate-spin text-gold" />
-                        <span className="text-gray-600 dark:text-gray-400">{loadingMessage}</span>
-                    </div>
-                </motion.div>
-            )}
-
-            {/* Table */}
-            {!isLoading && !error && (
-                <motion.div variants={itemVariants} className="overflow-x-auto">
-                    <table className="w-full">
-                        {/* Table Head */}
-                        <thead className="bg-gray-50 dark:bg-gray-700">
-                            <tr>
-                                {selectable && (
-                                    <th className="w-12 px-6 py-3 text-left">
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedRows.size === paginatedData.length && paginatedData.length > 0}
-                                            onChange={handleSelectAll}
-                                            className="w-4 h-4 text-gold bg-gray-100 border-gray-300 rounded focus:ring-gold focus:ring-2"
-                                        />
-                                    </th>
-                                )}
-
-                                {columns.map((column) => (
-                                    <th
-                                        key={column.key}
-                                        className={`px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${column.sortable ? 'cursor-pointer hover:text-gray-700 dark:hover:text-gray-300' : ''
-                                            } ${column.className || ''}`}
-                                        style={{ width: column.width }}
-                                        onClick={() => column.sortable && handleSort(column.key)}
-                                    >
-                                        <div className={`flex items-center gap-2 ${column.align === 'center' ? 'justify-center' :
-                                                column.align === 'right' ? 'justify-end' : ''
-                                            }`}>
-                                            <span>{column.title}</span>
-                                            {column.sortable && (
-                                                <div className="flex flex-col">
-                                                    {sortConfig?.key === column.key ? (
-                                                        sortConfig.direction === 'asc' ? (
-                                                            <ChevronUp size={14} className="text-gold" />
-                                                        ) : (
-                                                            <ChevronDown size={14} className="text-gold" />
-                                                        )
-                                                    ) : (
-                                                        <ArrowUpDown size={14} className="opacity-50" />
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </th>
-                                ))}
-
-                                {actions.length > 0 && (
-                                    <th className="w-20 px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                        Actions
-                                    </th>
-                                )}
-                            </tr>
-                        </thead>
-
-                        {/* Table Body */}
-                        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                            {paginatedData.length === 0 ? (
-                                <tr>
-                                    <td colSpan={columns.length + (selectable ? 1 : 0) + (actions.length > 0 ? 1 : 0)} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
-                                        {emptyMessage}
-                                    </td>
-                                </tr>
-                            ) : (
-                                paginatedData.map((row, index) => (
-                                    <motion.tr
-                                        key={index}
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        transition={{ delay: index * 0.05 }}
-                                        className={`hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${selectedRows.has(index) ? 'bg-gold/5 border-gold/20' : ''
-                                            }`}
-                                    >
-                                        {selectable && (
-                                            <td className="px-6 py-4">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedRows.has(index)}
-                                                    onChange={() => handleSelectRow(index)}
-                                                    className="w-4 h-4 text-gold bg-gray-100 border-gray-300 rounded focus:ring-gold focus:ring-2"
-                                                />
-                                            </td>
-                                        )}
-
-                                        {columns.map((column) => (
-                                            <td
-                                                key={column.key}
-                                                className={`px-6 py-4 whitespace-nowrap text-sm ${column.align === 'center' ? 'text-center' :
-                                                        column.align === 'right' ? 'text-right' : ''
-                                                    } ${column.className || ''}`}
-                                            >
-                                                {column.render
-                                                    ? column.render(row[column.key], row, index)
-                                                    : <span className="text-gray-900 dark:text-white">{row[column.key]}</span>
-                                                }
-                                            </td>
-                                        ))}
-
-                                        {actions.length > 0 && (
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <TableActions
-                                                    actions={actions}
-                                                    row={row}
-                                                    index={index}
-                                                />
-                                            </td>
-                                        )}
-                                    </motion.tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </motion.div>
-            )}
-
-            {/* Pagination */}
-            {pagination.enabled && !isLoading && !error && totalPages > 1 && (
-                <motion.div
-                    variants={itemVariants}
-                    className="px-6 py-4 border-t border-gray-200 dark:border-gray-700"
-                >
-                    <TablePagination
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        pageSize={pageSize}
-                        totalItems={processedData.length}
-                        onPageChange={setCurrentPage}
-                        onPageSizeChange={pagination.showSizeSelector ? setPageSize : undefined}
+            {/* Advanced FilterBar */}
+            {enableAdvancedFiltering && filterConfigs.length > 0 && (
+                <motion.div variants={itemVariants}>
+                    <FilterBar
+                        configs={filterConfigs}
+                        searchPlaceholder={searchPlaceholder}
+                        searchKeys={searchKeys}
+                        onFiltersChange={handleFiltersChange}
+                        onExport={exportable ? handleExport : undefined}
+                        quickFilters={quickFilters}
+                        persistFilters={persistFilters}
+                        storageKey={storageKey}
+                        showExport={exportable}
+                        showClearAll={true}
+                        compactMode={false}
+                        maxVisibleFilters={6}
                     />
                 </motion.div>
             )}
+
+            {/* Data Table */}
+            <motion.div
+                variants={itemVariants}
+                className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+            >
+                {/* Table Header with Quick Actions */}
+                <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        {/* Results Summary */}
+                        <div className="flex items-center gap-4">
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                                {processedData.length} {processedData.length === 1 ? 'result' : 'results'}
+                                {data.length !== processedData.length && (
+                                    <span className="text-gold"> (filtered from {data.length})</span>
+                                )}
+                                {selectedRows.size > 0 && (
+                                    <span className="ml-2 text-gold">({selectedRows.size} selected)</span>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Quick Actions */}
+                        <div className="flex items-center gap-2">
+                            {refreshable && (
+                                <button
+                                    onClick={onRefresh}
+                                    disabled={isLoading}
+                                    className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors disabled:opacity-50"
+                                    title="Refresh data"
+                                >
+                                    <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
+                                </button>
+                            )}
+
+                            {exportable && (
+                                <button
+                                    onClick={handleExport}
+                                    className="flex items-center gap-2 px-3 py-2 bg-gold hover:bg-gold/90 text-black font-medium rounded-lg transition-all duration-200"
+                                    title="Export filtered data"
+                                >
+                                    <Download size={16} />
+                                    <span className="text-sm">Export ({processedData.length})</span>
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Error State */}
+                {error && (
+                    <div className="p-6 text-center">
+                        <div className="text-red-500 text-sm">{error}</div>
+                    </div>
+                )}
+
+                {/* Loading State */}
+                {isLoading && (
+                    <div className="p-12 text-center">
+                        <div className="flex items-center justify-center gap-3">
+                            <RefreshCw size={20} className="animate-spin text-gold" />
+                            <span className="text-gray-600 dark:text-gray-400">{loadingMessage}</span>
+                        </div>
+                    </div>
+                )}
+
+                {/* Table */}
+                {!isLoading && !error && (
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            {/* Table Head */}
+                            <thead className="bg-gray-50 dark:bg-gray-700">
+                                <tr>
+                                    {selectable && (
+                                        <th className="w-12 px-6 py-3 text-left">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedRows.size === paginatedData.length && paginatedData.length > 0}
+                                                onChange={handleSelectAll}
+                                                className="w-4 h-4 text-gold bg-gray-100 border-gray-300 rounded focus:ring-gold focus:ring-2"
+                                            />
+                                        </th>
+                                    )}
+
+                                    {columns.map((column) => (
+                                        <th
+                                            key={column.key}
+                                            className={`px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${column.sortable ? 'cursor-pointer hover:text-gray-700 dark:hover:text-gray-300' : ''
+                                                } ${column.className || ''}`}
+                                            style={{ width: column.width }}
+                                            onClick={() => column.sortable && handleSort(column.key)}
+                                        >
+                                            <div className={`flex items-center gap-2 ${column.align === 'center' ? 'justify-center' :
+                                                    column.align === 'right' ? 'justify-end' : ''
+                                                }`}>
+                                                <span>{column.title}</span>
+                                                {column.sortable && (
+                                                    <div className="flex flex-col">
+                                                        {sortConfig?.key === column.key ? (
+                                                            sortConfig.direction === 'asc' ? (
+                                                                <ChevronUp size={14} className="text-gold" />
+                                                            ) : (
+                                                                <ChevronDown size={14} className="text-gold" />
+                                                            )
+                                                        ) : (
+                                                            <ArrowUpDown size={14} className="opacity-50" />
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </th>
+                                    ))}
+
+                                    {actions.length > 0 && (
+                                        <th className="w-20 px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Actions
+                                        </th>
+                                    )}
+                                </tr>
+                            </thead>
+
+                            {/* Table Body */}
+                            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                {paginatedData.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={columns.length + (selectable ? 1 : 0) + (actions.length > 0 ? 1 : 0)} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                                            {emptyMessage}
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    paginatedData.map((row, index) => (
+                                        <motion.tr
+                                            key={index}
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            transition={{ delay: index * 0.05 }}
+                                            className={`hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${selectedRows.has(index) ? 'bg-gold/5 border-gold/20' : ''
+                                                }`}
+                                        >
+                                            {selectable && (
+                                                <td className="px-6 py-4">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedRows.has(index)}
+                                                        onChange={() => handleSelectRow(index)}
+                                                        className="w-4 h-4 text-gold bg-gray-100 border-gray-300 rounded focus:ring-gold focus:ring-2"
+                                                    />
+                                                </td>
+                                            )}
+
+                                            {columns.map((column) => (
+                                                <td
+                                                    key={column.key}
+                                                    className={`px-6 py-4 whitespace-nowrap text-sm ${column.align === 'center' ? 'text-center' :
+                                                            column.align === 'right' ? 'text-right' : ''
+                                                        } ${column.className || ''}`}
+                                                >
+                                                    {column.render
+                                                        ? column.render(row[column.key], row, index)
+                                                        : <span className="text-gray-900 dark:text-white">{row[column.key]}</span>
+                                                    }
+                                                </td>
+                                            ))}
+
+                                            {actions.length > 0 && (
+                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                    <TableActions
+                                                        actions={actions}
+                                                        row={row}
+                                                        index={index}
+                                                    />
+                                                </td>
+                                            )}
+                                        </motion.tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+
+                {/* Pagination */}
+                {pagination.enabled && !isLoading && !error && totalPages > 1 && (
+                    <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+                        <TablePagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            pageSize={pageSize}
+                            totalItems={processedData.length}
+                            onPageChange={setCurrentPage}
+                            onPageSizeChange={pagination.showSizeSelector ? setPageSize : undefined}
+                        />
+                    </div>
+                )}
+            </motion.div>
         </motion.div>
     );
 }
 
-// Table Actions Component
+// Table Actions Component (unchanged from original)
 interface TableActionsProps<T> {
     actions: DataTableAction<T>[];
     row: T;
@@ -579,7 +655,7 @@ function TableActions<T>({ actions, row, index }: TableActionsProps<T>) {
     );
 }
 
-// Table Pagination Component
+// Table Pagination Component (unchanged from original)
 interface TablePaginationProps {
     currentPage: number;
     totalPages: number;

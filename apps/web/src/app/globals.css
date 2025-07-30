@@ -165,3 +165,16 @@ html, body {
     transform: translateX(100%) rotate(25deg);
   }
 }
+
+@keyframes reverse-spin {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+.animate-reverse-spin {
+  animation: reverse-spin 1s linear infinite;
+}
