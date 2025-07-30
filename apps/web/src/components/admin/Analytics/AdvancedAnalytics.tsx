@@ -414,256 +414,282 @@ export default function AdvancedAnalytics() {
     };
 
     return (
-        <motion.div
-            className="space-y-8"
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-        >
+        <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
             {/* Header */}
-            <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-serif font-bold text-gray-900 dark:text-white">
-                        Analytics Dashboard
-                    </h1>
-                    <p className="text-gray-600 dark:text-gray-400 mt-1">
-                        Business intelligence and performance insights
-                    </p>
-                </div>
+            <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
+                <div className="max-w-7xl mx-auto px-6 py-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h1 className="text-3xl font-serif font-bold text-gray-900 dark:text-white">
+                                Analytics Dashboard
+                            </h1>
+                            <p className="text-gray-600 dark:text-gray-400 mt-1">
+                                Business intelligence and performance insights
+                            </p>
+                        </div>
 
-                <div className="flex items-center gap-3">
-                    {/* Date Range Selector */}
-                    <div className="relative">
-                        <select
-                            value={filters.dateRange.label}
-                            onChange={(e) => {
-                                const preset = dateRangePresets.find(p => p.label === e.target.value);
-                                if (preset) handleDateRangeChange(preset);
-                            }}
-                            className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gold appearance-none pr-10"
-                        >
-                            {dateRangePresets.map(preset => (
-                                <option key={preset.label} value={preset.label}>
-                                    {preset.label}
-                                </option>
-                            ))}
-                        </select>
-                        <Calendar size={16} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+                        <div className="flex items-center gap-3">
+                            {/* Date Range Selector */}
+                            <div className="relative">
+                                <select
+                                    value={filters.dateRange.label}
+                                    onChange={(e) => {
+                                        const preset = dateRangePresets.find(p => p.label === e.target.value);
+                                        if (preset) handleDateRangeChange(preset);
+                                    }}
+                                    className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gold appearance-none pr-10"
+                                >
+                                    {dateRangePresets.map(preset => (
+                                        <option key={preset.label} value={preset.label}>
+                                            {preset.label}
+                                        </option>
+                                    ))}
+                                </select>
+                                <Calendar size={16} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+                            </div>
+
+                            <button
+                                onClick={handleRefresh}
+                                disabled={isLoading}
+                                className="p-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+                            >
+                                <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
+                            </button>
+
+                            <button
+                                onClick={handleExport}
+                                className="px-4 py-2 bg-gold hover:bg-gold/90 text-black font-medium rounded-lg transition-colors flex items-center gap-2"
+                            >
+                                <Download size={16} />
+                                Export
+                            </button>
+                        </div>
                     </div>
-
-                    <button
-                        onClick={handleRefresh}
-                        disabled={isLoading}
-                        className="p-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
-                    >
-                        <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
-                    </button>
-
-                    <button
-                        onClick={handleExport}
-                        className="px-4 py-2 bg-gold hover:bg-gold/90 text-black font-medium rounded-lg transition-colors flex items-center gap-2"
-                    >
-                        <Download size={16} />
-                        Export
-                    </button>
                 </div>
-            </motion.div>
+            </div>
 
-            {/* Key Metrics Grid */}
-            <motion.div variants={itemVariants}>
-                <MetricCardGrid
-                    metrics={keyMetrics}
-                    loading={isLoading}
-                    columns={6}
-                    size="md"
-                    variant="default"
-                    onMetricClick={(metric) => console.log('Navigate to:', metric.id)}
-                    onRefresh={(metricId) => console.log('Refresh metric:', metricId)}
-                />
-            </motion.div>
-
-            {/* Tab Navigation */}
-            <motion.div variants={itemVariants} className="border-b border-gray-200 dark:border-gray-700">
-                <nav className="flex space-x-8">
-                    {[
-                        { id: 'overview', label: 'Overview', icon: Activity },
-                        { id: 'revenue', label: 'Revenue', icon: DollarSign },
-                        { id: 'customers', label: 'Customers', icon: Users },
-                        { id: 'products', label: 'Products', icon: Package }
-                    ].map((tab) => (
-                        <button
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id as any)}
-                            className={`flex items-center gap-2 py-2 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === tab.id
-                                ? 'border-gold text-gold'
-                                : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
-                                }`}
-                        >
-                            <tab.icon size={16} />
-                            {tab.label}
-                        </button>
-                    ))}
-                </nav>
-            </motion.div>
-
-            {/* Tab Content */}
-            <AnimatePresence mode="wait">
+            {/* Content */}
+            <div className="max-w-7xl mx-auto px-6 py-8">
                 <motion.div
-                    key={activeTab}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.3 }}
+                    className="space-y-8"
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
                 >
-                    {activeTab === 'overview' && (
-                        <div className="space-y-8">
-                            {/* Revenue Chart - Full Width */}
-                            <motion.div variants={itemVariants}>
-                                <RevenueChart
-                                    data={revenueData || undefined}
-                                    metrics={revenueMetrics || undefined}
-                                    isLoading={revenueLoading}
-                                    error={revenueError}
-                                    onRefresh={handleRevenueRefresh}
-                                    onExport={handleRevenueExport}
-                                />
-                            </motion.div>
+                    {/* Key Metrics Grid */}
+                    <motion.div variants={itemVariants}>
+                        <MetricCardGrid
+                            metrics={keyMetrics}
+                            loading={isLoading}
+                            columns={6}
+                            size="md"
+                            variant="default"
+                            onMetricClick={(metric) => console.log('Navigate to:', metric.id)}
+                            onRefresh={(metricId) => console.log('Refresh metric:', metricId)}
+                        />
+                    </motion.div>
 
-                            {/* Other Analytics Charts */}
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                                {/* Order Status Distribution */}
-                                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Order Status</h3>
-                                    <ResponsiveContainer width="100%" height={300}>
-                                        <RechartsPieChart>
-                                            <Tooltip formatter={(value: any) => [value, 'Orders']} />
-                                            <RechartsPieChart data={analyticsData.orders.byStatus}>
-                                                {analyticsData.orders.byStatus.map((entry, index) => (
-                                                    <Cell
-                                                        key={`cell-${index}`}
-                                                        fill={[chartColors.success, chartColors.warning, chartColors.secondary, chartColors.danger][index]}
-                                                    />
+                    {/* Tab Navigation */}
+                    <motion.div variants={itemVariants} className="border-b border-gray-200 dark:border-gray-700">
+                        <nav className="flex space-x-8">
+                            {[
+                                { id: 'overview', label: 'Overview', icon: Activity },
+                                { id: 'revenue', label: 'Revenue', icon: DollarSign },
+                                { id: 'customers', label: 'Customers', icon: Users },
+                                { id: 'products', label: 'Products', icon: Package }
+                            ].map((tab) => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id as any)}
+                                    className={`flex items-center gap-2 py-2 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === tab.id
+                                        ? 'border-gold text-gold'
+                                        : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                                        }`}
+                                >
+                                    <tab.icon size={16} />
+                                    {tab.label}
+                                </button>
+                            ))}
+                        </nav>
+                    </motion.div>
+
+                    {/* Tab Content */}
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={activeTab}
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            transition={{ duration: 0.3 }}
+                        >
+                            {activeTab === 'overview' && (
+                                <div className="space-y-8">
+                                    {/* Revenue Chart - Full Width */}
+                                    <motion.div variants={itemVariants}>
+                                        <RevenueChart
+                                            data={revenueData || undefined}
+                                            metrics={revenueMetrics || undefined}
+                                            isLoading={revenueLoading}
+                                            error={revenueError}
+                                            onRefresh={handleRevenueRefresh}
+                                            onExport={handleRevenueExport}
+                                        />
+                                    </motion.div>
+
+                                    {/* Other Analytics Charts */}
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                        {/* Order Status Distribution */}
+                                        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Order Status</h3>
+                                            <ResponsiveContainer width="100%" height={300}>
+                                                <RechartsPieChart>
+                                                    <Tooltip formatter={(value: any) => [value, 'Orders']} />
+                                                    <RechartsPieChart data={analyticsData.orders.byStatus}>
+                                                        {analyticsData.orders.byStatus.map((entry, index) => (
+                                                            <Cell
+                                                                key={`cell-${index}`}
+                                                                fill={[chartColors.success, chartColors.warning, chartColors.secondary, chartColors.danger][index]}
+                                                            />
+                                                        ))}
+                                                    </RechartsPieChart>
+                                                    <Legend />
+                                                </RechartsPieChart>
+                                            </ResponsiveContainer>
+                                        </div>
+
+                                        {/* Customer Segments */}
+                                        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Customer Segments</h3>
+                                            <div className="space-y-4">
+                                                {analyticsData.customers.segments.map((segment, index) => (
+                                                    <div key={segment.segment} className="flex items-center justify-between">
+                                                        <div className="flex-1">
+                                                            <div className="flex items-center justify-between mb-1">
+                                                                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                                                    {segment.segment}
+                                                                </span>
+                                                                <span className="text-sm text-gray-500">
+                                                                    {segment.count} customers
+                                                                </span>
+                                                            </div>
+                                                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                                                <div
+                                                                    className={`h-2 rounded-full bg-${['green', 'blue', 'purple', 'red'][index]}-500`}
+                                                                    style={{ width: `${(segment.value / 52300) * 100}%` }}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        <div className="ml-4 text-right">
+                                                            <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                                                ${(segment.value / 1000).toFixed(1)}K
+                                                            </div>
+                                                            <div className={`text-xs ${segment.growth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                                                {segment.growth >= 0 ? '+' : ''}{segment.growth}%
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 ))}
-                                            </RechartsPieChart>
-                                            <Legend />
-                                        </RechartsPieChart>
-                                    </ResponsiveContainer>
-                                </div>
-
-                                {/* Customer Segments */}
-                                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Customer Segments</h3>
-                                    <div className="space-y-4">
-                                        {analyticsData.customers.segments.map((segment, index) => (
-                                            <div key={segment.segment} className="flex items-center justify-between">
-                                                <div className="flex-1">
-                                                    <div className="flex items-center justify-between mb-1">
-                                                        <span className="text-sm font-medium text-gray-900 dark:text-white">
-                                                            {segment.segment}
-                                                        </span>
-                                                        <span className="text-sm text-gray-500">
-                                                            {segment.count} customers
-                                                        </span>
-                                                    </div>
-                                                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                                        <div
-                                                            className={`h-2 rounded-full bg-${['green', 'blue', 'purple', 'red'][index]}-500`}
-                                                            style={{ width: `${(segment.value / 52300) * 100}%` }}
-                                                        />
-                                                    </div>
-                                                </div>
-                                                <div className="ml-4 text-right">
-                                                    <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                                        ${(segment.value / 1000).toFixed(1)}K
-                                                    </div>
-                                                    <div className={`text-xs ${segment.growth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                                        {segment.growth >= 0 ? '+' : ''}{segment.growth}%
-                                                    </div>
-                                                </div>
                                             </div>
-                                        ))}
+                                        </div>
+
+                                        {/* Geographic Distribution */}
+                                        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 lg:col-span-2">
+                                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Sales by Region</h3>
+                                            <ResponsiveContainer width="100%" height={300}>
+                                                <BarChart data={analyticsData.geographic} layout="horizontal">
+                                                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                                                    <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+                                                    <YAxis
+                                                        type="category"
+                                                        dataKey="region"
+                                                        axisLine={false}
+                                                        tickLine={false}
+                                                        tick={{ fontSize: 12 }}
+                                                        width={100}
+                                                    />
+                                                    <Tooltip formatter={(value: any) => [value, 'Sales']} />
+                                                    <Bar dataKey="sales" fill={chartColors.secondary} radius={[0, 4, 4, 0]} />
+                                                </BarChart>
+                                            </ResponsiveContainer>
+                                        </div>
                                     </div>
                                 </div>
+                            )}
 
-                                {/* Geographic Distribution */}
-                                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 lg:col-span-2">
-                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Sales by Region</h3>
-                                    <ResponsiveContainer width="100%" height={300}>
-                                        <BarChart data={analyticsData.geographic} layout="horizontal">
-                                            <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                                            <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
-                                            <YAxis
-                                                type="category"
-                                                dataKey="region"
-                                                axisLine={false}
-                                                tickLine={false}
-                                                tick={{ fontSize: 12 }}
-                                                width={100}
-                                            />
-                                            <Tooltip formatter={(value: any) => [value, 'Sales']} />
-                                            <Bar dataKey="sales" fill={chartColors.secondary} radius={[0, 4, 4, 0]} />
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {activeTab === 'revenue' && (
-                        <div className="space-y-8">
-                            {/* Full Revenue Analytics */}
-                            <motion.div variants={itemVariants}>
-                                <RevenueChart
-                                    data={revenueData || undefined}
-                                    metrics={revenueMetrics || undefined}
-                                    isLoading={revenueLoading}
-                                    error={revenueError}
-                                    onRefresh={handleRevenueRefresh}
-                                    onExport={handleRevenueExport}
-                                />
-                            </motion.div>
-
-                            {/* Revenue vs Orders Combined Chart */}
-                            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Revenue vs Orders</h3>
-                                <ResponsiveContainer width="100%" height={400}>
-                                    <ComposedChart data={analyticsData.revenue.byPeriod}>
-                                        <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                                        <XAxis
-                                            dataKey="date"
-                                            axisLine={false}
-                                            tickLine={false}
-                                            tick={{ fontSize: 12 }}
-                                            tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            {activeTab === 'revenue' && (
+                                <div className="space-y-8">
+                                    {/* Full Revenue Analytics */}
+                                    <motion.div variants={itemVariants}>
+                                        <RevenueChart
+                                            data={revenueData || undefined}
+                                            metrics={revenueMetrics || undefined}
+                                            isLoading={revenueLoading}
+                                            error={revenueError}
+                                            onRefresh={handleRevenueRefresh}
+                                            onExport={handleRevenueExport}
                                         />
-                                        <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
-                                        <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
-                                        <Tooltip />
-                                        <Bar yAxisId="left" dataKey="amount" fill={chartColors.primary} name="Revenue" />
-                                        <Line yAxisId="right" type="monotone" dataKey="orders" stroke={chartColors.secondary} strokeWidth={3} name="Orders" />
-                                    </ComposedChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </div>
-                    )}
+                                    </motion.div>
 
-                    {activeTab === 'products' && (
-                        <div className="space-y-8">
-                            {/* Top Selling Products */}
-                            <DataTable
-                                columns={productColumns}
-                                data={analyticsData.products.topSelling}
-                                actions={productActions}
-                                isLoading={isLoading}
-                                searchable={true}
-                                exportable={true}
-                                pagination={{ enabled: false }}
-                                className="bg-white dark:bg-gray-800"
-                            />
-                        </div>
-                    )}
+                                    {/* Revenue vs Orders Combined Chart */}
+                                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Revenue vs Orders</h3>
+                                        <ResponsiveContainer width="100%" height={400}>
+                                            <ComposedChart data={analyticsData.revenue.byPeriod}>
+                                                <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                                                <XAxis
+                                                    dataKey="date"
+                                                    axisLine={false}
+                                                    tickLine={false}
+                                                    tick={{ fontSize: 12 }}
+                                                    tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                                />
+                                                <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+                                                <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+                                                <Tooltip />
+                                                <Bar yAxisId="left" dataKey="amount" fill={chartColors.primary} name="Revenue" />
+                                                <Line yAxisId="right" type="monotone" dataKey="orders" stroke={chartColors.secondary} strokeWidth={3} name="Orders" />
+                                            </ComposedChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'customers' && (
+                                <div className="space-y-8">
+                                    {/* Customer Analytics Placeholder */}
+                                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Customer Analytics</h3>
+                                        <div className="text-center py-12">
+                                            <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                                            <p className="text-gray-500 dark:text-gray-400">
+                                                Detailed customer analytics coming soon.
+                                                <br />
+                                                Customer charts and insights will be displayed here.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'products' && (
+                                <div className="space-y-8">
+                                    {/* Top Selling Products */}
+                                    <DataTable
+                                        columns={productColumns}
+                                        data={analyticsData.products.topSelling}
+                                        actions={productActions}
+                                        isLoading={isLoading}
+                                        searchable={true}
+                                        exportable={true}
+                                        pagination={{ enabled: false }}
+                                        className="bg-white dark:bg-gray-800"
+                                    />
+                                </div>
+                            )}
+                        </motion.div>
+                    </AnimatePresence>
                 </motion.div>
-            </AnimatePresence>
-        </motion.div>
+            </div>
+        </main>
     );
 }
