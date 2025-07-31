@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { onCLS, onINP, onFCP, onLCP, onTTFB }from 'web-vitals';
 
 export interface WebVitalMetric {
     name: string;
@@ -95,9 +96,6 @@ export async function initWebVitals() {
     if (typeof window === 'undefined') return;
 
     try {
-        // Dynamically import web-vitals (updated for v3+ API)
-        const { onCLS, onINP, onFCP, onLCP, onTTFB } = await import('web-vitals');
-
         // Measure all Core Web Vitals (updated function names)
         onCLS(sendToAnalytics);
         onINP(sendToAnalytics);
