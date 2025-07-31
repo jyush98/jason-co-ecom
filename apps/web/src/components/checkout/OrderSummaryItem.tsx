@@ -1,4 +1,5 @@
 import { formatCartPrice } from "@/config";
+import { JewelryImage } from "../ui/OptimizedImage";
 
 // ✅ components/checkout/OrderSummaryItem.tsx
 
@@ -8,7 +9,7 @@ export function OrderSummaryItem({ item }: { item: any }) {
         <div className="flex gap-4">
             <div className={`w-16 h-16 ${item.product.display_theme === "dark" ? "bg-black" : "bg-white"} rounded overflow-hidden`}>
                 {item.product_image && (
-                    <img
+                    <JewelryImage.Product
                         src={item.product_image}
                         alt={item.product_name}
                         className="w-full h-full object-cover"

@@ -11,6 +11,7 @@ import { validateShippingAddress, calculateCheckoutProgress } from "@/utils";
 import { CART_CONFIG } from "@/config";
 import { ShippingForm, PaymentForm, OrderReview } from "@/components/checkout";
 import { useCartData } from "@/app/store/cartStore";
+import { JewelryImage } from "../ui/OptimizedImage";
 
 interface CheckoutFlowProps {
   onOrderComplete?: (orderNumber: string) => void;
@@ -317,7 +318,7 @@ function CheckoutOrderSummary({
           <div key={item.product_id} className="flex gap-3">
             <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden">
               {item.product.image_url && (
-                <img
+                <JewelryImage.Product
                   src={item.product.image_url}
                   alt={item.product.name}
                   className="w-full h-full object-cover"

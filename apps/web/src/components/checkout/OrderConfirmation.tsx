@@ -9,6 +9,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 // ✅ SIMPLIFIED - Use your actual types
 import type { Order } from "@/types/order";
 import { CART_CONFIG, formatCartPrice } from "@/config";
+import { JewelryImage } from "../ui/OptimizedImage";
 
 interface OrderConfirmationProps {
     orderNumber?: string;
@@ -139,7 +140,7 @@ export default function OrderConfirmation({
                                     <div key={item.id} className="flex gap-4">
                                         <div className={`w-16 h-16 ${item.display_theme === "dark" ? "bg-black" : "bg-white"} rounded overflow-hidden`}>
                                             {item.product_image_url && (
-                                                <img
+                                                <JewelryImage.Product
                                                     src={item.product_image_url}
                                                     alt={item.product_name}
                                                     className="w-full h-full object-cover"

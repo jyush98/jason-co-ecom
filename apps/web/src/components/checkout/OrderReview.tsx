@@ -17,6 +17,7 @@ import {
 import { useAuth } from "@clerk/nextjs";
 import { formatCartPrice } from "@/config/cartConfig";
 import { Cart, CheckoutFormData, ShippingMethod } from "@/types/cart";
+import { JewelryImage } from "../ui/OptimizedImage";
 
 interface OrderReviewProps {
     cart: Cart;
@@ -151,8 +152,8 @@ export default function OrderReview({
                                 {cart.items.map((item) => (
                                     <div key={item.product_id} className="flex gap-4">
                                         <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden flex-shrink-0">
-                                            <img
-                                                src={item.product.image_url}
+                                            <JewelryImage.Product
+                                                src={item.product.image_url? item.product.image_url : "/placeholder.jpg"}
                                                 alt={item.product.name}
                                                 className="w-full h-full object-cover"
                                             />

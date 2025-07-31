@@ -6,6 +6,7 @@ import { getCart, removeFromCart, addToCart } from "../utils/cart";
 import { useCartStore } from "@/app/store/cartStore";
 import { useGuestCartStore } from "@/app/store/guestCartStore";
 import { motion, AnimatePresence } from "framer-motion";
+import { JewelryImage } from "./ui/OptimizedImage";
 
 interface CartItem {
     product_id: number;
@@ -185,7 +186,7 @@ export default function Cart() {
                                     className="flex flex-col md:flex-row items-center justify-between gap-4 border border-black bg-slate-50 dark:border-white/10 rounded-lg p-4 dark:bg-white/5"
                                 >
                                     <div className="flex items-center gap-4 w-full md:w-1/2">
-                                        <img
+                                        <JewelryImage.Product
                                             src={item.product.image_url || "/placeholder.jpg"}
                                             alt={item.product.name}
                                             className="w-24 h-24 object-cover rounded-md"

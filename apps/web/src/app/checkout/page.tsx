@@ -25,6 +25,7 @@ import { formatCartPrice } from "@/config/cartConfig";
 import ShippingForm from "@/components/checkout/ShippingForm";
 import PaymentForm from "@/components/checkout/PaymentForm";
 import OrderReview from "@/components/checkout/OrderReview";
+import { JewelryImage } from "@/components/ui/OptimizedImage";
 
 // Initialize Stripe
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
@@ -455,7 +456,7 @@ function CheckoutOrderSummary({ cart, shippingMethod, subtotal, shippingCost, ta
                 {cart.items.map((item: any) => (
                     <div key={item.product_id} className="flex gap-4">
                         <div className={`w-16 h-16 ${item.product.display_theme === "dark" ? "bg-black" : "bg-white"} rounded overflow-hidden`}>
-                            <img
+                            <JewelryImage.Product
                                 src={item.product.image_url}
                                 alt={item.product.name}
                                 className="w-full h-full object-contain"
