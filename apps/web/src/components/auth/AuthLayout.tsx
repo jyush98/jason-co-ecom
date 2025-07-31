@@ -39,8 +39,8 @@ const navigationSections = [
         items: [
             { name: "Overview", href: "/admin/analytics", icon: TrendingUp },
             { name: "Revenue", href: "/admin/analytics/revenue", icon: BarChart3 },
-            { name: "Customers", href: "/admin/analytics/customers", icon: Users },
-            { name: "Products", href: "/admin/analytics/products", icon: Package },
+            { name: "Customers", href: "/admin/analytics/customer", icon: Users },
+            { name: "Products", href: "/admin/analytics/product", icon: Package },
         ]
     },
     {

@@ -48,12 +48,12 @@ export function useAnalytics(endpoint: string, timeRange: string = '30d', option
 
 // Update CustomerAnalyticsChart to use real API
 export function useCustomerAnalytics(timeRange: string = '30d') {
-    return useAnalytics('customers', timeRange);
+    return useAnalytics('customer', timeRange);
 }
 
-// Update ProductPerformanceChart to use real API  
+// Update ProductPerformanceChart to use real API
 export function useProductAnalytics(timeRange: string = '30d', sortBy: string = 'revenue') {
-    return useAnalytics('products', timeRange, { sortBy });
+    return useAnalytics('product', timeRange, { sortBy });
 }
 
 // Update RevenueChart to use real API (already implemented)

@@ -18,5 +18,6 @@ class Product(Base):
     featured = Column(Boolean, nullable=False, default=False)
     details = Column(JSONB)
     display_theme = Column(String, default="dark")
+    inventory_count = Column(Integer, nullable=False, default=0)
     
     cart_items = relationship("CartItem", back_populates="product")

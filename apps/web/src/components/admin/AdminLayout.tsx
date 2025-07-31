@@ -85,8 +85,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     subItems: [
                         { name: "Overview", href: "/admin/analytics", description: "Key metrics and trends" },
                         { name: "Revenue", href: "/admin/analytics/revenue", description: "Revenue deep-dive" },
-                        { name: "Customers", href: "/admin/analytics/customers", description: "Customer insights" },
-                        { name: "Products", href: "/admin/analytics/products", description: "Product performance" }
+                        { name: "Customers", href: "/admin/analytics/customer", description: "Customer insights" },
+                        { name: "Products", href: "/admin/analytics/product", description: "Product performance" }
                     ]
                 },
                 {

@@ -1,468 +1,190 @@
-"use client";
+// components/admin/Analytics/AdvancedAnalytics.tsx
+'use client';
 
-import { useState, useEffect, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
+    BarChart3,
+    Users,
+    ShoppingBag,
+    TrendingUp,
+    UserPlus,
+    Repeat,
+    DollarSign,
+    Activity,
+    Target,
+    Award,
+    Globe,
     Calendar,
+    Filter,
     Download,
     RefreshCw,
-    TrendingUp,
-    Users,
-    ShoppingCart,
-    DollarSign,
-    Package,
-    Target,
-    Globe,
-    Filter,
-    ChevronDown,
-    ArrowUpRight,
-    ArrowDownRight,
-    BarChart3,
-    PieChart,
-    Activity
-} from "lucide-react";
-import {
-    LineChart,
-    Line,
-    AreaChart,
-    Area,
-    BarChart,
-    Bar,
-    PieChart as RechartsPieChart,
-    Cell,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    Legend,
-    ResponsiveContainer,
-    ComposedChart
-} from 'recharts';
-import DataTable, { DataTableColumn, DataTableAction } from '../Common/DataTable';
-import { MetricCardGrid, createRevenueMetric, createOrdersMetric, createCustomersMetric, createInventoryMetric } from '../Common/MetricCard';
-import { RevenueChart } from '../Analytics/charts/RevenueChart';
-import { formatCurrency, formatGrowth, formatGrowthNumber } from "@/utils/analyticsUtils";
+    AlertTriangle,
+    Package
+} from 'lucide-react';
 
-// Types for Analytics
-interface AnalyticsData {
-    revenue: {
-        total: number;
-        change: number;
-        trend: number[];
-        byPeriod: Array<{ date: string; amount: number; orders: number }>;
-    };
-    orders: {
-        total: number;
-        change: number;
-        target: number;
-        conversion: number;
-        byStatus: Array<{ status: string; count: number; value: number }>;
-    };
-    customers: {
-        total: number;
-        new: number;
-        returning: number;
-        change: number;
-        segments: Array<{ segment: string; count: number; value: number; growth: number }>;
-    };
-    products: {
-        total: number;
-        lowStock: number;
-        topSelling: Array<{
-            id: number;
-            name: string;
-            sales: number;
-            revenue: number;
-            growth: number;
-            category: string;
-        }>;
-    };
-    geographic: Array<{
-        region: string;
-        sales: number;
-        revenue: number;
-        customers: number;
-        growth: number;
-    }>;
-}
+// Import your existing components
+import { RevenueChart } from './charts/RevenueChart';
+import GeographicChart from './charts/GeographicChart';
+import ProductPerformaceChart from './charts/ProductPerformanceChart';
+import { MetricCard } from '../Common';
+import { ExportButton } from '../Common';
 
-interface DateRange {
-    start: Date;
-    end: Date;
-    label: string;
-}
+// Import your existing hooks
+import { useCustomerAnalytics, useRevenueAnalytics, useProductAnalytics, useGeographicAnalytics } from '@/lib/hooks/useAnalytics';
 
-interface AnalyticsFilters {
-    dateRange: DateRange;
-    compareWith?: DateRange;
-    segment?: string;
-    category?: string;
-    region?: string;
-}
+const AdvancedAnalytics: React.FC = () => {
+    const [activeTab, setActiveTab] = useState('overview');
+    const [timeRange, setTimeRange] = useState('30d');
 
-// Revenue API types
-interface RevenueDataPoint {
-    date: string;
-    revenue: number;
-    orders: number;
-    averageOrderValue: number;
-    previousPeriodRevenue?: number;
-}
+    // Data hooks - fixed to use singular API routes
+    const customerData = useCustomerAnalytics(timeRange);
+    const revenueData = useRevenueAnalytics(timeRange);
+    const productData = useProductAnalytics(timeRange, 'revenue');
+    const geographicData = useGeographicAnalytics(timeRange);
 
-interface RevenueMetrics {
-    totalRevenue: number;
-    growth: number;
-    totalOrders: number;
-    averageOrderValue: number;
-    topCategory: string;
-}
-
-export default function AdvancedAnalytics() {
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [filters, setFilters] = useState<AnalyticsFilters>({
-        dateRange: {
-            start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
-            end: new Date(),
-            label: "Last 30 Days"
-        }
-    });
-    const [activeTab, setActiveTab] = useState<'overview' | 'revenue' | 'customers' | 'products'>('overview');
-
-    // Revenue chart state
-    const [revenueData, setRevenueData] = useState<RevenueDataPoint[] | null>(null);
-    const [revenueMetrics, setRevenueMetrics] = useState<RevenueMetrics | null>(null);
-    const [revenueLoading, setRevenueLoading] = useState(true);
-    const [revenueError, setRevenueError] = useState<string | null>(null);
-
-    // Mock analytics data - replace with real API calls
-    const [analyticsData, setAnalyticsData] = useState<AnalyticsData>({
-        revenue: {
-            total: 125480,
-            change: 15.3,
-            trend: [95000, 102000, 98000, 115000, 125480, 118000, 135000],
-            byPeriod: [
-                { date: '2024-01-01', amount: 25000, orders: 45 },
-                { date: '2024-01-02', amount: 28000, orders: 52 },
-                { date: '2024-01-03', amount: 22000, orders: 38 },
-                { date: '2024-01-04', amount: 35000, orders: 63 },
-                { date: '2024-01-05', amount: 31000, orders: 58 },
-                { date: '2024-01-06', amount: 29000, orders: 49 },
-                { date: '2024-01-07', amount: 33000, orders: 61 }
-            ]
-        },
-        orders: {
-            total: 342,
-            change: 8.2,
-            target: 400,
-            conversion: 3.4,
-            byStatus: [
-                { status: 'Completed', count: 285, value: 98500 },
-                { status: 'Processing', count: 34, value: 15200 },
-                { status: 'Shipped', count: 18, value: 8900 },
-                { status: 'Cancelled', count: 5, value: 2880 }
-            ]
-        },
-        customers: {
-            total: 1247,
-            new: 89,
-            returning: 158,
-            change: 12.3,
-            segments: [
-                { segment: 'VIP Customers', count: 23, value: 45600, growth: 18.5 },
-                { segment: 'Frequent Buyers', count: 156, value: 52300, growth: 8.2 },
-                { segment: 'New Customers', count: 89, value: 15400, growth: 25.1 },
-                { segment: 'At Risk', count: 34, value: 8900, growth: -12.3 }
-            ]
-        },
-        products: {
-            total: 156,
-            lowStock: 8,
-            topSelling: [
-                { id: 1, name: 'Diamond Tennis Bracelet', sales: 45, revenue: 67500, growth: 23.1, category: 'Bracelets' },
-                { id: 2, name: 'Gold Chain Necklace', sales: 38, revenue: 45600, growth: 15.8, category: 'Necklaces' },
-                { id: 3, name: 'Sapphire Ring', sales: 29, revenue: 58000, growth: 8.9, category: 'Rings' },
-                { id: 4, name: 'Pearl Earrings', sales: 34, revenue: 25500, growth: 18.2, category: 'Earrings' },
-                { id: 5, name: 'Platinum Watch', sales: 12, revenue: 84000, growth: 45.6, category: 'Watches' }
-            ]
-        },
-        geographic: [
-            { region: 'North America', sales: 185, revenue: 78500, customers: 456, growth: 12.5 },
-            { region: 'Europe', sales: 98, revenue: 35200, customers: 234, growth: 8.9 },
-            { region: 'Asia Pacific', sales: 45, revenue: 18900, customers: 123, growth: 23.4 },
-            { region: 'Other', sales: 14, revenue: 6800, customers: 45, growth: 5.2 }
-        ]
-    });
-
-    // Fetch revenue data from API
-    const fetchRevenueData = async () => {
-        setRevenueLoading(true);
-        setRevenueError(null);
-        try {
-            const periodParam = getPeriodParam(filters.dateRange.label);
-            const response = await fetch(`/api/admin/analytics/revenue?period=${periodParam}&comparison=true`);
-
-            if (!response.ok) {
-                throw new Error(`Failed to fetch revenue data: ${response.statusText}`);
-            }
-
-            const data = await response.json();
-            setRevenueData(data.data);
-            setRevenueMetrics(data.metrics);
-        } catch (err) {
-            console.error('Revenue data fetch error:', err);
-            setRevenueError(err instanceof Error ? err.message : 'Failed to load revenue data');
-        } finally {
-            setRevenueLoading(false);
-        }
-    };
-
-    // Convert date range label to API period parameter
-    const getPeriodParam = (label: string): string => {
-        switch (label) {
-            case 'Last 7 Days': return '7d';
-            case 'Last 30 Days': return '30d';
-            case 'Last 90 Days': return '90d';
-            case 'This Year': return '1y';
-            default: return '30d';
-        }
-    };
-
-    // Load analytics data
-    useEffect(() => {
-        const loadAnalytics = async () => {
-            setIsLoading(true);
-            try {
-                // Simulate API call for main analytics
-                await new Promise(resolve => setTimeout(resolve, 1500));
-                // In real app: const data = await fetchAnalytics(filters);
-                setIsLoading(false);
-            } catch (err) {
-                setError('Failed to load analytics data');
-                setIsLoading(false);
-            }
-        };
-
-        loadAnalytics();
-        fetchRevenueData();
-    }, [filters]);
-
-    // Key metrics for overview
-    const keyMetrics = useMemo(() => [
-        createRevenueMetric(
-            revenueMetrics?.totalRevenue || analyticsData.revenue.total,
-            revenueMetrics?.growth || analyticsData.revenue.change
-        ),
-        createOrdersMetric(
-            revenueMetrics?.totalOrders || analyticsData.orders.total,
-            analyticsData.orders.change,
-            formatGrowthNumber(analyticsData.orders.target)
-        ),
-        createCustomersMetric(analyticsData.customers.total, analyticsData.customers.change),
-        createInventoryMetric(analyticsData.products.lowStock, 3),
+    // Tab configuration
+    const tabs = [
         {
-            id: 'conversion',
-            title: 'Conversion Rate',
-            value: analyticsData.orders.conversion,
-            formattedValue: `${formatGrowth(analyticsData.orders.conversion)}`,
-            change: {
-                value: 0.8,
-                type: 'increase' as const,
-                period: 'vs last month',
-                isPercentage: true
-            },
-            icon: Target,
-            color: 'blue',
-            status: 'success' as const
-        },
-        {
-            id: 'aov',
-            title: 'Avg Order Value',
-            value: revenueMetrics?.averageOrderValue || Math.round(analyticsData.revenue.total / analyticsData.orders.total),
-            formattedValue: `${formatCurrency(revenueMetrics?.averageOrderValue || Math.round(analyticsData.revenue.total / analyticsData.orders.total))}`,
-            change: {
-                value: 12.5,
-                type: 'increase' as const,
-                period: 'vs last month',
-                isPercentage: true
-            },
-            icon: ArrowUpRight,
-            color: 'green',
-            status: 'success' as const
-        }
-    ], [analyticsData, revenueMetrics]);
-
-    // Chart colors
-    const chartColors = {
-        primary: '#D4AF37', // Gold
-        secondary: '#3B82F6', // Blue
-        success: '#10B981', // Green
-        warning: '#F59E0B', // Amber
-        danger: '#EF4444', // Red
-        purple: '#8B5CF6'
-    };
-
-    // Date range presets
-    const dateRangePresets = [
-        { label: 'Last 7 Days', days: 7 },
-        { label: 'Last 30 Days', days: 30 },
-        { label: 'Last 90 Days', days: 90 },
-        { label: 'This Year', days: 365 }
-    ];
-
-    const handleDateRangeChange = (preset: { label: string; days: number }) => {
-        setFilters(prev => ({
-            ...prev,
-            dateRange: {
-                start: new Date(Date.now() - preset.days * 24 * 60 * 60 * 1000),
-                end: new Date(),
-                label: preset.label
-            }
-        }));
-    };
-
-    const handleRefresh = async () => {
-        setIsLoading(true);
-        // Simulate refresh
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        await fetchRevenueData();
-        setIsLoading(false);
-    };
-
-    const handleRevenueRefresh = () => {
-        fetchRevenueData();
-    };
-
-    const handleExport = () => {
-        // Implement export functionality
-        console.log('Exporting analytics data...');
-    };
-
-    const handleRevenueExport = () => {
-        // Implement revenue data export
-        console.log('Exporting revenue data...');
-    };
-
-    // Product columns for DataTable
-    const productColumns: DataTableColumn[] = [
-        {
-            key: 'name',
-            title: 'Product Name',
-            sortable: true,
-            render: (value, row) => (
-                <div>
-                    <div className="font-medium text-gray-900 dark:text-white">{value}</div>
-                    <div className="text-sm text-gray-500">{row.category}</div>
-                </div>
-            )
-        },
-        {
-            key: 'sales',
-            title: 'Sales',
-            sortable: true,
-            align: 'center',
-            render: (value) => (
-                <span className="font-medium">{value}</span>
-            )
-        },
-        {
-            key: 'revenue',
-            title: 'Revenue',
-            sortable: true,
-            align: 'right',
-            render: (value) => (
-                <span className="font-medium text-green-600">${(value / 1000).toFixed(1)}K</span>
-            )
-        },
-        {
-            key: 'growth',
-            title: 'Growth',
-            sortable: true,
-            align: 'center',
-            render: (value) => (
-                <div className={`flex items-center gap-1 ${value >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {value >= 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
-                    <span className="font-medium">{Math.abs(value)}%</span>
-                </div>
-            )
-        }
-    ];
-
-    const productActions: DataTableAction[] = [
-        {
-            label: 'View Details',
+            id: 'overview',
+            label: 'Dashboard Overview',
             icon: BarChart3,
-            onClick: (row) => console.log('View product details:', row),
-            variant: 'primary'
+            description: 'Key metrics and performance summary'
+        },
+        {
+            id: 'revenue',
+            label: 'Revenue Intelligence',
+            icon: DollarSign,
+            description: 'Revenue trends, forecasting, and financial insights'
+        },
+        {
+            id: 'customers',
+            label: 'Customer Intelligence',
+            icon: Users,
+            description: 'Customer behavior, retention, and lifetime value'
+        },
+        {
+            id: 'products',
+            label: 'Product Analytics',
+            icon: ShoppingBag,
+            description: 'Product performance and inventory insights'
+        },
+        {
+            id: 'geographic',
+            label: 'Geographic Analysis',
+            icon: Globe,
+            description: 'Regional performance and market analysis'
         }
     ];
 
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.1,
-                delayChildren: 0.2
-            }
-        }
-    };
+    const timeRangeOptions = [
+        { value: '7d', label: 'Last 7 days' },
+        { value: '30d', label: 'Last 30 days' },
+        { value: '90d', label: 'Last 90 days' },
+        { value: '365d', label: 'Last year' }
+    ];
 
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0 }
+    const refreshAll = () => {
+        customerData.refetch();
+        revenueData.refetch();
+        productData.refetch();
+        geographicData.refetch();
     };
 
     return (
         <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            {/* Header */}
-            <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
+            {/* Sticky Header */}
+            <div className="pt-[var(--navbar-height)] bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
                 <div className="max-w-7xl mx-auto px-6 py-6">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                         <div>
-                            <h1 className="text-3xl font-serif font-bold text-gray-900 dark:text-white">
-                                Analytics Dashboard
+                            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                                Business Intelligence Dashboard
                             </h1>
                             <p className="text-gray-600 dark:text-gray-400 mt-1">
-                                Business intelligence and performance insights
+                                Comprehensive analytics and insights for your luxury jewelry business
                             </p>
                         </div>
 
                         <div className="flex items-center gap-3">
-                            {/* Date Range Selector */}
-                            <div className="relative">
-                                <select
-                                    value={filters.dateRange.label}
-                                    onChange={(e) => {
-                                        const preset = dateRangePresets.find(p => p.label === e.target.value);
-                                        if (preset) handleDateRangeChange(preset);
-                                    }}
-                                    className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gold appearance-none pr-10"
-                                >
-                                    {dateRangePresets.map(preset => (
-                                        <option key={preset.label} value={preset.label}>
-                                            {preset.label}
-                                        </option>
-                                    ))}
-                                </select>
-                                <Calendar size={16} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
-                            </div>
-
-                            <button
-                                onClick={handleRefresh}
-                                disabled={isLoading}
-                                className="p-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+                            {/* Time Range Selector */}
+                            <select
+                                value={timeRange}
+                                onChange={(e) => setTimeRange(e.target.value)}
+                                className="px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             >
-                                <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
+                                {timeRangeOptions.map(option => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </select>
+
+                            {/* Refresh All Button */}
+                            <button
+                                onClick={refreshAll}
+                                className="p-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                            >
+                                <RefreshCw className="h-4 w-4" />
                             </button>
 
-                            <button
-                                onClick={handleExport}
-                                className="px-4 py-2 bg-gold hover:bg-gold/90 text-black font-medium rounded-lg transition-colors flex items-center gap-2"
-                            >
-                                <Download size={16} />
-                                Export
-                            </button>
+                            {/* Export Button */}
+                            <ExportButton
+                                onExport={async (options) => {
+                                    // Export overview data
+                                    const data = {
+                                        timeRange,
+                                        customers: customerData.data,
+                                        revenue: revenueData.data,
+                                        products: productData.data,
+                                        geographic: geographicData.data
+                                    };
+
+                                    const csvData = `Export Type,Data,Timestamp\nAnalytics Dashboard,${JSON.stringify(data)},${new Date().toISOString()}`;
+                                    const blob = new Blob([csvData], { type: 'text/csv' });
+                                    const url = URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = `dashboard-export-${timeRange}.csv`;
+                                    a.click();
+                                    URL.revokeObjectURL(url);
+                                }}
+                                data={[]}
+                                className="px-4 py-2 text-white"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Tab Navigation */}
+                    <div className="mt-6">
+                        <div className="border-b border-gray-200 dark:border-gray-700">
+                            <nav className="flex space-x-8 overflow-x-auto">
+                                {tabs.map((tab) => {
+                                    const Icon = tab.icon;
+                                    const isActive = activeTab === tab.id;
+
+                                    return (
+                                        <button
+                                            key={tab.id}
+                                            onClick={() => setActiveTab(tab.id)}
+                                            className={`group relative min-w-0 overflow-hidden py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-all ${isActive
+                                                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                                                }`}
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <Icon className="h-5 w-5" />
+                                                <span>{tab.label}</span>
+                                            </div>
+
+                                            {/* Tooltip on hover */}
+                                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-normal w-48 text-center z-50">
+                                                {tab.description}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </nav>
                         </div>
                     </div>
                 </div>
@@ -470,226 +192,821 @@ export default function AdvancedAnalytics() {
 
             {/* Content */}
             <div className="max-w-7xl mx-auto px-6 py-8">
-                <motion.div
-                    className="space-y-8"
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                >
-                    {/* Key Metrics Grid */}
-                    <motion.div variants={itemVariants}>
-                        <MetricCardGrid
-                            metrics={keyMetrics}
-                            loading={isLoading}
-                            columns={6}
-                            size="md"
-                            variant="default"
-                            onMetricClick={(metric) => console.log('Navigate to:', metric.id)}
-                            onRefresh={(metricId) => console.log('Refresh metric:', metricId)}
-                        />
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={activeTab}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        transition={{ duration: 0.3 }}
+                    >
+                        {activeTab === 'overview' && (
+                            <OverviewTab
+                                timeRange={timeRange}
+                                customerData={customerData}
+                                revenueData={revenueData}
+                                productData={productData}
+                                geographicData={geographicData}
+                            />
+                        )}
+                        {activeTab === 'revenue' && (
+                            <RevenueIntelligenceTab
+                                data={revenueData.data}
+                                isLoading={revenueData.isLoading}
+                                error={revenueData.error}
+                                timeRange={timeRange}
+                                onRefresh={revenueData.refetch}
+                            />
+                        )}
+                        {activeTab === 'customers' && (
+                            <CustomerIntelligenceTab
+                                data={customerData.data}
+                                isLoading={customerData.isLoading}
+                                error={customerData.error}
+                                timeRange={timeRange}
+                                onRefresh={customerData.refetch}
+                            />
+                        )}
+                        {activeTab === 'products' && (
+                            <ProductAnalyticsTab
+                                data={productData.data}
+                                isLoading={productData.isLoading}
+                                error={productData.error}
+                                timeRange={timeRange}
+                                onRefresh={productData.refetch}
+                            />
+                        )}
+                        {activeTab === 'geographic' && (
+                            <GeographicAnalysisTab
+                                data={geographicData.data}
+                                isLoading={geographicData.isLoading}
+                                error={geographicData.error}
+                                timeRange={timeRange}
+                                onRefresh={geographicData.refetch}
+                            />
+                        )}
                     </motion.div>
-
-                    {/* Tab Navigation */}
-                    <motion.div variants={itemVariants} className="border-b border-gray-200 dark:border-gray-700">
-                        <nav className="flex space-x-8">
-                            {[
-                                { id: 'overview', label: 'Overview', icon: Activity },
-                                { id: 'revenue', label: 'Revenue', icon: DollarSign },
-                                { id: 'customers', label: 'Customers', icon: Users },
-                                { id: 'products', label: 'Products', icon: Package }
-                            ].map((tab) => (
-                                <button
-                                    key={tab.id}
-                                    onClick={() => setActiveTab(tab.id as any)}
-                                    className={`flex items-center gap-2 py-2 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === tab.id
-                                        ? 'border-gold text-gold'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
-                                        }`}
-                                >
-                                    <tab.icon size={16} />
-                                    {tab.label}
-                                </button>
-                            ))}
-                        </nav>
-                    </motion.div>
-
-                    {/* Tab Content */}
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={activeTab}
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            transition={{ duration: 0.3 }}
-                        >
-                            {activeTab === 'overview' && (
-                                <div className="space-y-8">
-                                    {/* Revenue Chart - Full Width */}
-                                    <motion.div variants={itemVariants}>
-                                        <RevenueChart
-                                            data={revenueData || undefined}
-                                            metrics={revenueMetrics || undefined}
-                                            isLoading={revenueLoading}
-                                            error={revenueError}
-                                            onRefresh={handleRevenueRefresh}
-                                            onExport={handleRevenueExport}
-                                        />
-                                    </motion.div>
-
-                                    {/* Other Analytics Charts */}
-                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                                        {/* Order Status Distribution */}
-                                        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Order Status</h3>
-                                            <ResponsiveContainer width="100%" height={300}>
-                                                <RechartsPieChart>
-                                                    <Tooltip formatter={(value: any) => [value, 'Orders']} />
-                                                    <RechartsPieChart data={analyticsData.orders.byStatus}>
-                                                        {analyticsData.orders.byStatus.map((entry, index) => (
-                                                            <Cell
-                                                                key={`cell-${index}`}
-                                                                fill={[chartColors.success, chartColors.warning, chartColors.secondary, chartColors.danger][index]}
-                                                            />
-                                                        ))}
-                                                    </RechartsPieChart>
-                                                    <Legend />
-                                                </RechartsPieChart>
-                                            </ResponsiveContainer>
-                                        </div>
-
-                                        {/* Customer Segments */}
-                                        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Customer Segments</h3>
-                                            <div className="space-y-4">
-                                                {analyticsData.customers.segments.map((segment, index) => (
-                                                    <div key={segment.segment} className="flex items-center justify-between">
-                                                        <div className="flex-1">
-                                                            <div className="flex items-center justify-between mb-1">
-                                                                <span className="text-sm font-medium text-gray-900 dark:text-white">
-                                                                    {segment.segment}
-                                                                </span>
-                                                                <span className="text-sm text-gray-500">
-                                                                    {segment.count} customers
-                                                                </span>
-                                                            </div>
-                                                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                                                <div
-                                                                    className={`h-2 rounded-full bg-${['green', 'blue', 'purple', 'red'][index]}-500`}
-                                                                    style={{ width: `${(segment.value / 52300) * 100}%` }}
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                        <div className="ml-4 text-right">
-                                                            <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                                                ${(segment.value / 1000).toFixed(1)}K
-                                                            </div>
-                                                            <div className={`text-xs ${segment.growth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                                                {segment.growth >= 0 ? '+' : ''}{segment.growth}%
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-
-                                        {/* Geographic Distribution */}
-                                        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 lg:col-span-2">
-                                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Sales by Region</h3>
-                                            <ResponsiveContainer width="100%" height={300}>
-                                                <BarChart data={analyticsData.geographic} layout="horizontal">
-                                                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                                                    <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
-                                                    <YAxis
-                                                        type="category"
-                                                        dataKey="region"
-                                                        axisLine={false}
-                                                        tickLine={false}
-                                                        tick={{ fontSize: 12 }}
-                                                        width={100}
-                                                    />
-                                                    <Tooltip formatter={(value: any) => [value, 'Sales']} />
-                                                    <Bar dataKey="sales" fill={chartColors.secondary} radius={[0, 4, 4, 0]} />
-                                                </BarChart>
-                                            </ResponsiveContainer>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {activeTab === 'revenue' && (
-                                <div className="space-y-8">
-                                    {/* Full Revenue Analytics */}
-                                    <motion.div variants={itemVariants}>
-                                        <RevenueChart
-                                            data={revenueData || undefined}
-                                            metrics={revenueMetrics || undefined}
-                                            isLoading={revenueLoading}
-                                            error={revenueError}
-                                            onRefresh={handleRevenueRefresh}
-                                            onExport={handleRevenueExport}
-                                        />
-                                    </motion.div>
-
-                                    {/* Revenue vs Orders Combined Chart */}
-                                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Revenue vs Orders</h3>
-                                        <ResponsiveContainer width="100%" height={400}>
-                                            <ComposedChart data={analyticsData.revenue.byPeriod}>
-                                                <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                                                <XAxis
-                                                    dataKey="date"
-                                                    axisLine={false}
-                                                    tickLine={false}
-                                                    tick={{ fontSize: 12 }}
-                                                    tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                                />
-                                                <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
-                                                <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
-                                                <Tooltip />
-                                                <Bar yAxisId="left" dataKey="amount" fill={chartColors.primary} name="Revenue" />
-                                                <Line yAxisId="right" type="monotone" dataKey="orders" stroke={chartColors.secondary} strokeWidth={3} name="Orders" />
-                                            </ComposedChart>
-                                        </ResponsiveContainer>
-                                    </div>
-                                </div>
-                            )}
-
-                            {activeTab === 'customers' && (
-                                <div className="space-y-8">
-                                    {/* Customer Analytics Placeholder */}
-                                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Customer Analytics</h3>
-                                        <div className="text-center py-12">
-                                            <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                                            <p className="text-gray-500 dark:text-gray-400">
-                                                Detailed customer analytics coming soon.
-                                                <br />
-                                                Customer charts and insights will be displayed here.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {activeTab === 'products' && (
-                                <div className="space-y-8">
-                                    {/* Top Selling Products */}
-                                    <DataTable
-                                        columns={productColumns}
-                                        data={analyticsData.products.topSelling}
-                                        actions={productActions}
-                                        isLoading={isLoading}
-                                        searchable={true}
-                                        exportable={true}
-                                        pagination={{ enabled: false }}
-                                        className="bg-white dark:bg-gray-800"
-                                    />
-                                </div>
-                            )}
-                        </motion.div>
-                    </AnimatePresence>
-                </motion.div>
+                </AnimatePresence>
             </div>
         </main>
     );
-}
+};
+
+// Overview Tab - Real data integration (REMOVED DEEP-DIVE LINKS)
+const OverviewTab: React.FC<{
+    timeRange: string;
+    customerData: any;
+    revenueData: any;
+    productData: any;
+    geographicData: any;
+}> = ({ timeRange, customerData, revenueData, productData, geographicData }) => {
+
+    // Create overview metrics from real data
+    const overviewMetrics = [
+        {
+            id: 'total-revenue',
+            title: 'Total Revenue',
+            value: revenueData.data?.metrics?.totalRevenue
+                ? `$${(revenueData.data.metrics.totalRevenue / 1000).toFixed(0)}K`
+                : '$125K',
+            change: {
+                value: revenueData.data?.metrics?.growth || 12.5,
+                type: (revenueData.data?.metrics?.growth || 12.5) >= 0 ? 'increase' as const : 'decrease' as const,
+                period: `vs previous ${timeRange}`,
+                isPercentage: true
+            },
+            icon: DollarSign,
+            status: 'success' as const,
+            description: 'Total business revenue'
+        },
+        {
+            id: 'total-customers',
+            title: 'Total Customers',
+            value: customerData.data?.metrics?.totalCustomers?.toLocaleString() || '1,247',
+            change: {
+                value: customerData.data?.metrics?.growthRate || 8.2,
+                type: (customerData.data?.metrics?.growthRate || 8.2) >= 0 ? 'increase' as const : 'decrease' as const,
+                period: `vs previous ${timeRange}`,
+                isPercentage: true
+            },
+            icon: Users,
+            status: 'success' as const,
+            description: 'Active customer base'
+        },
+        {
+            id: 'active-products',
+            title: 'Active Products',
+            value: productData.data?.metrics?.activeProducts?.toString() || '156',
+            change: {
+                value: productData.data?.metrics?.periodComparison?.newProducts || 6.3,
+                type: 'increase' as const,
+                period: 'new this period',
+                isPercentage: true
+            },
+            icon: ShoppingBag,
+            status: 'success' as const,
+            description: 'Products generating revenue'
+        },
+        {
+            id: 'avg-order-value',
+            title: 'Avg Order Value',
+            value: revenueData.data?.metrics?.averageOrderValue
+                ? `$${Math.round(revenueData.data.metrics.averageOrderValue)}`
+                : '$346',
+            change: {
+                value: 15.3, // Could calculate from data
+                type: 'increase' as const,
+                period: `vs previous ${timeRange}`,
+                isPercentage: true
+            },
+            icon: TrendingUp,
+            status: 'success' as const,
+            description: 'Average transaction value'
+        }
+    ];
+
+    return (
+        <div className="space-y-8">
+            {/* Overview Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {overviewMetrics.map((metric, index) => (
+                    <motion.div
+                        key={metric.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1, duration: 0.5 }}
+                    >
+                        <MetricCard
+                            metric={metric}
+                            loading={customerData.isLoading || revenueData.isLoading || productData.isLoading}
+                            refreshable={true}
+                            clickable={false}
+                            showTrend={true}
+                            onRefresh={() => {
+                                customerData.refetch();
+                                revenueData.refetch();
+                                productData.refetch();
+                            }}
+                        />
+                    </motion.div>
+                ))}
+            </div>
+
+            {/* Quick Insights Cards - REMOVED NAVIGATION LINKS */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4, duration: 0.5 }}
+                    className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700"
+                >
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            Customer Retention
+                        </h3>
+                        <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+                            <Repeat className="w-5 h-5 text-blue-600" />
+                        </div>
+                    </div>
+                    <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                        {customerData.data?.metrics?.customerRetentionRate
+                            ? `${customerData.data.metrics.customerRetentionRate.toFixed(1)}%`
+                            : '67%'
+                        }
+                    </div>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">
+                        Customer retention rate for {timeRange}
+                    </p>
+                </motion.div>
+
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5, duration: 0.5 }}
+                    className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700"
+                >
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            Top Product Category
+                        </h3>
+                        <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
+                            <Award className="w-5 h-5 text-green-600" />
+                        </div>
+                    </div>
+                    <div className="text-2xl font-bold text-green-600 dark:text-green-400 mb-2">
+                        {productData.data?.metrics?.topSellingProduct || 'Fine Jewelry'}
+                    </div>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">
+                        Best performing category this {timeRange}
+                    </p>
+                </motion.div>
+
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6, duration: 0.5 }}
+                    className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700"
+                >
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            Global Reach
+                        </h3>
+                        <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
+                            <Globe className="w-5 h-5 text-purple-600" />
+                        </div>
+                    </div>
+                    <div className="text-2xl font-bold text-purple-600 dark:text-purple-400 mb-2">
+                        {geographicData.data?.length || 6} Regions
+                    </div>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">
+                        Active markets worldwide
+                    </p>
+                </motion.div>
+            </div>
+        </div>
+    );
+};
+
+// Revenue Intelligence Tab - Integration with RevenueChart (REMOVED DEEP-DIVE LINK)
+const RevenueIntelligenceTab: React.FC<{
+    data: any;
+    isLoading: boolean;
+    error: string | null;
+    timeRange: string;
+    onRefresh: () => void;
+}> = ({ data, isLoading, error, timeRange, onRefresh }) => {
+
+    // Create revenue metrics from real data
+    const revenueMetrics = data ? [
+        {
+            id: 'total-revenue',
+            title: 'Total Revenue',
+            value: `$${data.metrics.totalRevenue.toLocaleString()}`,
+            change: {
+                value: data.metrics.growth,
+                type: data.metrics.growth >= 0 ? 'increase' as const : 'decrease' as const,
+                period: `vs previous ${timeRange}`,
+                isPercentage: true
+            },
+            icon: DollarSign,
+            status: data.metrics.growth >= 10 ? 'success' as const : 'warning' as const,
+            description: 'Total business revenue'
+        },
+        {
+            id: 'total-orders',
+            title: 'Total Orders',
+            value: data.metrics.totalOrders.toLocaleString(),
+            change: {
+                value: 8.7, // Could calculate from data
+                type: 'increase' as const,
+                period: `vs previous ${timeRange}`,
+                isPercentage: true
+            },
+            icon: ShoppingBag,
+            status: 'success' as const,
+            description: 'Orders completed'
+        },
+        {
+            id: 'avg-order-value',
+            title: 'Average Order Value',
+            value: `$${Math.round(data.metrics.averageOrderValue)}`,
+            change: {
+                value: 15.3, // Could calculate from data
+                type: 'increase' as const,
+                period: `vs previous ${timeRange}`,
+                isPercentage: true
+            },
+            icon: TrendingUp,
+            status: 'success' as const,
+            description: 'Average transaction value'
+        },
+        {
+            id: 'top-category',
+            title: 'Top Category',
+            value: data.metrics.topCategory,
+            change: {
+                value: 0,
+                type: 'neutral' as const,
+                period: 'leading sales',
+                isPercentage: false
+            },
+            icon: Award,
+            status: 'success' as const,
+            description: 'Best performing category'
+        }
+    ] : [];
+
+    return (
+        <div className="space-y-8">
+            {error && (
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
+                >
+                    <div className="flex items-center space-x-2">
+                        <AlertTriangle className="w-5 h-5 text-red-600" />
+                        <p className="text-red-800 dark:text-red-200">{error}</p>
+                    </div>
+                </motion.div>
+            )}
+
+            {/* Revenue Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {revenueMetrics.map((metric, index) => (
+                    <motion.div
+                        key={metric.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1, duration: 0.5 }}
+                    >
+                        <MetricCard
+                            metric={metric}
+                            loading={isLoading}
+                            refreshable={true}
+                            exportable={true}
+                            clickable={false}
+                            onRefresh={onRefresh}
+                        />
+                    </motion.div>
+                ))}
+            </div>
+
+            {/* Revenue Chart Integration */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.6 }}
+            >
+                <RevenueChart
+                    data={data?.data}
+                    metrics={data?.metrics}
+                    isLoading={isLoading}
+                    error={error}
+                    onRefresh={onRefresh}
+                    className="shadow-lg"
+                />
+            </motion.div>
+        </div>
+    );
+};
+
+// Customer Intelligence Tab - Real data integration (REMOVED DEEP-DIVE LINK)
+const CustomerIntelligenceTab: React.FC<{
+    data: any;
+    isLoading: boolean;
+    error: string | null;
+    timeRange: string;
+    onRefresh: () => void;
+}> = ({ data, isLoading, error, timeRange, onRefresh }) => {
+
+    // Create customer metrics from real data
+    const customerMetrics = data ? [
+        {
+            id: 'total-customers',
+            title: 'Total Customers',
+            value: data.metrics.totalCustomers.toLocaleString(),
+            change: {
+                value: data.metrics.growthRate,
+                type: data.metrics.growthRate >= 0 ? 'increase' as const : 'decrease' as const,
+                period: `vs previous ${timeRange}`,
+                isPercentage: true
+            },
+            icon: Users,
+            status: 'success' as const,
+            description: 'Active customers'
+        },
+        {
+            id: 'new-customers',
+            title: 'New Customers',
+            value: data.metrics.newCustomers.toLocaleString(),
+            change: {
+                value: data.metrics.periodComparison.newCustomers,
+                type: data.metrics.periodComparison.newCustomers >= 0 ? 'increase' as const : 'decrease' as const,
+                period: `vs previous ${timeRange}`,
+                isPercentage: true
+            },
+            icon: UserPlus,
+            status: 'success' as const,
+            description: 'First-time customers'
+        },
+        {
+            id: 'customer-ltv',
+            title: 'Customer LTV',
+            value: `$${Math.round(data.metrics.customerLifetimeValue)}`,
+            change: {
+                value: data.metrics.periodComparison.ltv,
+                type: data.metrics.periodComparison.ltv >= 0 ? 'increase' as const : 'decrease' as const,
+                period: `vs previous ${timeRange}`,
+                isPercentage: true
+            },
+            icon: DollarSign,
+            status: 'success' as const,
+            description: 'Average lifetime value'
+        },
+        {
+            id: 'retention-rate',
+            title: 'Retention Rate',
+            value: `${data.metrics.customerRetentionRate.toFixed(1)}%`,
+            change: {
+                value: 5.2, // Could calculate from data
+                type: 'increase' as const,
+                period: `vs previous ${timeRange}`,
+                isPercentage: true
+            },
+            icon: Repeat,
+            status: data.metrics.customerRetentionRate >= 60 ? 'success' as const : 'warning' as const,
+            description: 'Customer retention rate'
+        }
+    ] : [];
+
+    return (
+        <div className="space-y-8">
+            {error && (
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
+                >
+                    <div className="flex items-center space-x-2">
+                        <AlertTriangle className="w-5 h-5 text-red-600" />
+                        <p className="text-red-800 dark:text-red-200">{error}</p>
+                    </div>
+                </motion.div>
+            )}
+
+            {/* Customer Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {customerMetrics.map((metric, index) => (
+                    <motion.div
+                        key={metric.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1, duration: 0.5 }}
+                    >
+                        <MetricCard
+                            metric={metric}
+                            loading={isLoading}
+                            refreshable={true}
+                            exportable={true}
+                            clickable={false}
+                            onRefresh={onRefresh}
+                        />
+                    </motion.div>
+                ))}
+            </div>
+
+            {/* Customer Segments */}
+            {data?.segments && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3, duration: 0.6 }}
+                    className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700"
+                >
+                    <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            Customer Segments
+                        </h3>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                            {data.segments.length} segments identified
+                        </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {data.segments.map((segment: any, index: number) => (
+                            <motion.div
+                                key={segment.segment}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.1, duration: 0.3 }}
+                                className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                            >
+                                <div className="flex items-center space-x-3 mb-3">
+                                    <div
+                                        className="w-4 h-4 rounded-full"
+                                        style={{ backgroundColor: segment.color }}
+                                    />
+                                    <h4 className="font-medium text-gray-900 dark:text-white">
+                                        {segment.segment}
+                                    </h4>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-500 dark:text-gray-400">Customers:</span>
+                                        <span className="text-gray-900 dark:text-white font-medium">
+                                            {segment.count.toLocaleString()} ({segment.percentage}%)
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-500 dark:text-gray-400">Avg LTV:</span>
+                                        <span className="text-gray-900 dark:text-white font-medium">
+                                            ${segment.avgLTV.toLocaleString()}
+                                        </span>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                </motion.div>
+            )}
+        </div>
+    );
+};
+
+// Product Analytics Tab - Integration with IntegratedProductChart (REMOVED DEEP-DIVE LINK)
+const ProductAnalyticsTab: React.FC<{
+    data: any;
+    isLoading: boolean;
+    error: string | null;
+    timeRange: string;
+    onRefresh: () => void;
+}> = ({ data, isLoading, error, timeRange, onRefresh }) => {
+
+    // Create product metrics from real data
+    const productMetrics = data ? [
+        {
+            id: 'total-revenue',
+            title: 'Product Revenue',
+            value: `${(data.metrics.totalRevenue / 1000).toFixed(0)}K`,
+            change: {
+                value: data.metrics.periodComparison.revenue,
+                type: data.metrics.periodComparison.revenue >= 0 ? 'increase' as const : 'decrease' as const,
+                period: `vs previous ${timeRange}`,
+                isPercentage: true
+            },
+            icon: DollarSign,
+            status: 'success' as const,
+            description: 'Revenue from products'
+        },
+        {
+            id: 'active-products',
+            title: 'Active Products',
+            value: data.metrics.activeProducts.toString(),
+            change: {
+                value: data.metrics.periodComparison.newProducts || 6.3,
+                type: 'increase' as const,
+                period: 'new this period',
+                isPercentage: true
+            },
+            icon: Package,
+            status: 'success' as const,
+            description: `of ${data.metrics.totalProducts} total`
+        },
+        {
+            id: 'top-product',
+            title: 'Top Product',
+            value: data.metrics.topSellingProduct || 'N/A',
+            change: {
+                value: 0,
+                type: 'neutral' as const,
+                period: 'best seller',
+                isPercentage: false
+            },
+            icon: Award,
+            status: 'success' as const,
+            description: 'Best performing product'
+        },
+        {
+            id: 'avg-rating',
+            title: 'Avg Rating',
+            value: Number(data.metrics.averageRating).toFixed(1),
+            change: {
+                value: data.metrics.conversionRate,
+                type: 'increase' as const,
+                period: 'conversion rate',
+                isPercentage: true
+            },
+            icon: TrendingUp,
+            status: Number(data.metrics.averageRating) >= 4.5 ? 'success' as const : 'warning' as const,
+            description: `${data.metrics.conversionRate}% conversion`
+        }
+    ] : [];
+
+    return (
+        <div className="space-y-8">
+            {error && (
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
+                >
+                    <div className="flex items-center space-x-2">
+                        <AlertTriangle className="w-5 h-5 text-red-600" />
+                        <p className="text-red-800 dark:text-red-200">{error}</p>
+                    </div>
+                </motion.div>
+            )}
+
+            {/* Product Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {productMetrics.map((metric, index) => (
+                    <motion.div
+                        key={metric.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1, duration: 0.5 }}
+                    >
+                        <MetricCard
+                            metric={metric}
+                            loading={isLoading}
+                            refreshable={true}
+                            exportable={true}
+                            clickable={false}
+                            onRefresh={onRefresh}
+                        />
+                    </motion.div>
+                ))}
+            </div>
+
+            {/* Product Chart Integration */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.6 }}
+            >
+                <ProductPerformaceChart
+                    timeRange={timeRange}
+                    chartType="performance"
+                    sortBy="revenue"
+                    onTimeRangeChange={() => { }}
+                    onChartTypeChange={() => { }}
+                    onSortChange={() => { }}
+                />
+            </motion.div>
+        </div>
+    );
+};
+
+// Geographic Analysis Tab - Integration with GeographicChart (REMOVED DEEP-DIVE LINK)
+const GeographicAnalysisTab: React.FC<{
+    data: any;
+    isLoading: boolean;
+    error: string | null;
+    timeRange: string;
+    onRefresh: () => void;
+}> = ({ data, isLoading, error, timeRange, onRefresh }) => {
+
+    // Calculate metrics from geographic data
+    const totalRevenue = data?.reduce((sum: number, region: any) => sum + region.revenue, 0) || 0;
+    const totalCustomers = data?.reduce((sum: number, region: any) => sum + region.customers, 0) || 0;
+    const topRegion = data?.[0] || null;
+    const activeRegions = data?.length || 0;
+
+    const geographicMetrics = [
+        {
+            id: 'global-revenue',
+            title: 'Global Revenue',
+            value: `${(totalRevenue / 1000).toFixed(0)}K`,
+            change: {
+                value: 18.2, // Placeholder
+                type: 'increase' as const,
+                period: `vs previous ${timeRange}`,
+                isPercentage: true
+            },
+            icon: DollarSign,
+            status: 'success' as const,
+            description: 'Total global revenue'
+        },
+        {
+            id: 'active-regions',
+            title: 'Active Regions',
+            value: activeRegions.toString(),
+            change: {
+                value: 0,
+                type: 'neutral' as const,
+                period: 'markets served',
+                isPercentage: false
+            },
+            icon: Globe,
+            status: activeRegions >= 5 ? 'success' as const : 'warning' as const,
+            description: 'Regions with customers'
+        },
+        {
+            id: 'top-market',
+            title: 'Top Market',
+            value: topRegion?.region || 'No Data',
+            change: {
+                value: topRegion?.percentage || 0,
+                type: 'neutral' as const,
+                period: 'market share',
+                isPercentage: true
+            },
+            icon: Target,
+            status: 'success' as const,
+            description: `${topRegion?.customers.toLocaleString() || '0'} customers`
+        },
+        {
+            id: 'global-customers',
+            title: 'Global Customers',
+            value: totalCustomers.toLocaleString(),
+            change: {
+                value: 12.4, // Placeholder
+                type: 'increase' as const,
+                period: `vs previous ${timeRange}`,
+                isPercentage: true
+            },
+            icon: Users,
+            status: 'success' as const,
+            description: 'Worldwide customer base'
+        }
+    ];
+
+    return (
+        <div className="space-y-8">
+            {error && (
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
+                >
+                    <div className="flex items-center space-x-2">
+                        <AlertTriangle className="w-5 h-5 text-red-600" />
+                        <p className="text-red-800 dark:text-red-200">{error}</p>
+                    </div>
+                </motion.div>
+            )}
+
+            {/* Geographic Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {geographicMetrics.map((metric, index) => (
+                    <motion.div
+                        key={metric.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1, duration: 0.5 }}
+                    >
+                        <MetricCard
+                            metric={metric}
+                            loading={isLoading}
+                            refreshable={true}
+                            exportable={true}
+                            clickable={false}
+                            onRefresh={onRefresh}
+                        />
+                    </motion.div>
+                ))}
+            </div>
+
+            {/* Geographic Chart Integration */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.6 }}
+            >
+                <GeographicChart />
+            </motion.div>
+
+            {/* Top Markets Summary */}
+            {data && data.length > 0 && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4, duration: 0.6 }}
+                    className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700"
+                >
+                    <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            Top Markets Summary
+                        </h3>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                            Top {Math.min(data.length, 5)} regions
+                        </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                        {data.slice(0, 5).map((region: any, index: number) => (
+                            <motion.div
+                                key={region.region}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.1, duration: 0.3 }}
+                                className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                            >
+                                <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg text-white font-bold text-sm mx-auto mb-3">
+                                    #{index + 1}
+                                </div>
+                                <h4 className="font-medium text-gray-900 dark:text-white mb-2">
+                                    {region.region}
+                                </h4>
+                                <div className="space-y-1">
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                                        ${(region.revenue / 1000).toFixed(0)}K revenue
+                                    </p>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                                        {region.customers.toLocaleString()} customers
+                                    </p>
+                                    <p className="text-sm font-medium text-blue-600">
+                                        {region.percentage}% share
+                                    </p>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                </motion.div>
+            )}
+        </div>
+    );
+};
+
+export default AdvancedAnalytics;
