@@ -51,6 +51,18 @@ function getOptimalSizes(variant: string, aspectRatio?: string): string {
     return sizeConfigs[variant as keyof typeof sizeConfigs] || sizeConfigs.product;
 }
 
+// Get default dimensions based on variant
+function getDefaultDimensions(variant: string): { width: number; height: number } {
+    const dimensionConfigs = {
+        hero: { width: 1920, height: 1080 },
+        product: { width: 800, height: 800 },
+        gallery: { width: 1200, height: 900 },
+        thumbnail: { width: 400, height: 400 },
+    };
+
+    return dimensionConfigs[variant as keyof typeof dimensionConfigs] || dimensionConfigs.product;
+}
+
 // Get aspect ratio classes
 function getAspectRatioClass(aspectRatio?: string): string {
     const ratioClasses = {
@@ -84,6 +96,11 @@ export function OptimizedImage({
 }: OptimizedImageProps) {
     const [imageError, setImageError] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
+
+    // Get default dimensions if not provided
+    const defaultDimensions = getDefaultDimensions(variant);
+    const finalWidth = width || defaultDimensions.width;
+    const finalHeight = height || defaultDimensions.height;
 
     // Auto-generate blur placeholder if not provided
     const autoBlurDataURL = blurDataURL || generateBlurDataURL(variant);
@@ -126,8 +143,8 @@ export function OptimizedImage({
             <Image
                 src={imageError ? fallbackSrc : src}
                 alt={alt}
-                width={fill ? undefined : width}
-                height={fill ? undefined : height}
+                width={fill ? undefined : finalWidth}
+                height={fill ? undefined : finalHeight}
                 fill={fill}
                 priority={priority}
                 sizes={autoSizes}
@@ -158,19 +175,43 @@ export function OptimizedImage({
 // Preset configurations for common use cases
 export const JewelryImage = {
     Hero: (props: Omit<OptimizedImageProps, 'variant' | 'priority'>) => (
-        <OptimizedImage {...props} variant="hero" priority={true} />
+        <OptimizedImage
+            {...props}
+            variant="hero"
+            priority={true}
+            width={props.width || 1920}
+            height={props.height || 1080}
+        />
     ),
 
     Product: (props: Omit<OptimizedImageProps, 'variant'>) => (
-        <OptimizedImage {...props} variant="product" aspectRatio="square" />
+        <OptimizedImage
+            {...props}
+            variant="product"
+            aspectRatio="square"
+            width={props.width || 800}
+            height={props.height || 800}
+        />
     ),
 
     Gallery: (props: Omit<OptimizedImageProps, 'variant'>) => (
-        <OptimizedImage {...props} variant="gallery" aspectRatio="4/3" />
+        <OptimizedImage
+            {...props}
+            variant="gallery"
+            aspectRatio="4/3"
+            width={props.width || 1200}
+            height={props.height || 900}
+        />
     ),
 
     Thumbnail: (props: Omit<OptimizedImageProps, 'variant'>) => (
-        <OptimizedImage {...props} variant="thumbnail" aspectRatio="square" />
+        <OptimizedImage
+            {...props}
+            variant="thumbnail"
+            aspectRatio="square"
+            width={props.width || 400}
+            height={props.height || 400}
+        />
     ),
 };
 

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { JewelryImage } from "@/components/ui/OptimizedImage";
 import { Product } from "@/types/product";
 import AddToCartButton from "@/components/AddToCartButton";
 import { SHOP_CONFIG } from "@/config/shopConfig";
@@ -26,6 +27,9 @@ export default function ProductCard({
     const primary = product.image_urls?.[0] || product.image_url;
     const hover = product.image_urls?.[1] || product.image_url;
     const isDark = product.display_theme === "dark";
+
+    // Priority loading for above-fold products (first 6-8 typically)
+    const isPriority = index < 8;
 
     const formatPrice = (price: number) => {
         return new Intl.NumberFormat('en-US', {
@@ -88,28 +92,38 @@ export default function ProductCard({
                 >
                     {/* Image Container */}
                     <div className="relative aspect-square overflow-hidden">
-                        {/* Primary Image */}
-                        <motion.img
-                            src={primary}
-                            alt={`${product.name} main image`}
-                            className="absolute inset-0 w-full h-full object-contain p-6 md:p-8"
+                        {/* Primary Image - Optimized */}
+                        <motion.div
+                            className="absolute inset-0"
                             style={{
                                 opacity: isActive ? 0 : 1,
                                 transition: "opacity 0.6s cubic-bezier(0.4, 0.0, 0.2, 1)",
                             }}
-                        />
+                        >
+                            <JewelryImage.Product
+                                src={primary}
+                                alt={`${product.name} main image`}
+                                priority={isPriority}
+                                className="object-contain p-6 md:p-8 h-full w-full"
+                            />
+                        </motion.div>
 
-                        {/* Hover Image */}
-                        <motion.img
-                            src={hover}
-                            alt={`${product.name} alternate view`}
-                            className="absolute inset-0 w-full h-full object-contain p-6 md:p-8"
+                        {/* Hover Image - Optimized */}
+                        <motion.div
+                            className="absolute inset-0"
                             style={{
                                 opacity: isActive ? 1 : 0,
                                 transition: "opacity 0.6s cubic-bezier(0.4, 0.0, 0.2, 1)",
                             }}
                             aria-hidden="true"
-                        />
+                        >
+                            <JewelryImage.Product
+                                src={hover}
+                                alt={`${product.name} alternate view`}
+                                priority={false} // Hover images don't need priority
+                                className="object-contain p-6 md:p-8 h-full w-full"
+                            />
+                        </motion.div>
 
                         {/* Elegant overlay gradient */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />

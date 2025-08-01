@@ -64,11 +64,11 @@ export default function FeaturedProducts({
             <section className="py-20 md:py-32 bg-white dark:bg-black text-black dark:text-white transition-colors duration-500">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-16">
-                        <h2 className="text-3xl md:text-5xl font-sans tracking-wide mb-6">
+                        <h2 className="text-3xl md:text-5xl font-display tracking-wide mb-6">
                             {title}
                         </h2>
                         <div className="w-24 h-px bg-gold mx-auto mb-6" />
-                        <p className="text-gray-600 dark:text-gray-400 text-lg tracking-wide max-w-2xl mx-auto">
+                        <p className="text-gray-600 dark:text-gray-400 text-lg font-body tracking-wide max-w-2xl mx-auto">
                             {subtitle}
                         </p>
                     </div>
@@ -103,18 +103,18 @@ export default function FeaturedProducts({
             className="py-20 md:py-32 bg-white dark:bg-black text-black dark:text-white transition-colors duration-500"
         >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                {/* Section Header */}
+                {/* Section Header - Optimized Fonts */}
                 <motion.div
                     className="text-center mb-16"
                     initial={{ opacity: 0, y: 50 }}
                     animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
                     transition={{ duration: HOME_CONFIG.animations.transitions.duration }}
                 >
-                    <h2 className="text-3xl md:text-5xl font-sans tracking-wide mb-6">
+                    <h2 className="text-3xl md:text-5xl font-display tracking-wide mb-6">
                         {title}
                     </h2>
                     <div className="w-24 h-px bg-gold mx-auto mb-6" />
-                    <p className="text-gray-600 dark:text-gray-400 text-lg tracking-wide max-w-2xl mx-auto">
+                    <p className="text-gray-600 dark:text-gray-400 text-lg font-body tracking-wide max-w-2xl mx-auto">
                         {subtitle}
                     </p>
                 </motion.div>
@@ -145,7 +145,7 @@ export default function FeaturedProducts({
                         </button>
                     </div>
 
-                    {/* Scrollable Products */}
+                    {/* Scrollable Products - Images optimized via ProductCard */}
                     <div
                         ref={scrollRef}
                         className="flex gap-8 overflow-x-auto scrollbar-hide pb-4"
@@ -157,6 +157,9 @@ export default function FeaturedProducts({
                     >
                         {extendedProducts.map((product, index) => {
                             const actualIndex = index % products.length;
+                            // Priority loading for first 3-4 visible products
+                            const isPriorityProduct = actualIndex < 4;
+
                             return (
                                 <motion.div
                                     key={`${product.id}-${index}`}
@@ -176,7 +179,7 @@ export default function FeaturedProducts({
                                     <ProductCard
                                         product={product}
                                         showPrice={showPrices}
-                                        index={actualIndex}
+                                        index={isPriorityProduct ? actualIndex : actualIndex + 10} // Priority for first 4
                                         disableRotation={true}
                                     />
                                 </motion.div>
@@ -200,7 +203,7 @@ export default function FeaturedProducts({
                     </div>
                 </motion.div>
 
-                {/* View All CTA */}
+                {/* View All CTA - Optimized Font */}
                 <motion.div
                     className="text-center mt-16"
                     initial={{ opacity: 0, y: 30 }}
@@ -209,7 +212,7 @@ export default function FeaturedProducts({
                 >
                     <a
                         href={viewAllLink}
-                        className="inline-block px-8 py-4 border border-current hover:text-white hover:bg-black dark:hover:text-black dark:hover:bg-white transition-all duration-300 tracking-widest uppercase text-sm group"
+                        className="inline-block px-8 py-4 border border-current hover:text-white hover:bg-black dark:hover:text-black dark:hover:bg-white transition-all duration-300 tracking-widest uppercase text-sm font-body group"
                     >
                         <span className="inline-block transform group-hover:translate-x-1 transition-transform duration-300">
                             View All Products

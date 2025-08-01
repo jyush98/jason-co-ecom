@@ -1,5 +1,5 @@
 import { motion, useTransform, MotionValue } from "framer-motion";
-import Image from "next/image";
+import { JewelryImage } from "@/components/ui/OptimizedImage";
 
 interface ScrollGalleryItemProps {
   item: {
@@ -100,17 +100,21 @@ export default function ScrollGalleryItem({
         {/* Main jewelry image - 80% height on mobile, top-aligned */}
         <div className="relative w-full h-[80%] md:h-full flex items-start md:items-center justify-center">
           <div className="relative w-full h-full max-w-sm md:max-w-none">
-            <Image
-              src={item.largeImage}
-              alt={item.title}
-              fill
-              className="object-contain"
+            {/* Optimized Gallery Image */}
+            <div
+              className="relative w-full h-full"
               style={{
-                objectPosition: item.objectPosition || "center top", // Top-aligned on mobile
+                objectPosition: item.objectPosition || "center top",
                 filter: "drop-shadow(0 25px 50px rgba(0, 0, 0, 0.3))"
               }}
-              priority={cycleIndex === 1 && index < 2} // Prioritize middle cycle, first items
-            />
+            >
+              <JewelryImage.Gallery
+                src={item.largeImage}
+                alt={item.title}
+                priority={cycleIndex === 1 && index < 2} // Prioritize middle cycle, first items
+                className="object-contain h-full w-full"
+              />
+            </div>
 
             {/* Enhanced glow effect */}
             <motion.div
@@ -127,7 +131,7 @@ export default function ScrollGalleryItem({
           </div>
         </div>
 
-        {/* Category badge with enhanced animation */}
+        {/* Category badge with enhanced animation and optimized font */}
         <motion.div
           className="absolute top-4 md:top-8 right-4 md:right-8 bg-white/90 dark:bg-black/90 backdrop-blur-sm px-3 md:px-4 py-1.5 md:py-2 rounded-full border border-gold/40"
           style={{
@@ -143,7 +147,7 @@ export default function ScrollGalleryItem({
             )
           }}
         >
-          <span className="text-gold text-xs md:text-sm tracking-wider uppercase font-medium">
+          <span className="text-gold text-xs md:text-sm tracking-wider uppercase font-medium font-body">
             {item.category}
           </span>
         </motion.div>

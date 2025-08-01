@@ -2,8 +2,8 @@
 
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
-import Image from "next/image";
 import Link from "next/link";
+import { JewelryImage } from "@/components/ui/OptimizedImage";
 import { defaultCollections } from "@/data/homepage";
 
 interface Collection {
@@ -55,11 +55,13 @@ export default function CollectionsShowcase({
     const CollectionCard = ({
         collection,
         isFeatured = false,
-        className = ""
+        className = "",
+        priority = false
     }: {
         collection: Collection;
         isFeatured?: boolean;
         className?: string;
+        priority?: boolean;
     }) => (
         <motion.div
             variants={itemVariants}
@@ -68,13 +70,13 @@ export default function CollectionsShowcase({
             transition={{ duration: 0.4, ease: "easeOut" }}
         >
             <Link href={collection.path} className="block relative h-full">
-                {/* Image */}
+                {/* Optimized Image - Now using JewelryImage.Gallery */}
                 <div className="relative overflow-hidden h-full">
-                    <Image
+                    <JewelryImage.Gallery
                         src={collection.image}
                         alt={collection.name}
-                        fill
-                        className="object-cover transform group-hover:scale-105 transition-transform duration-700"
+                        priority={priority}
+                        className="object-cover transform group-hover:scale-105 transition-transform duration-700 h-full w-full"
                     />
 
                     {/* Gradient Overlay */}
@@ -145,6 +147,7 @@ export default function CollectionsShowcase({
                     <CollectionCard
                         collection={featuredCollection}
                         isFeatured={true}
+                        priority={true}
                         className="lg:col-span-7 h-96 md:h-[500px] lg:h-[500px]"
                     />
 
@@ -154,6 +157,7 @@ export default function CollectionsShowcase({
                             <CollectionCard
                                 key={collection.name}
                                 collection={collection}
+                                priority={index === 0}
                                 className="h-48 lg:h-[235px]"
                             />
                         ))}

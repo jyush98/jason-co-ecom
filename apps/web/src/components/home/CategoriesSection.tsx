@@ -3,8 +3,8 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
+import { JewelryImage } from "@/components/ui/OptimizedImage";
 import { CategoriesSectionProps } from "@/types/home";
 import { defaultCategories } from "@/data/homepage";
 import { HOME_CONFIG } from "@/config";
@@ -114,6 +114,9 @@ export default function CategoriesSection({
                             {/* Render categories in a loop - show all categories but shift position */}
                             {[...categories, ...categories].map((category, index) => {
                                 const actualIndex = index % categories.length;
+                                const isVisible = index >= currentIndex && index < currentIndex + slidesToShow;
+                                const isPriority = isVisible && index < currentIndex + 2; // First 2 visible items get priority
+
                                 return (
                                     <motion.div
                                         key={`${category.name}-${index}`}
@@ -123,13 +126,13 @@ export default function CategoriesSection({
                                     >
                                         <Link href={category.path} className="group block">
                                             <div className="relative overflow-hidden bg-black">
-                                                {/* Image */}
+                                                {/* Optimized Image - Now using JewelryImage.Thumbnail */}
                                                 <div className="relative aspect-[4/5] overflow-hidden">
-                                                    <Image
+                                                    <JewelryImage.Thumbnail
                                                         src={category.image}
                                                         alt={category.name}
-                                                        fill
-                                                        className="object-cover transform group-hover:scale-110 transition-transform duration-700"
+                                                        priority={isPriority}
+                                                        className="object-cover transform group-hover:scale-110 transition-transform duration-700 h-full w-full"
                                                     />
 
                                                     {/* Gradient Overlay */}
