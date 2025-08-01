@@ -25,7 +25,11 @@ import {
     Megaphone,
     FileText,
     LogOut,
-    Crown
+    Crown,
+    SearchX,
+    Globe,
+    Target,
+    LineChart
 } from "lucide-react";
 
 interface AdminLayoutProps {
@@ -57,7 +61,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     const [expandedSections, setExpandedSections] = useState<string[]>(['main']);
     const [notifications, setNotifications] = useState(3); // Mock notification count
 
-    // Navigation configuration for Phase 2
+    // Enhanced Navigation configuration with SEO & Analytics from Epic 9 Phase 3
     const navigationSections: NavigationSection[] = [
         {
             title: "Main",
@@ -76,7 +80,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             ]
         },
         {
-            title: "Analytics & Insights",
+            title: "Analytics & Growth",
             items: [
                 {
                     name: "Analytics",
@@ -85,8 +89,30 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     subItems: [
                         { name: "Overview", href: "/admin/analytics", description: "Key metrics and trends" },
                         { name: "Revenue", href: "/admin/analytics/revenue", description: "Revenue deep-dive" },
-                        { name: "Customers", href: "/admin/analytics/customer", description: "Customer insights" },
-                        { name: "Products", href: "/admin/analytics/product", description: "Product performance" }
+                        { name: "Customers", href: "/admin/analytics/customers", description: "Customer insights" },
+                        { name: "Products", href: "/admin/analytics/products", description: "Product performance" },
+                        { name: "Geographic", href: "/admin/analytics/geographic", description: "Geographic analysis" }
+                    ]
+                },
+                {
+                    name: "SEO Dashboard",
+                    href: "/admin/seo",
+                    icon: SearchX,
+                    subItems: [
+                        { name: "SEO Overview", href: "/admin/seo", description: "SEO performance dashboard" },
+                        { name: "Keywords", href: "/admin/seo/keywords", description: "Keyword tracking & optimization" },
+                        { name: "Pages", href: "/admin/seo/pages", description: "Page performance analysis" },
+                        { name: "Opportunities", href: "/admin/seo/opportunities", description: "SEO improvement opportunities" }
+                    ]
+                },
+                {
+                    name: "Performance",
+                    href: "/admin/performance",
+                    icon: LineChart,
+                    subItems: [
+                        { name: "Core Web Vitals", href: "/admin/performance", description: "Site speed & performance" },
+                        { name: "Image Optimization", href: "/admin/performance/images", description: "Image performance tracking" },
+                        { name: "Monitoring", href: "/admin/performance/monitoring", description: "Real-time performance data" }
                     ]
                 },
                 {
@@ -147,7 +173,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     subItems: [
                         { name: "General", href: "/admin/settings", description: "General settings" },
                         { name: "Users", href: "/admin/settings/users", description: "Admin user management" },
-                        { name: "Permissions", href: "/admin/settings/permissions", description: "Role management" }
+                        { name: "Permissions", href: "/admin/settings/permissions", description: "Role management" },
+                        { name: "API Keys", href: "/admin/settings/api", description: "Analytics & SEO API configuration" }
                     ]
                 }
             ]
@@ -275,7 +302,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                                 <Menu size={20} />
                             </button>
 
-                            {/* Breadcrumbs */}
+                            {/* Enhanced Breadcrumbs with SEO/Analytics context */}
                             <nav className="hidden sm:flex items-center space-x-2 text-sm">
                                 <Link
                                     href="/admin"
@@ -287,7 +314,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                                     <>
                                         <span className="text-gray-300 dark:text-gray-600">/</span>
                                         <span className="text-gray-900 dark:text-white font-medium capitalize">
-                                            {pathname.split("/").pop()}
+                                            {pathname.includes('/seo') ? 'SEO Dashboard' :
+                                                pathname.includes('/analytics') ? 'Analytics' :
+                                                    pathname.includes('/performance') ? 'Performance' :
+                                                        pathname.split("/").pop()?.replace('-', ' ')}
                                         </span>
                                     </>
                                 )}
@@ -296,12 +326,16 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
                         {/* Right side - Search and user menu */}
                         <div className="flex items-center gap-4">
-                            {/* Search bar */}
+                            {/* Enhanced Search bar for SEO/Analytics */}
                             <div className="hidden md:block relative">
                                 <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                                 <input
                                     type="text"
-                                    placeholder="Search orders, customers..."
+                                    placeholder={
+                                        pathname.includes('/seo') ? "Search keywords, pages..." :
+                                            pathname.includes('/analytics') ? "Search metrics, customers..." :
+                                                "Search orders, customers..."
+                                    }
                                     className="pl-10 pr-4 py-2 w-64 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
                                 />
                             </div>
@@ -354,7 +388,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     );
 }
 
-// Sidebar Component
+// Enhanced Sidebar Component with SEO & Analytics
 interface AdminSidebarProps {
     navigationSections: NavigationSection[];
     pathname: string;
@@ -440,8 +474,8 @@ function AdminSidebar({
                                                 onMouseEnter={() => setHoveredItem(item.name)}
                                                 onMouseLeave={() => setHoveredItem(null)}
                                                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${isActiveItem(item.href)
-                                                        ? 'bg-gold text-black'
-                                                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                                    ? 'bg-gold text-black'
+                                                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                                                     }`}
                                             >
                                                 <item.icon size={20} className="flex-shrink-0" />
@@ -471,8 +505,8 @@ function AdminSidebar({
                                                 onMouseEnter={() => setHoveredItem(item.name)}
                                                 onMouseLeave={() => setHoveredItem(null)}
                                                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${isActiveItem(item.href)
-                                                        ? 'bg-gold text-black'
-                                                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                                    ? 'bg-gold text-black'
+                                                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                                                     }`}
                                             >
                                                 <item.icon size={20} className="flex-shrink-0" />
@@ -523,8 +557,8 @@ function AdminSidebar({
                                                                 key={subItem.href}
                                                                 href={subItem.href}
                                                                 className={`block px-3 py-2 rounded-lg text-sm transition-colors ${pathname === subItem.href
-                                                                        ? 'bg-gold/10 text-gold border-l-2 border-gold'
-                                                                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700'
+                                                                    ? 'bg-gold/10 text-gold border-l-2 border-gold'
+                                                                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700'
                                                                     }`}
                                                             >
                                                                 <div className="font-medium">{subItem.name}</div>
@@ -571,7 +605,7 @@ function AdminSidebar({
                         <div className="flex items-center gap-2 px-3 py-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
                             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                             <span className="text-xs text-green-700 dark:text-green-400 font-medium">
-                                Admin Mode Active
+                                Epic 9 Phase 3 Ready
                             </span>
                         </div>
                     </div>
@@ -594,7 +628,7 @@ function AdminSidebar({
                             <LogOut size={16} />
                         </button>
 
-                        <div className="w-2 h-2 bg-green-500 rounded-full" title="Admin Mode Active"></div>
+                        <div className="w-2 h-2 bg-green-500 rounded-full" title="Epic 9 Phase 3 Ready"></div>
                     </div>
                 )}
             </div>

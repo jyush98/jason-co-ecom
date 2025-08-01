@@ -9,6 +9,7 @@ import { PerformanceMonitoring } from '@/lib/performance/webVitals';
 import { OrganizationSchema, WebsiteSchema } from '@/components/seo/SchemaMarkup';
 import { createMetadata } from '@/lib/seo/metadata';
 import { inter, playfair, fontVariables, FontPreloads } from '@/lib/fonts/optimizedFonts';
+import { GA4Provider } from '@/components/analytics/GA4Provider';
 import './globals.css';
 
 // Enhanced metadata for SEO
@@ -120,33 +121,6 @@ export default function RootLayout({
           <meta name="googlebot" content="index, follow" />
           <link rel="canonical" href="https://jasonandco.shop" />
 
-          {/* Performance monitoring and analytics */}
-          {process.env.NODE_ENV === 'production' && (
-            <>
-              {/* Google Analytics 4 */}
-              <script
-                async
-                src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
-              />
-              <script
-                dangerouslySetInnerHTML={{
-                  __html: `
-                    window.dataLayer = window.dataLayer || [];
-                    function gtag(){dataLayer.push(arguments);}
-                    gtag('js', new Date());
-                    gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}', {
-                      page_title: document.title,
-                      page_location: window.location.href,
-                      send_page_view: false,
-                      anonymize_ip: true,
-                      cookie_flags: 'secure;samesite=strict'
-                    });
-                  `,
-                }}
-              />
-            </>
-          )}
-
           {/* Structured Data for SEO */}
           <OrganizationSchema />
           <WebsiteSchema />
@@ -156,27 +130,30 @@ export default function RootLayout({
           {/* Performance monitoring */}
           <PerformanceMonitoring />
 
-          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-            <ThemeInitializer />
+          {/* GA4 Enhanced E-commerce Analytics Provider */}
+          <GA4Provider>
+            <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+              <ThemeInitializer />
 
-            {/* Toast notifications */}
-            <Toaster position="top-center" />
+              {/* Toast notifications */}
+              <Toaster position="top-center" />
 
-            {/* Header */}
-            <header>
-              <Navbar />
-            </header>
+              {/* Header */}
+              <header>
+                <Navbar />
+              </header>
 
-            {/* Main content */}
-            <main className="flex-grow">
-              {children}
-            </main>
+              {/* Main content */}
+              <main className="flex-grow">
+                {children}
+              </main>
 
-            {/* Footer */}
-            <footer>
-              <Footer />
-            </footer>
-          </ThemeProvider>
+              {/* Footer */}
+              <footer>
+                <Footer />
+              </footer>
+            </ThemeProvider>
+          </GA4Provider>
 
           {/* Service Worker for PWA (production only) */}
           {process.env.NODE_ENV === 'production' && (

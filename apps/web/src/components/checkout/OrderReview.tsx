@@ -26,7 +26,7 @@ interface OrderReviewProps {
     tax: number,
     total: number;
     onPrevious: () => void;
-    onPlaceOrder: () => void; // This will be called after successful order submission
+    onPlaceOrder: (orderData: any) => void; // Updated to accept orderData parameter
 }
 
 export default function OrderReview({
@@ -76,8 +76,8 @@ export default function OrderReview({
             const result = await response.json();
             console.log('Order submitted successfully:', result);
 
-            // Redirect to confirmation page with the order number from API response
-            router.push(`/checkout/confirmation?order_number=${result.order_number}`);
+            // Call onPlaceOrder with the order data for analytics tracking
+            onPlaceOrder(result);
 
         } catch (error) {
             console.error('Order submission error:', error);
@@ -153,7 +153,7 @@ export default function OrderReview({
                                     <div key={item.product_id} className="flex gap-4">
                                         <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden flex-shrink-0">
                                             <JewelryImage.Product
-                                                src={item.product.image_url? item.product.image_url : "/placeholder.jpg"}
+                                                src={item.product.image_url ? item.product.image_url : "/placeholder.jpg"}
                                                 alt={item.product.name}
                                                 className="w-full h-full object-cover"
                                             />

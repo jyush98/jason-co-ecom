@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingBag, Check, AlertCircle } from "lucide-react";
 import { CART_CONFIG } from "@/config/cartConfig";
+import { useGA4Ecommerce } from '@/lib/hooks/useGA4';
 
 interface AddToCartButtonProps {
   productId: number;
@@ -49,6 +50,7 @@ export default function AddToCartButton({
   const fetchCartCount = useCartStore((state) => state.fetchCartCount);
   const addGuestItem = useGuestCartStore((state) => state.addItem);
   const setCartCount = useCartStore((state) => state.setCartCount);
+  const { trackAddToCart } = useGA4Ecommerce();
 
   // Cart drawer state - assuming you'll add this to your cart store
   const openCartDrawer = useCartStore((state) => state.openDrawer);
@@ -105,6 +107,9 @@ export default function AddToCartButton({
       if (setLastAddedItem) {
         setLastAddedItem(cartItem);
       }
+
+      // Track in GA4
+      trackAddToCart(cartItem.product, quantity);
 
       setState('success');
 

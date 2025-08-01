@@ -20,6 +20,7 @@ import {
     PaymentMethod
 } from "@/types/cart";
 import { formatCartPrice } from "@/config/cartConfig";
+import { useGA4Ecommerce } from '@/lib/hooks/useGA4';
 
 // Import your components
 import ShippingForm from "@/components/checkout/ShippingForm";
@@ -35,6 +36,7 @@ export default function CheckoutPage() {
     const { isSignedIn, user } = useUser();
     const { cart, isLoading: cartLoading, fetchCart } = useCartData();
     const router = useRouter(); // ✅ Add this line
+    const { trackBeginCheckout, trackPurchase } = useGA4Ecommerce();
 
     // Checkout state
     const [currentStep, setCurrentStep] = useState<CheckoutStep>('shipping');
@@ -69,6 +71,19 @@ export default function CheckoutPage() {
         };
         loadCart();
     }, [getToken, fetchCart]);
+
+    // Track checkout initiation when cart is loaded
+    useEffect(() => {
+        if (cart && cart.items.length > 0) {
+            // Calculate total for tracking
+            const subtotal = cart.subtotal || 0;
+            const shippingCost = selectedShippingMethod?.price || 0;
+            const total = subtotal + shippingCost + tax;
+
+            // Track checkout initiation
+            trackBeginCheckout(cart.items, total);
+        }
+    }, [cart, selectedShippingMethod?.price, tax, trackBeginCheckout]);
 
     // Auto-populate shipping methods when address is complete
     useEffect(() => {
@@ -285,10 +300,20 @@ export default function CheckoutPage() {
     const total = subtotal + shippingCost + tax;
 
     // Handle successful order completion
-    const handleOrderSuccess = () => {
+    const handleOrderSuccess = (orderData: any) => {
+        // Track successful purchase
+        trackPurchase({
+            id: orderData.id,
+            items: cart?.items || [],
+            total: orderData.total,
+            currency: 'USD',
+            shipping: orderData.shipping || 0,
+            tax: orderData.tax || 0
+        });
+
         // The OrderReview component will handle getting the order number from the API response
         // and then call this function to redirect to confirmation
-        router.push(`/checkout/confirmation?order_number=ORD-SUCCESS`);
+        router.push(`/checkout/confirmation?order_number=${orderData.order_number || 'ORD-SUCCESS'}`);
     };
 
     if (cartLoading || !cart) {

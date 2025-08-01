@@ -12,12 +12,14 @@ import {
     EmptyState
 } from "@/components/shop";
 import { SHOP_CONFIG, getDefaultCategory, getDefaultSort } from "@/config";
+import { useGA4Ecommerce } from "@/lib/hooks/useGA4";
 
 interface ProductListProps {
     initialCategory?: string;
 }
 
 export default function ProductList({ initialCategory }: ProductListProps) {
+    const { trackProductView } = useGA4Ecommerce();
     const searchParams = useSearchParams();
     const router = useRouter();
 
@@ -47,6 +49,26 @@ export default function ProductList({ initialCategory }: ProductListProps) {
     useEffect(() => {
         setCategory(initialCategory || getDefaultCategory());
     }, [initialCategory]);
+
+    // GA4 Tracking - Track shop page view with product list
+    useEffect(() => {
+        // Track shop page view with product list
+        if (typeof window !== 'undefined' && window.gtag && products.length > 0) {
+            window.gtag('event', 'view_item_list', {
+                item_list_id: 'shop_main',
+                item_list_name: 'Main Shop',
+                items: products.slice(0, 12).map((product, index) => ({
+                    item_id: product.id,
+                    item_name: product.name,
+                    item_category: product.category,
+                    item_brand: 'Jason & Co',
+                    price: product.price,
+                    currency: 'USD',
+                    index: index
+                }))
+            });
+        }
+    }, [products]);
 
     // Debounced product fetching - FIXED: Handle normalized response
     const getProducts = useCallback(() => {

@@ -4,23 +4,8 @@ import { ProductDetailView } from "@/components/products";
 import { Product } from "@/types/product";
 import { ProductSchema, BreadcrumbSchema } from "@/components/seo/SchemaMarkup";
 import { createProductMetadata } from '@/lib/seo/metadata';
+import { ProductTracker } from '@/components/analytics/ProductTracker';
 import type { Metadata } from "next";
-
-/**
- * Enhanced SEO Product Page for Jason & Co. Luxury Jewelry
- * 
- * Business Impact:
- * - Individual products discoverable in Google Shopping
- * - Rich search results with price, availability, reviews
- * - Optimized social media sharing for products
- * - Better rankings for product-specific keywords
- * 
- * SEO Features:
- * - Dynamic product schema for rich results
- * - Breadcrumb navigation for site structure
- * - Product-specific metadata optimization
- * - Social media preview optimization
- */
 
 interface ProductPageProps {
   params: Promise<{ id: string }>;
@@ -146,6 +131,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
     return (
       <>
+        {/* Simple Product Tracking - exactly as you specified */}
+        <ProductTracker product={product} viewType="detail" />
+
         {/* ===== STRUCTURED DATA FOR SEO ===== */}
 
         {/* Product Schema for Rich Search Results */}
@@ -197,66 +185,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
         {/* ===== PRODUCT DETAIL VIEW ===== */}
         <ProductDetailView product={product} />
-
-        {/* ===== SEO ENHANCEMENTS (Optional Future Additions) ===== */}
-
-        {/* FAQ Schema (add when you have product FAQs) */}
-        {/*
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              '@context': 'https://schema.org',
-              '@type': 'FAQPage',
-              mainEntity: [
-                {
-                  '@type': 'Question',
-                  name: 'What materials are used in this jewelry piece?',
-                  acceptedAnswer: {
-                    '@type': 'Answer',
-                    text: 'This piece is crafted with premium materials including...'
-                  }
-                },
-                {
-                  '@type': 'Question', 
-                  name: 'Is custom sizing available?',
-                  acceptedAnswer: {
-                    '@type': 'Answer',
-                    text: 'Yes, we offer custom sizing for all our jewelry pieces...'
-                  }
-                }
-              ]
-            }, null, 0)
-          }}
-        />
-        */}
-
-        {/* Review Schema (add when you have product reviews) */}
-        {/*
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              '@context': 'https://schema.org',
-              '@type': 'Review',
-              itemReviewed: {
-                '@type': 'Product',
-                name: product.name
-              },
-              author: {
-                '@type': 'Person',
-                name: 'Customer Name'
-              },
-              reviewRating: {
-                '@type': 'Rating',
-                ratingValue: 5,
-                bestRating: 5
-              },
-              reviewBody: 'Exceptional quality and craftsmanship...'
-            }, null, 0)
-          }}
-        />
-        */}
       </>
     );
 
@@ -265,37 +193,3 @@ export default async function ProductPage({ params }: ProductPageProps) {
     return notFound();
   }
 }
-
-/**
- * SEO Implementation Results:
- * 
- * ===== RICH SEARCH RESULTS =====
- * ✅ Product appears in Google Shopping with price, image, availability
- * ✅ Enhanced search snippets with structured data
- * ✅ Star ratings ready (when review system added)
- * ✅ Breadcrumb navigation in search results
- * 
- * ===== SOCIAL MEDIA OPTIMIZATION =====
- * ✅ Perfect Facebook/Instagram sharing previews
- * ✅ Twitter Card optimization for product promotion
- * ✅ Pinterest-ready product pins
- * ✅ WhatsApp sharing with product details
- * 
- * ===== SEARCH ENGINE OPTIMIZATION =====
- * ✅ Product-specific keyword targeting
- * ✅ Category-based internal linking
- * ✅ Canonical URL optimization
- * ✅ Image SEO with alt text and structured data
- * 
- * ===== EXPECTED RESULTS =====
- * 🎯 Individual products ranking for specific searches
- * 📈 50% increase in product page organic traffic
- * 🛍️ Higher conversion from Google Shopping integration
- * 📱 Improved social media engagement and sharing
- * 
- * ===== NEXT OPTIMIZATIONS =====
- * 1. Add product review schema when review system ready
- * 2. Implement FAQ schema for common product questions
- * 3. Add related products schema for better discovery
- * 4. Optimize product images for Google Images ranking
- */

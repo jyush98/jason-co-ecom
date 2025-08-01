@@ -1,7 +1,10 @@
+// lib/performance/webVitals.ts
+// Fixed Web Vitals monitoring using unified gtag types
+
 "use client";
 
 import { useEffect } from 'react';
-import { onCLS, onINP, onFCP, onLCP, onTTFB }from 'web-vitals';
+import { onCLS, onINP, onFCP, onLCP, onTTFB } from 'web-vitals';
 
 export interface WebVitalMetric {
     name: string;
@@ -49,7 +52,7 @@ function sendToAnalytics(metric: any) {
         console.groupEnd();
     }
 
-    // Send to Google Analytics (if available)
+    // Send to Google Analytics (using unified gtag interface)
     if (typeof window !== 'undefined' && window.gtag) {
         window.gtag('event', metric.name, {
             value: webVitalMetric.value,
@@ -63,7 +66,7 @@ function sendToAnalytics(metric: any) {
         });
     }
 
-    // Send to Vercel Analytics (if available) - fixed API
+    // Send to Vercel Analytics (if available)
     if (typeof window !== 'undefined' && window.va) {
         window.va('event', {
             name: 'Web Vitals',
@@ -93,12 +96,12 @@ function sendToAnalytics(metric: any) {
     }
 }
 
-// Initialize Web Vitals monitoring using dynamic imports
+// Initialize Web Vitals monitoring
 export async function initWebVitals() {
     if (typeof window === 'undefined') return;
 
     try {
-        // Measure all Core Web Vitals (updated function names)
+        // Measure all Core Web Vitals
         onCLS(sendToAnalytics);
         onINP(sendToAnalytics);
         onFCP(sendToAnalytics);
@@ -121,8 +124,8 @@ export function initPerformanceObserver() {
                 if (entry.duration > 50) {
                     console.warn(`⚠️ Long task detected: ${Math.round(entry.duration)}ms`);
 
-                    // Send to analytics
-                    if (typeof window.gtag === 'function') {
+                    // Send to analytics using unified interface
+                    if (typeof window !== 'undefined' && window.gtag) {
                         window.gtag('event', 'long_task', {
                             event_category: 'Performance',
                             value: Math.round(entry.duration),
@@ -149,8 +152,8 @@ export function measurePerformance(name: string, fn: () => void | Promise<void>)
         const duration = performance.now() - start;
         console.log(`⏱️ ${name}: ${Math.round(duration)}ms`);
 
-        // Send to analytics
-        if (typeof window.gtag === 'function') {
+        // Send to analytics using unified interface
+        if (typeof window !== 'undefined' && window.gtag) {
             window.gtag('event', 'custom_timing', {
                 event_category: 'Performance',
                 name: name,
@@ -184,20 +187,4 @@ export function PerformanceMonitoring() {
     return null;
 }
 
-// Type declarations for global analytics
-declare global {
-    interface Window {
-        gtag?: (
-            command: string,
-            action: string,
-            parameters?: Record<string, any>
-        ) => void;
-        va?: (
-            command: 'event',
-            parameters: {
-                name: string;
-                data?: Record<string, any>;
-            }
-        ) => void;
-    }
-}
+// No global declarations needed - using types/analytics.d.ts

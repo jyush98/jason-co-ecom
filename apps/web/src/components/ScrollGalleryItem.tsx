@@ -1,5 +1,7 @@
 import { motion, useTransform, MotionValue } from "framer-motion";
+import { useState } from "react";
 import { JewelryImage } from "@/components/ui/OptimizedImage";
+import { useGA4LuxuryEvents } from '@/lib/hooks/useGA4';
 
 interface ScrollGalleryItemProps {
   item: {
@@ -26,6 +28,8 @@ export default function ScrollGalleryItem({
   extendedProgress,
   cycleIndex
 }: ScrollGalleryItemProps) {
+  const { trackGalleryEngagement } = useGA4LuxuryEvents();
+  const [viewStartTime, setViewStartTime] = useState<number | null>(null);
 
   // Calculate the position of this item in the extended scroll
   const itemPosition = globalIndex;
@@ -84,6 +88,21 @@ export default function ScrollGalleryItem({
     [10, 3, 0, -3, -10]
   );
 
+  // Track gallery engagement
+  const handleImageView = () => {
+    setViewStartTime(Date.now());
+    trackGalleryEngagement('image_view', item.title);
+  };
+
+  const handleImageExit = () => {
+    if (viewStartTime) {
+      const timeSpent = Date.now() - viewStartTime;
+      if (timeSpent > 3000) { // Only track if viewed for 3+ seconds
+        trackGalleryEngagement('image_engagement', item.title, timeSpent);
+      }
+    }
+  };
+
   return (
     <motion.div
       className="absolute inset-0 flex items-center justify-center"
@@ -94,6 +113,8 @@ export default function ScrollGalleryItem({
         rotateY,
         transformStyle: "preserve-3d"
       }}
+      onMouseEnter={handleImageView}
+      onMouseLeave={handleImageExit}
     >
       {/* Jewelry piece container - responsive sizing */}
       <div className="relative w-full h-full max-w-4xl flex md:items-center justify-center px-4 md:px-0">
