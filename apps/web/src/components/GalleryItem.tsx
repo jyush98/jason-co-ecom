@@ -1,5 +1,5 @@
-import Image from "next/image";
 import { GalleryItemType } from "@/types/gallery";
+import { JewelryImage } from "./ui/OptimizedImage";
 
 interface Props {
   item: GalleryItemType;
@@ -8,7 +8,7 @@ interface Props {
 export default function GalleryItem({ item }: Props) {
   return (
     <div className="relative overflow-hidden rounded-xl group">
-      <Image
+      <JewelryImage.Product
         src={item.imageUrl}
         alt={item.title}
         width={500}
