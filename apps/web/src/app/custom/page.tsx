@@ -3,36 +3,57 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
+import { useRouter } from "next/navigation";
+import { CustomOrderFlow, type CustomOrderFormState } from "@/components/custom/CustomOrderFlow";
+import { InspirationGallery, type InspirationItem } from "@/components/custom/InspirationGallery";
 // import Image from "next/image";
 // import { customItems } from "@/data/custom";
 // import SignatureGallery from "@/components/Signature Gallery";
 
 export default function CustomOrdersPage() {
-  const [submitting, setSubmitting] = useState(false);
+  const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setSubmitting(true);
-
-    const form = e.currentTarget;
-    const formData = new FormData(form);
-
+  // Handle custom order form submission
+  const handleCustomOrderSubmit = async (formData: CustomOrderFormState) => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/custom-order`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/custom-orders`, {
         method: "POST",
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
       });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data?.detail || "Submission failed");
 
-      toast.success("Inquiry submitted!");
-      form.reset();
-    } catch {
-      toast.error("Something went wrong. Please try again.");
+      toast.success("Custom order submitted successfully!");
+      router.push("/custom-orders/thank-you");
+    } catch (error) {
+      console.error("Custom order submission failed:", error);
+      throw error; // Re-throw so CustomOrderFlow can handle the error
+    }
+  };
+
+  // Handle draft saving (optional)
+  const handleSaveDraft = (formData: Partial<CustomOrderFormState>) => {
+    try {
+      localStorage.setItem('customOrderDraft', JSON.stringify(formData));
+    } catch (error) {
+      console.error("Failed to save draft:", error);
+    }
+  };
+
+  // Handle inspiration selection
+  const handleUseAsInspiration = (item: InspirationItem) => {
+    // You could scroll to the form or pre-fill some data
+    const element = document.getElementById('custom-order-form');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
     }
 
-    setSubmitting(false);
+    toast.success(`Using "${item.title}" as inspiration!`);
+    // Optionally pre-fill form data based on inspiration
   };
 
   return (
@@ -84,31 +105,35 @@ export default function CustomOrdersPage() {
         </div>
       </section>
 
-      {/* SECTION 4: INQUIRY FORM */}
-      <section className="px-6 md:px-20 py-20 bg-background">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-6">Start Your Design</h2>
-          <p className="text-center text-muted-foreground text-lg max-w-2xl mx-auto mb-12">
-            Every piece begins with a conversation. Tell us what you envision — from specific details to general inspiration — and we’ll take it from there.
-          </p>
+      {/* SECTION 4: INSPIRATION GALLERY */}
+      <section className="py-20 px-6 md:px-20 bg-background">
+        <InspirationGallery
+          onUseAsInspiration={handleUseAsInspiration}
+          maxItems={6} // Limit to 6 items for page performance
+          className="max-w-6xl mx-auto"
+        />
+      </section>
 
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-8" noValidate>
-            <div className="space-y-6">
-              <input type="text" name="name" placeholder="Name" required className="w-full p-4 border border-black rounded bg-muted text-foreground placeholder-muted-foreground" />
-              <input type="text" name="phone" placeholder="Phone Number" required className="w-full p-4 border border-black rounded bg-muted text-foreground placeholder-muted-foreground" />
-              <input type="email" name="email" placeholder="Email Address (optional)" className="w-full p-4 border border-black rounded bg-muted text-foreground placeholder-muted-foreground" />
-              <div>
-                <label className="block text-sm text-muted-foreground mb-2">Upload Inspiration (optional)</label>
-                <input type="file" name="inspiration" accept="image/*" className="w-full p-4 rounded bg-muted text-foreground file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-foreground file:text-background hover:file:bg-muted-foreground/90" />
-              </div>
-            </div>
-            <div className="flex flex-col">
-              <textarea name="message" placeholder="Tell us what you're looking for..." required rows={10} className="w-full h-full border border-black p-4 rounded bg-muted text-foreground placeholder-muted-foreground" />
-              <button type="submit" disabled={submitting} className="mt-6 w-full border border-black py-3 bg-foreground text-background font-semibold rounded hover:bg-muted-foreground transition-colors">
-                {submitting ? "Submitting..." : "Create My Piece"}
-              </button>
-            </div>
-          </form>
+      {/* SECTION 5: ENHANCED CUSTOM ORDER FORM */}
+      <section id="custom-order-form" className="py-20 bg-white dark:bg-black">
+        <div className="mx-auto px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">Start Your Design</h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              Every piece begins with a conversation. Our enhanced design process helps us understand your vision perfectly.
+            </p>
+          </div>
+
+          <CustomOrderFlow
+            onSubmit={handleCustomOrderSubmit}
+            onSaveDraft={handleSaveDraft}
+            initialData={
+              // Optionally load draft from localStorage
+              typeof window !== 'undefined'
+                ? JSON.parse(localStorage.getItem('customOrderDraft') || '{}')
+                : {}
+            }
+          />
         </div>
       </section>
     </div>
