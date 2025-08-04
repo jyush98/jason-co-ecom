@@ -81,6 +81,7 @@ export default function AdminCustomOrderList() {
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-sm">
             <Phone size={14} className="text-white/50" />
+            {/* ✅ Safe handling of potentially null/undefined phone */}
             <span className="text-white/90">{order.phone || 'N/A'}</span>
           </div>
           <div className="flex items-center gap-2 text-sm">
@@ -99,9 +100,10 @@ export default function AdminCustomOrderList() {
       render: (value, order) => (
         <div className="space-y-2">
           <p className="text-white/90 text-sm line-clamp-2 max-w-[300px]">
-            {order.message.length > 100
+            {/* ✅ Safe handling of potentially null/undefined message */}
+            {order.message && order.message.length > 100
               ? `${order.message.substring(0, 100)}...`
-              : order.message
+              : order.message || 'No message provided'
             }
           </p>
           {order.image_url && order.image_url !== "No image uploaded" && (
@@ -189,7 +191,6 @@ export default function AdminCustomOrderList() {
       setLoading(true);
       setError(null);
 
-      // Try with auth first, fall back to no auth if needed
       let headers: Record<string, string> = {
         'Content-Type': 'application/json',
       };
@@ -211,13 +212,19 @@ export default function AdminCustomOrderList() {
         throw new Error(`Failed to fetch custom orders: ${response.statusText}`);
       }
 
-      const data = await response.json();
-      console.log("📝 Custom orders fetched:", data.length);
+      const apiResponse = await response.json();
 
-      // Add default status to orders that don't have one
-      const ordersWithStatus = data.map((order: CustomOrder) => ({
+      // Extract the orders array from the API response
+      const ordersData: CustomOrder[] = apiResponse.data || [];
+      console.log("📝 Custom orders fetched:", ordersData.length);
+
+      // Add default status and ensure required fields exist
+      const ordersWithStatus = ordersData.map((order: CustomOrder) => ({
         ...order,
-        status: order.status || 'new'
+        status: order.status || 'new',
+        message: order.message || '', // ✅ Ensure message is never null/undefined
+        phone: order.phone || '',     // ✅ Ensure phone is never null/undefined
+        image_url: order.image_url || 'No image uploaded' // ✅ Ensure image_url is never null/undefined
       }));
 
       setCustomOrders(ordersWithStatus);
