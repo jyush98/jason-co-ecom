@@ -66,7 +66,7 @@ export default function AdminOrderList() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState<number | null>(null);
 
-  // ✅ DataTable columns configuration with built-in filtering
+  // ✅ DataTable columns configuration with theme-aware styling
   const columns: DataTableColumn<Order>[] = [
     {
       key: 'order_number',
@@ -74,8 +74,8 @@ export default function AdminOrderList() {
       sortable: true,
       render: (value, order) => (
         <div>
-          <p className="text-white font-medium">{order.order_number}</p>
-          <p className="text-white/50 text-sm">{order.items?.length || 0} items</p>
+          <p className="text-black dark:text-white font-medium">{order.order_number}</p>
+          <p className="text-gray-600 dark:text-gray-400 text-sm">{order.items?.length || 0} items</p>
         </div>
       )
     },
@@ -87,8 +87,8 @@ export default function AdminOrderList() {
       filterType: 'text',
       render: (value, order) => (
         <div>
-          <p className="text-white">{order.customer_first_name} {order.customer_last_name}</p>
-          <p className="text-white/50 text-sm">{order.customer_email}</p>
+          <p className="text-black dark:text-white">{order.customer_first_name} {order.customer_last_name}</p>
+          <p className="text-gray-600 dark:text-gray-400 text-sm">{order.customer_email}</p>
         </div>
       )
     },
@@ -100,8 +100,8 @@ export default function AdminOrderList() {
       filterType: 'number',
       render: (value, order) => (
         <div>
-          <p className="text-white font-medium">{formatPrice(order.total_price)}</p>
-          <p className="text-white/50 text-sm">{order.payment_status}</p>
+          <p className="text-black dark:text-white font-medium">{formatPrice(order.total_price)}</p>
+          <p className="text-gray-600 dark:text-gray-400 text-sm">{order.payment_status}</p>
         </div>
       )
     },
@@ -121,8 +121,8 @@ export default function AdminOrderList() {
         return (
           <div className="flex items-center gap-2">
             <div className={`w-2 h-2 rounded-full ${statusInfo.color}`} />
-            <StatusIcon size={16} className="text-white/70" />
-            <span className="text-white/90 text-sm">{statusInfo.label}</span>
+            <StatusIcon size={16} className="text-gray-600 dark:text-gray-400" />
+            <span className="text-black dark:text-white text-sm">{statusInfo.label}</span>
           </div>
         );
       }
@@ -140,10 +140,10 @@ export default function AdminOrderList() {
         { label: 'Refunded', value: 'refunded' }
       ],
       render: (value, order) => (
-        <span className={`text-sm ${order.payment_status === 'completed' ? 'text-green-400' :
-          order.payment_status === 'failed' ? 'text-red-400' :
-            order.payment_status === 'refunded' ? 'text-yellow-400' :
-              'text-white/70'
+        <span className={`text-sm ${order.payment_status === 'completed' ? 'text-green-600 dark:text-green-400' :
+            order.payment_status === 'failed' ? 'text-red-600 dark:text-red-400' :
+              order.payment_status === 'refunded' ? 'text-yellow-600 dark:text-yellow-400' :
+                'text-gray-600 dark:text-gray-400'
           }`}>
           {order.payment_status}
         </span>
@@ -156,7 +156,7 @@ export default function AdminOrderList() {
       filterable: true,
       filterType: 'daterange',
       render: (value, order) => (
-        <p className="text-white/90 text-sm">{formatDate(order.created_at)}</p>
+        <p className="text-black dark:text-white text-sm">{formatDate(order.created_at)}</p>
       )
     }
   ];
@@ -306,11 +306,11 @@ export default function AdminOrderList() {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
-          <AlertCircle className="mx-auto mb-4 text-red-400" size={48} />
-          <p className="text-red-400 mb-4">{error}</p>
+          <AlertCircle className="mx-auto mb-4 text-red-500 dark:text-red-400" size={48} />
+          <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
           <button
             onClick={fetchOrders}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 text-white rounded transition-colors"
           >
             Try Again
           </button>
@@ -321,58 +321,58 @@ export default function AdminOrderList() {
 
   return (
     <>
-      {/* ✅ Simple header - DataTable handles filtering internally */}
+      {/* ✅ Theme-aware header */}
       <div className="mb-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-white mb-2">Order Management</h1>
-            <p className="text-white/70">Manage and track all customer orders</p>
+            <h1 className="text-2xl font-bold text-black dark:text-white mb-2">Order Management</h1>
+            <p className="text-gray-600 dark:text-gray-400">Manage and track all customer orders</p>
           </div>
         </div>
       </div>
 
-      {/* ✅ Stats Cards */}
+      {/* ✅ Theme-aware stats cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="bg-neutral-800 p-4 rounded-lg border border-white/10">
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3">
-            <Package className="text-gold" size={24} />
+            <Package className="text-[#D4AF37]" size={24} />
             <div>
-              <p className="text-white/70 text-sm">Total Orders</p>
-              <p className="text-white text-xl font-semibold">{orders.length}</p>
+              <p className="text-gray-600 dark:text-gray-400 text-sm">Total Orders</p>
+              <p className="text-black dark:text-white text-xl font-semibold">{orders.length}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-neutral-800 p-4 rounded-lg border border-white/10">
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3">
-            <DollarSign className="text-green-400" size={24} />
+            <DollarSign className="text-green-500 dark:text-green-400" size={24} />
             <div>
-              <p className="text-white/70 text-sm">Total Revenue</p>
-              <p className="text-white text-xl font-semibold">
+              <p className="text-gray-600 dark:text-gray-400 text-sm">Total Revenue</p>
+              <p className="text-black dark:text-white text-xl font-semibold">
                 {formatPrice(orders.reduce((sum, order) => sum + order.total_price, 0))}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-neutral-800 p-4 rounded-lg border border-white/10">
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3">
-            <CheckCircle className="text-blue-400" size={24} />
+            <CheckCircle className="text-blue-500 dark:text-blue-400" size={24} />
             <div>
-              <p className="text-white/70 text-sm">Confirmed</p>
-              <p className="text-white text-xl font-semibold">
+              <p className="text-gray-600 dark:text-gray-400 text-sm">Confirmed</p>
+              <p className="text-black dark:text-white text-xl font-semibold">
                 {orders.filter(order => order.status === 'confirmed').length}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-neutral-800 p-4 rounded-lg border border-white/10">
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3">
-            <Clock className="text-yellow-400" size={24} />
+            <Clock className="text-yellow-500 dark:text-yellow-400" size={24} />
             <div>
-              <p className="text-white/70 text-sm">Pending</p>
-              <p className="text-white text-xl font-semibold">
+              <p className="text-gray-600 dark:text-gray-400 text-sm">Pending</p>
+              <p className="text-black dark:text-white text-xl font-semibold">
                 {orders.filter(order => order.status === 'pending').length}
               </p>
             </div>
@@ -441,7 +441,7 @@ export default function AdminOrderList() {
         className="mb-6"
       />
 
-      {/* ✅ Enhanced Order Detail Modal */}
+      {/* ✅ Theme-aware Order Detail Modal */}
       <Transition appear show={isModalOpen} as={Fragment}>
         <Dialog as="div" className="relative z-50" onClose={closeOrderModal}>
           <Transition.Child
@@ -467,40 +467,40 @@ export default function AdminOrderList() {
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95"
               >
-                <Dialog.Panel className="w-full max-w-4xl transform overflow-hidden rounded-lg bg-neutral-900 border border-white/20 p-6 text-left align-middle shadow-xl transition-all">
+                <Dialog.Panel className="w-full max-w-4xl transform overflow-hidden rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-6 text-left align-middle shadow-xl transition-all">
                   {selectedOrder && (
                     <>
-                      <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-white mb-6 flex items-center justify-between">
+                      <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-black dark:text-white mb-6 flex items-center justify-between">
                         <span>Order Details: {selectedOrder.order_number}</span>
                         <div className="flex items-center gap-2">
                           <div className={`w-3 h-3 rounded-full ${getStatusInfo(selectedOrder.status).color}`} />
-                          <span className="text-sm text-white/70">{getStatusInfo(selectedOrder.status).label}</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">{getStatusInfo(selectedOrder.status).label}</span>
                         </div>
                       </Dialog.Title>
 
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* Customer Information */}
                         <div className="space-y-4">
-                          <h4 className="text-white font-medium flex items-center gap-2">
-                            <User size={20} className="text-gold" />
+                          <h4 className="text-black dark:text-white font-medium flex items-center gap-2">
+                            <User size={20} className="text-[#D4AF37]" />
                             Customer Information
                           </h4>
-                          <div className="bg-neutral-800 p-4 rounded border border-white/10">
-                            <p className="text-white font-medium">{selectedOrder.customer_first_name} {selectedOrder.customer_last_name}</p>
-                            <p className="text-white/70">{selectedOrder.customer_email}</p>
+                          <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded border border-gray-200 dark:border-gray-700">
+                            <p className="text-black dark:text-white font-medium">{selectedOrder.customer_first_name} {selectedOrder.customer_last_name}</p>
+                            <p className="text-gray-600 dark:text-gray-400">{selectedOrder.customer_email}</p>
                           </div>
 
                           {/* Shipping Address */}
                           {selectedOrder.shipping_address && (
                             <div>
-                              <h5 className="text-white/90 font-medium mb-2">Shipping Address</h5>
-                              <div className="bg-neutral-800 p-4 rounded border border-white/10 text-sm">
-                                <p className="text-white">{selectedOrder.shipping_address.first_name} {selectedOrder.shipping_address.last_name}</p>
-                                <p className="text-white/70">{selectedOrder.shipping_address.address_line_1}</p>
+                              <h5 className="text-black dark:text-white font-medium mb-2">Shipping Address</h5>
+                              <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded border border-gray-200 dark:border-gray-700 text-sm">
+                                <p className="text-black dark:text-white">{selectedOrder.shipping_address.first_name} {selectedOrder.shipping_address.last_name}</p>
+                                <p className="text-gray-600 dark:text-gray-400">{selectedOrder.shipping_address.address_line_1}</p>
                                 {selectedOrder.shipping_address.address_line_2 && (
-                                  <p className="text-white/70">{selectedOrder.shipping_address.address_line_2}</p>
+                                  <p className="text-gray-600 dark:text-gray-400">{selectedOrder.shipping_address.address_line_2}</p>
                                 )}
-                                <p className="text-white/70">
+                                <p className="text-gray-600 dark:text-gray-400">
                                   {selectedOrder.shipping_address.city}, {selectedOrder.shipping_address.state} {selectedOrder.shipping_address.postal_code}
                                 </p>
                               </div>
@@ -510,44 +510,44 @@ export default function AdminOrderList() {
 
                         {/* Order Information */}
                         <div className="space-y-4">
-                          <h4 className="text-white font-medium flex items-center gap-2">
-                            <Package size={20} className="text-gold" />
+                          <h4 className="text-black dark:text-white font-medium flex items-center gap-2">
+                            <Package size={20} className="text-[#D4AF37]" />
                             Order Information
                           </h4>
-                          <div className="bg-neutral-800 p-4 rounded border border-white/10">
+                          <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded border border-gray-200 dark:border-gray-700">
                             <div className="grid grid-cols-2 gap-4 text-sm">
                               <div>
-                                <p className="text-white/70">Status</p>
-                                <p className="text-white font-medium">{getStatusInfo(selectedOrder.status).label}</p>
+                                <p className="text-gray-600 dark:text-gray-400">Status</p>
+                                <p className="text-black dark:text-white font-medium">{getStatusInfo(selectedOrder.status).label}</p>
                               </div>
                               <div>
-                                <p className="text-white/70">Payment</p>
-                                <p className="text-white font-medium">{selectedOrder.payment_status}</p>
+                                <p className="text-gray-600 dark:text-gray-400">Payment</p>
+                                <p className="text-black dark:text-white font-medium">{selectedOrder.payment_status}</p>
                               </div>
                               <div>
-                                <p className="text-white/70">Total</p>
-                                <p className="text-white font-medium">{formatPrice(selectedOrder.total_price)}</p>
+                                <p className="text-gray-600 dark:text-gray-400">Total</p>
+                                <p className="text-black dark:text-white font-medium">{formatPrice(selectedOrder.total_price)}</p>
                               </div>
                               <div>
-                                <p className="text-white/70">Date</p>
-                                <p className="text-white font-medium">{formatDate(selectedOrder.created_at)}</p>
+                                <p className="text-gray-600 dark:text-gray-400">Date</p>
+                                <p className="text-black dark:text-white font-medium">{formatDate(selectedOrder.created_at)}</p>
                               </div>
                             </div>
                           </div>
 
                           {/* Order Items */}
                           <div>
-                            <h5 className="text-white/90 font-medium mb-2">Order Items</h5>
+                            <h5 className="text-black dark:text-white font-medium mb-2">Order Items</h5>
                             <div className="space-y-2 max-h-60 overflow-y-auto">
                               {selectedOrder.items?.map((item) => (
-                                <div key={item.id} className="bg-neutral-800 p-3 rounded border border-white/10 flex justify-between items-center">
+                                <div key={item.id} className="bg-gray-50 dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700 flex justify-between items-center">
                                   <div>
-                                    <p className="text-white font-medium">{item.product_name}</p>
-                                    <p className="text-white/70 text-sm">Quantity: {item.quantity}</p>
+                                    <p className="text-black dark:text-white font-medium">{item.product_name}</p>
+                                    <p className="text-gray-600 dark:text-gray-400 text-sm">Quantity: {item.quantity}</p>
                                   </div>
                                   <div className="text-right">
-                                    <p className="text-white font-medium">{formatPrice(item.unit_price * item.quantity)}</p>
-                                    <p className="text-white/70 text-sm">{formatPrice(item.unit_price)} each</p>
+                                    <p className="text-black dark:text-white font-medium">{formatPrice(item.unit_price * item.quantity)}</p>
+                                    <p className="text-gray-600 dark:text-gray-400 text-sm">{formatPrice(item.unit_price)} each</p>
                                   </div>
                                 </div>
                               ))}
@@ -556,13 +556,13 @@ export default function AdminOrderList() {
 
                           {/* Status Update within Modal */}
                           <div>
-                            <h5 className="text-white/90 font-medium mb-2">Update Status</h5>
+                            <h5 className="text-black dark:text-white font-medium mb-2">Update Status</h5>
                             <div className="flex items-center gap-3">
                               <select
                                 value={selectedOrder.status}
                                 onChange={(e) => updateOrderStatus(selectedOrder.id, e.target.value)}
                                 disabled={updatingStatus === selectedOrder.id}
-                                className="px-3 py-2 bg-neutral-700 border border-white/20 text-white rounded focus:outline-none focus:border-gold"
+                                className="px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-black dark:text-white rounded focus:outline-none focus:border-[#D4AF37]"
                               >
                                 {ORDER_STATUSES.map(status => (
                                   <option key={status.value} value={status.value}>
@@ -572,7 +572,7 @@ export default function AdminOrderList() {
                               </select>
 
                               {updatingStatus === selectedOrder.id && (
-                                <RefreshCcw className="animate-spin text-gold" size={16} />
+                                <RefreshCcw className="animate-spin text-[#D4AF37]" size={16} />
                               )}
                             </div>
                           </div>
@@ -582,7 +582,7 @@ export default function AdminOrderList() {
                       <div className="mt-6 flex justify-end gap-3">
                         <button
                           type="button"
-                          className="px-4 py-2 bg-neutral-700 hover:bg-neutral-600 text-white rounded transition-colors"
+                          className="px-4 py-2 bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700 text-white rounded transition-colors"
                           onClick={closeOrderModal}
                         >
                           Close
