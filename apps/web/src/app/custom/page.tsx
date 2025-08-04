@@ -16,7 +16,7 @@ export default function CustomOrdersPage() {
   // Handle custom order form submission
   const handleCustomOrderSubmit = async (formData: CustomOrderFormState) => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/custom-orders`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/custom-orders/submit`, {
         method: "POST",
         headers: {
           'Content-Type': 'application/json',

@@ -209,13 +209,60 @@ export function CustomOrderFlow({ initialData, onSubmit, onSaveDraft }: CustomOr
         }
     };
 
+    const transformFormDataForAPI = (formData: Partial<CustomOrderFormState>) => {
+        const contactInfo: CustomerInfo = formData.contactInfo || { name: '', email: '', phone: '' };
+
+        return {
+            step1: {
+                project_type: formData.projectType || '',
+                style_preference: formData.stylePreference || '',
+                room_type: 'not_specified', // Add this field or map appropriately
+                project_description: formData.inspiration || '',
+                inspiration_notes: formData.inspiration || ''
+            },
+            step2: {
+                dimensions: {
+                    length: 0,
+                    width: 0,
+                    height: 0,
+                    unit: 'cm'
+                }, // You'll need to add dimension fields to your form
+                materials: formData.metalType ? [formData.metalType] : [],
+                color_preferences: [],
+                special_requirements: formData.specialRequests || '',
+                functionality_needs: formData.stonePreferences || []
+            },
+            step3: {
+                budget_range: formData.budgetRange || '',
+                estimated_price: null,
+                payment_preference: 'not_specified'
+            },
+            step4: {
+                name: contactInfo.name || '',
+                email: contactInfo.email || '',
+                phone: contactInfo.phone || '',
+                timeline_preference: formData.timelinePreference || 'standard',
+                target_completion: null,
+                delivery_address: '',
+                consultation_preference: formData.consultationType || 'video',
+                preferred_contact_time: formData.preferredContactMethod || 'email',
+                marketing_consent: true,
+                communication_preferences: [formData.preferredContactMethod || 'email']
+            },
+            images: [] // Handle image URLs here if you have them
+        };
+    };
+
     // Submit form
     const handleSubmit = async () => {
         if (!validateCurrentStep()) return;
 
         setIsSubmitting(true);
         try {
-            await onSubmit(formData as CustomOrderFormState);
+            // Transform the data to match API expectations
+            const apiData = transformFormDataForAPI(formData);
+
+            await onSubmit(apiData as any); // Pass transformed data
             toast.success('Custom order submitted successfully!');
         } catch (error) {
             console.error('Custom order submission failed:', error);
@@ -252,10 +299,10 @@ export function CustomOrderFlow({ initialData, onSubmit, onSaveDraft }: CustomOr
                                             {/* Step Circle with Connection Line */}
                                             <div className="relative flex flex-col items-center">
                                                 <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${isActive
-                                                        ? 'border-black dark:border-white bg-black dark:bg-white text-white dark:text-black'
-                                                        : isCompleted
-                                                            ? 'border-green-500 bg-green-500 text-white'
-                                                            : 'border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500'
+                                                    ? 'border-black dark:border-white bg-black dark:bg-white text-white dark:text-black'
+                                                    : isCompleted
+                                                        ? 'border-green-500 bg-green-500 text-white'
+                                                        : 'border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500'
                                                     }`}>
                                                     {isCompleted ? (
                                                         <Check className="w-5 h-5" />
@@ -361,8 +408,8 @@ export function CustomOrderFlow({ initialData, onSubmit, onSaveDraft }: CustomOr
                                         onClick={goToPreviousStep}
                                         disabled={isFirstStep}
                                         className={`flex items-center gap-2 px-6 py-3 rounded-lg transition-all duration-300 ${isFirstStep
-                                                ? 'opacity-0 cursor-not-allowed'
-                                                : 'border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-900'
+                                            ? 'opacity-0 cursor-not-allowed'
+                                            : 'border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-900'
                                             }`}
                                     >
                                         <ChevronLeft className="w-4 h-4" />
@@ -420,8 +467,8 @@ function ProjectVisionStep({ formData, updateFormData, errors }: {
                                 key={type.id}
                                 onClick={() => updateFormData({ projectType: type.id })}
                                 className={`p-4 rounded-lg border-2 text-left transition-all duration-300 ${formData.projectType === type.id
-                                        ? 'border-black dark:border-white bg-gray-50 dark:bg-gray-900'
-                                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500'
+                                    ? 'border-black dark:border-white bg-gray-50 dark:bg-gray-900'
+                                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500'
                                     }`}
                             >
                                 <div className="font-semibold">{type.label}</div>
@@ -440,8 +487,8 @@ function ProjectVisionStep({ formData, updateFormData, errors }: {
                                 key={style.id}
                                 onClick={() => updateFormData({ stylePreference: style.id })}
                                 className={`p-4 rounded-lg border-2 text-center transition-all duration-300 ${formData.stylePreference === style.id
-                                        ? 'border-black dark:border-white bg-gray-50 dark:bg-gray-900'
-                                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500'
+                                    ? 'border-black dark:border-white bg-gray-50 dark:bg-gray-900'
+                                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500'
                                     }`}
                             >
                                 <div className="font-semibold">{style.label}</div>
@@ -459,8 +506,8 @@ function ProjectVisionStep({ formData, updateFormData, errors }: {
                                 key={budget.id}
                                 onClick={() => updateFormData({ budgetRange: budget.id })}
                                 className={`p-4 rounded-lg border-2 text-left transition-all duration-300 ${formData.budgetRange === budget.id
-                                        ? 'border-black dark:border-white bg-gray-50 dark:bg-gray-900'
-                                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500'
+                                    ? 'border-black dark:border-white bg-gray-50 dark:bg-gray-900'
+                                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500'
                                     }`}
                             >
                                 <div className="font-semibold">{budget.label}</div>
@@ -509,8 +556,8 @@ function DesignDetailsStep({ formData, updateFormData, errors }: {
                                 key={metal.id}
                                 onClick={() => updateFormData({ metalType: metal.id })}
                                 className={`p-4 rounded-lg border-2 text-left transition-all duration-300 ${formData.metalType === metal.id
-                                        ? 'border-black dark:border-white bg-gray-50 dark:bg-gray-900'
-                                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500'
+                                    ? 'border-black dark:border-white bg-gray-50 dark:bg-gray-900'
+                                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500'
                                     }`}
                             >
                                 <div className="font-semibold">{metal.label}</div>
@@ -602,8 +649,8 @@ function ImagesReferencesStep({ formData, updateFormData, errors }: {
                     onDragOver={handleDrag}
                     onDrop={handleDrop}
                     className={`border-2 border-dashed rounded-lg p-12 text-center transition-all duration-300 ${dragActive
-                            ? 'border-black dark:border-white bg-gray-50 dark:bg-gray-900'
-                            : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                        ? 'border-black dark:border-white bg-gray-50 dark:bg-gray-900'
+                        : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
                         }`}
                 >
                     <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
@@ -735,8 +782,8 @@ function ContactTimelineStep({ formData, updateFormData, errors }: {
                                 key={timeline.id}
                                 onClick={() => updateFormData({ timelinePreference: timeline.id })}
                                 className={`p-4 rounded-lg border-2 text-left transition-all duration-300 ${formData.timelinePreference === timeline.id
-                                        ? 'border-black dark:border-white bg-gray-50 dark:bg-gray-900'
-                                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500'
+                                    ? 'border-black dark:border-white bg-gray-50 dark:bg-gray-900'
+                                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500'
                                     }`}
                             >
                                 <div className="font-semibold">{timeline.label}</div>
@@ -759,8 +806,8 @@ function ContactTimelineStep({ formData, updateFormData, errors }: {
                                 key={method.id}
                                 onClick={() => updateFormData({ consultationType: method.id })}
                                 className={`p-4 rounded-lg border-2 text-center transition-all duration-300 ${formData.consultationType === method.id
-                                        ? 'border-black dark:border-white bg-gray-50 dark:bg-gray-900'
-                                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500'
+                                    ? 'border-black dark:border-white bg-gray-50 dark:bg-gray-900'
+                                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500'
                                     }`}
                             >
                                 <div className="text-2xl mb-2">{method.icon}</div>
@@ -782,8 +829,8 @@ function ContactTimelineStep({ formData, updateFormData, errors }: {
                                 key={method.id}
                                 onClick={() => updateFormData({ preferredContactMethod: method.id })}
                                 className={`flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition-all duration-300 ${formData.preferredContactMethod === method.id
-                                        ? 'border-black dark:border-white bg-gray-50 dark:bg-gray-900'
-                                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500'
+                                    ? 'border-black dark:border-white bg-gray-50 dark:bg-gray-900'
+                                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500'
                                     }`}
                             >
                                 <method.icon className="w-5 h-5" />
