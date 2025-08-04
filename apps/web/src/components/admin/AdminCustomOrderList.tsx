@@ -66,8 +66,8 @@ export default function AdminCustomOrderList() {
       filterType: 'text',
       render: (value, order) => (
         <div>
-          <p className="text-white font-medium">{order.name}</p>
-          <p className="text-white/50 text-sm">{order.email}</p>
+          <p className="font-medium">{order.name}</p>
+          <p className="text-black/50 dark:text-white/50 text-sm">{order.email}</p>
         </div>
       )
     },
@@ -80,13 +80,13 @@ export default function AdminCustomOrderList() {
       render: (value, order) => (
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-sm">
-            <Phone size={14} className="text-white/50" />
+            <Phone size={14} className="text-black/50 dark:text-white/50" />
             {/* ✅ Safe handling of potentially null/undefined phone */}
-            <span className="text-white/90">{order.phone || 'N/A'}</span>
+            <span className="text-black/90 dark:text-white/90">{order.phone || 'N/A'}</span>
           </div>
           <div className="flex items-center gap-2 text-sm">
-            <Mail size={14} className="text-white/50" />
-            <span className="text-white/70 truncate max-w-[200px]">{order.email}</span>
+            <Mail size={14} className="text-black/50 dark:text-white/50"/>
+            <span className="text-black/70 dark:text-white/70 truncate max-w-[200px]">{order.email}</span>
           </div>
         </div>
       )
@@ -99,7 +99,7 @@ export default function AdminCustomOrderList() {
       filterType: 'text',
       render: (value, order) => (
         <div className="space-y-2">
-          <p className="text-white/90 text-sm line-clamp-2 max-w-[300px]">
+          <p className="text-black/90 dark:text-white/90 text-sm line-clamp-2 max-w-[300px]">
             {/* ✅ Safe handling of potentially null/undefined message */}
             {order.message && order.message.length > 100
               ? `${order.message.substring(0, 100)}...`
@@ -132,8 +132,8 @@ export default function AdminCustomOrderList() {
         return (
           <div className="flex items-center gap-2">
             <div className={`w-2 h-2 rounded-full ${statusInfo.color}`} />
-            <StatusIcon size={16} className="text-white/70" />
-            <span className="text-white/90 text-sm">{statusInfo.label}</span>
+            <StatusIcon size={16} className="text-black/70 dark:text-white/70" />
+            <span className="text-black/90 dark:text-white/90 text-sm">{statusInfo.label}</span>
           </div>
         );
       }
@@ -145,9 +145,9 @@ export default function AdminCustomOrderList() {
       filterable: true,
       filterType: 'daterange',
       render: (value, order) => (
-        <div className="text-white/90 text-sm">
+        <div className="text-black/90 dark:text-white/90 text-sm">
           <p>{formatDate(order.created_at)}</p>
-          <p className="text-white/50 text-xs">{formatTimeAgo(order.created_at)}</p>
+          <p className="text-black/50 dark:text-white/50 text-xs">{formatTimeAgo(order.created_at)}</p>
         </div>
       )
     }
@@ -321,54 +321,54 @@ export default function AdminCustomOrderList() {
       <div className="mb-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-white mb-2">Custom Orders</h1>
-            <p className="text-white/70">Manage custom jewelry inquiries and requests</p>
+            <h1 className="text-2xl font-bold mb-2">Custom Orders</h1>
+            <p className="text-black/70 dark:text-white/70">Manage custom jewelry inquiries and requests</p>
           </div>
         </div>
       </div>
 
       {/* ✅ Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="bg-neutral-800 p-4 rounded-lg border border-white/10">
+        <div className="bg-neutral-200 dark:bg-neutral-800 p-4 rounded-lg border border-black/10 dark:border-white/10">
           <div className="flex items-center gap-3">
             <MessageSquare className="text-gold" size={24} />
             <div>
-              <p className="text-white/70 text-sm">Total Inquiries</p>
-              <p className="text-white text-xl font-semibold">{customOrders.length}</p>
+              <p className="text-black/70 dark:text-white/70 text-sm">Total Inquiries</p>
+              <p className="text-xl font-semibold">{customOrders.length}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-neutral-800 p-4 rounded-lg border border-white/10">
+        <div className="bg-neutral-200 dark:bg-neutral-800 p-4 rounded-lg border border-black/10 dark:border-white/10">
           <div className="flex items-center gap-3">
             <Clock className="text-blue-400" size={24} />
             <div>
-              <p className="text-white/70 text-sm">New Inquiries</p>
-              <p className="text-white text-xl font-semibold">
+              <p className="text-black/70 dark:text-white/70 text-sm">New Inquiries</p>
+              <p className="text-xl font-semibold">
                 {customOrders.filter(order => (order.status || 'new') === 'new').length}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-neutral-800 p-4 rounded-lg border border-white/10">
+        <div className="bg-neutral-200 dark:bg-neutral-800 p-4 rounded-lg border border-black/10 dark:border-white/10">
           <div className="flex items-center gap-3">
             <ImageIcon className="text-purple-400" size={24} />
             <div>
-              <p className="text-white/70 text-sm">With Images</p>
-              <p className="text-white text-xl font-semibold">
+              <p className="text-black/70 dark:text-white/70 text-sm">With Images</p>
+              <p className="text-xl font-semibold">
                 {customOrders.filter(order => order.image_url && order.image_url !== "No image uploaded").length}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-neutral-800 p-4 rounded-lg border border-white/10">
+        <div className="bg-neutral-200 dark:bg-neutral-800 p-4 rounded-lg border border-black/10 dark:border-white/10">
           <div className="flex items-center gap-3">
             <CheckCircle className="text-green-400" size={24} />
             <div>
-              <p className="text-white/70 text-sm">Completed</p>
-              <p className="text-white text-xl font-semibold">
+              <p className="text-black/70 dark:text-white/70 text-sm">Completed</p>
+              <p className="text-xl font-semibold">
                 {customOrders.filter(order => order.status === 'completed').length}
               </p>
             </div>
@@ -462,7 +462,7 @@ export default function AdminCustomOrderList() {
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 bg-black/75" />
+            <div className="fixed inset-0 bg-white/75 dark:bg-black/75" />
           </Transition.Child>
 
           <div className="fixed inset-0 overflow-y-auto">
@@ -476,55 +476,55 @@ export default function AdminCustomOrderList() {
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95"
               >
-                <Dialog.Panel className="w-full max-w-3xl transform overflow-hidden rounded-lg bg-neutral-900 border border-white/20 p-6 text-left align-middle shadow-xl transition-all">
+                <Dialog.Panel className="w-full max-w-3xl transform overflow-hidden rounded-lg bg-neutral-100 dark:bg-neutral-900 border border-black/20 dark:border-white/20 p-6 text-left align-middle shadow-xl transition-all">
                   {selectedOrder && (
                     <>
-                      <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-white mb-6">
+                      <Dialog.Title as="h3" className="text-lg font-medium leading-6 mb-6">
                         Custom Order Inquiry from {selectedOrder.name}
                       </Dialog.Title>
 
                       <div className="space-y-6">
                         {/* Customer Information */}
-                        <div className="bg-neutral-800 p-4 rounded border border-white/10">
-                          <h4 className="text-white font-medium mb-3 flex items-center gap-2">
+                        <div className="bg-neutral-200 dark:bg-neutral-800 p-4 rounded border border-black/10 dark:border-white/10">
+                          <h4 className="font-medium mb-3 flex items-center gap-2">
                             <Mail size={20} className="text-gold" />
                             Customer Information
                           </h4>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                             <div>
-                              <p className="text-white/70">Name</p>
-                              <p className="text-white font-medium">{selectedOrder.name}</p>
+                              <p className="text-black/70 dark:text-white/70">Name</p>
+                              <p className="font-medium">{selectedOrder.name}</p>
                             </div>
                             <div>
-                              <p className="text-white/70">Email</p>
-                              <p className="text-white font-medium">{selectedOrder.email}</p>
+                              <p className="text-black/70 dark:text-white/70">Email</p>
+                              <p className="font-medium">{selectedOrder.email}</p>
                             </div>
                             <div>
-                              <p className="text-white/70">Phone</p>
-                              <p className="text-white font-medium">{selectedOrder.phone || 'Not provided'}</p>
+                              <p className="text-black/70 dark:text-white/70">Phone</p>
+                              <p className="font-medium">{selectedOrder.phone || 'Not provided'}</p>
                             </div>
                             <div>
-                              <p className="text-white/70">Received</p>
-                              <p className="text-white font-medium">{formatDate(selectedOrder.created_at)}</p>
+                              <p className="text-black/70 dark:text-white/70">Received</p>
+                              <p className="font-medium">{formatDate(selectedOrder.created_at)}</p>
                             </div>
                           </div>
                         </div>
 
                         {/* Request Details */}
-                        <div className="bg-neutral-800 p-4 rounded border border-white/10">
-                          <h4 className="text-white font-medium mb-3 flex items-center gap-2">
+                        <div className="bg-neutral-200 dark:bg-neutral-800 p-4 rounded border border-black/10 dark:border-white/10">
+                          <h4 className="font-medium mb-3 flex items-center gap-2">
                             <MessageSquare size={20} className="text-gold" />
                             Request Details
                           </h4>
-                          <div className="text-white/90 whitespace-pre-line leading-relaxed">
+                          <div className="text-black/90 dark:text-white/90 whitespace-pre-line leading-relaxed">
                             {selectedOrder.message}
                           </div>
                         </div>
 
                         {/* Image */}
                         {selectedOrder.image_url && selectedOrder.image_url !== "No image uploaded" && (
-                          <div className="bg-neutral-800 p-4 rounded border border-white/10">
-                            <h4 className="text-white font-medium mb-3 flex items-center gap-2">
+                          <div className="bg-neutral-200 dark:bg-neutral-800 p-4 rounded border border-black/10 dark:border-white/10">
+                            <h4 className="font-medium mb-3 flex items-center gap-2">
                               <ImageIcon size={20} className="text-gold" />
                               Inspiration Image
                             </h4>
@@ -532,9 +532,9 @@ export default function AdminCustomOrderList() {
                               src={selectedOrder.image_url}
                               alt="Customer inspiration"
                               onClick={() => openImageModal(selectedOrder.image_url)}
-                              className="max-w-xs rounded border border-white/20 cursor-pointer hover:opacity-80 transition-opacity"
+                              className="max-w-xs rounded border border-black/20 dark:border-white/20 cursor-pointer hover:opacity-80 transition-opacity"
                             />
-                            <p className="text-white/50 text-xs mt-2">Click to view full size</p>
+                            <p className="text-black/50 dark:text-white/50 text-xs mt-2">Click to view full size</p>
                           </div>
                         )}
                       </div>
@@ -548,7 +548,7 @@ export default function AdminCustomOrderList() {
                         </a>
                         <button
                           type="button"
-                          className="px-4 py-2 bg-neutral-700 hover:bg-neutral-600 text-white rounded transition-colors"
+                          className="px-4 py-2 bg-neutral-300 hover:bg-neutral-400 dark:bg-neutral-700 dark:hover:bg-neutral-600 rounded transition-colors"
                           onClick={closeOrderModal}
                         >
                           Close
