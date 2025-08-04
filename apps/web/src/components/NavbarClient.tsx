@@ -154,7 +154,7 @@ export default function NavbarClient() {
           </div>
           {[
             ["/gallery", "Gallery"],
-            ["/custom", "Custom Orders"],
+            ["/custom-orders", "Custom Orders"],
             ["/about", "About"],
             ["/contact", "Contact"],
           ].map(([path, label]) => (

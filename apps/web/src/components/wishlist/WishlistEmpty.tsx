@@ -317,7 +317,7 @@ export default function WishlistEmpty({ className = "" }: WishlistEmptyProps) {
                             </Link>
 
                             <Link
-                                href="/custom"
+                                href="/custom-orders"
                                 className="group inline-flex items-center gap-2 border border-gray-300 dark:border-gray-600 hover:border-gold hover:text-gold px-6 py-3 rounded-lg font-medium transition-all duration-300 hover:scale-105"
                             >
                                 <Plus size={16} />

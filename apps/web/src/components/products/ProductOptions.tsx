@@ -174,7 +174,7 @@ export default function ProductOptions({ product, isDark = false }: ProductOptio
             Don't see exactly what you're looking for?
           </p>
           <a
-            href="/custom"
+            href="/custom-orders"
             className="inline-block px-6 py-2 border border-current hover:bg-current hover:text-white dark:hover:text-black transition-all duration-300 text-sm tracking-widest uppercase"
           >
             Create Custom Order

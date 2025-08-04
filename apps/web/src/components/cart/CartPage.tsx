@@ -419,7 +419,7 @@ function EmptyCartPage() {
                             </Link>
 
                             <Link
-                                href="/custom"
+                                href="/custom-orders"
                                 className="border border-gold text-gold hover:bg-gold hover:text-black font-medium px-8 py-4 transition-all duration-300 hover:scale-105 tracking-widest uppercase text-sm"
                             >
                                 Custom Orders

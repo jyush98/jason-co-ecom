@@ -194,7 +194,7 @@ class SearchConsoleAPI {
         if (url.includes('/product/')) return 'product';
         if (url.includes('/shop') || url.includes('/category')) return 'category';
         if (url.includes('/gallery')) return 'gallery';
-        if (url.includes('/custom')) return 'custom';
+        if (url.includes('/custom-orders')) return 'custom';
         if (url === '/' || url.includes('home')) return 'homepage';
         return 'product'; // Default assumption for jewelry site
     }

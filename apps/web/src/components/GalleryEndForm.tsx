@@ -50,7 +50,7 @@ export default function GalleryEndForm({ linearProgress, totalItems }: GalleryEn
                     transition={{ delay: 0.7 }}
                 >
                     <a
-                        href="/custom"
+                        href="/custom-orders"
                         className="w-full sm:w-auto bg-gold hover:bg-gold/90 text-black font-medium px-6 md:px-8 py-3 md:py-4 rounded-full transition-all duration-300 hover:scale-105 hover:shadow-xl text-center"
                     >
                         START CUSTOM ORDER

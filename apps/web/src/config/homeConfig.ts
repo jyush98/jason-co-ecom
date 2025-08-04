@@ -39,7 +39,7 @@ export const HOME_CONFIG = {
             },
             secondary: {
                 text: "Custom Orders",
-                link: "/custom"
+                link: "/custom-orders"
             }
         }
     },

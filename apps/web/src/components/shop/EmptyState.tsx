@@ -84,7 +84,7 @@ export default function EmptyState({
                     </p>
                     <div className="flex flex-col sm:flex-row gap-3 justify-center">
                         <a
-                            href="/custom"
+                            href="/custom-orders"
                             className="px-4 py-2 bg-gold text-black hover:bg-gold/90 transition-all duration-300 tracking-widest uppercase text-sm"
                         >
                             Custom Orders
