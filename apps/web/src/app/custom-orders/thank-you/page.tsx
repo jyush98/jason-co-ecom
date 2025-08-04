@@ -77,7 +77,7 @@ export default function CustomOrderThankYou() {
     ];
 
     return (
-        <div className="min-h-screen bg-white dark:bg-black">
+        <div className="pt-[var(--navbar-height)] min-h-screen bg-gray-50 dark:bg-black">
             {/* Hero Section */}
             <motion.div
                 className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-black"
