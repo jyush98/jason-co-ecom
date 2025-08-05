@@ -223,7 +223,7 @@ export default function NavbarClient() {
             <div className="flex items-center space-x-4">
               {/* Cart */}
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Link href="/cart" className="relative p-2 rounded-full hover:bg-gold/10 transition-colors duration-200">
+                <Link href="/cart" className="relative p-2 rounded-full transition-colors duration-200">
                   <ShoppingCart className="w-6 h-6" />
                   {cartCount > 0 && (
                     <span className="absolute bottom-10 -right-7 bg-black dark:bg-white text-white dark:text-black text-xs font-bold px-1.5 py-0.5 rounded-full">
