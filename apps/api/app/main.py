@@ -21,6 +21,7 @@ from app.routes.wishlist import router as wishlist_router
 from app.routes.account import router as account_router
 from app.routes.account_settings import router as account_settings_router
 from app.routes.notification_preferences import router as notification_preferences_router
+from app.routes.contact import router as contact_router
 
 # Then add these two lines where you include your other routers
 app = FastAPI()
@@ -53,7 +54,7 @@ app.include_router(wishlist_router, prefix="/wishlist", tags=["Wishlist"])
 app.include_router(account_router, prefix="/account", tags=["Account"])
 app.include_router(account_settings_router, prefix="/account", tags=["Account Settings"])
 app.include_router(notification_preferences_router, prefix="/account", tags=["Notification Preferences"])
-
+app.include_router(contact_router, tags=["Contact"])
 
 @app.get("/")
 def root():

@@ -1,4 +1,4 @@
-# app/services/email_service.py - Enhanced Email Service with Notification Templates
+# app/services/email_service.py
 
 import os
 import resend
@@ -12,6 +12,236 @@ logger = logging.getLogger(__name__)
 
 # Configure Resend
 resend.api_key = os.getenv("RESEND_API_KEY")
+
+# STANDALONE FUNCTIONS (for your contact endpoints)
+async def send_email(to: str, subject: str, html_content: str, from_email: str = None):
+    """Base email sending function using Resend"""
+    try:
+        from_address = from_email or os.getenv("FROM_EMAIL", "contact@jasonjewels.com")
+        
+        params = {
+            "from": from_address,
+            "to": [to],
+            "subject": subject,
+            "html": html_content,
+        }
+        
+        email = resend.emails.send(params)
+        logger.info(f"Email sent successfully to {to}")
+        return email
+        
+    except Exception as e:
+        logger.error(f"Failed to send email to {to}: {e}")
+        raise
+
+async def send_contact_inquiry_email(inquiry_data: Dict[str, Any], inquiry_id: int):
+    """Send contact inquiry confirmation and admin notification"""
+    
+    # Customer confirmation email
+    customer_template = f"""
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: linear-gradient(135deg, #D4AF37 0%, #FFD700 100%); padding: 30px; text-align: center;">
+            <h1 style="color: white; margin: 0; font-size: 28px;">Thank You for Contacting Jason & Co.</h1>
+        </div>
+        
+        <div style="padding: 30px; background: white;">
+            <h2 style="color: #333;">Hello {inquiry_data['name']},</h2>
+            
+            <p style="color: #666; line-height: 1.6;">We've received your inquiry and our team will respond within 2 hours during business hours.</p>
+            
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #D4AF37;">
+                <h3 style="color: #333; margin-top: 0;">Your Inquiry Details:</h3>
+                <p><strong>Subject:</strong> {inquiry_data['subject']}</p>
+                <p><strong>Message:</strong> {inquiry_data['message']}</p>
+                {"<p><strong>Budget Range:</strong> " + inquiry_data.get('budget_range', '') + "</p>" if inquiry_data.get('budget_range') else ""}
+                <p><strong>Inquiry ID:</strong> #{inquiry_id}</p>
+            </div>
+            
+            <p style="color: #666;">For immediate assistance, call us at <strong style="color: #D4AF37;">(212) 555-GOLD</strong></p>
+            
+            <p style="color: #333;">Best regards,<br><strong>The Jason & Co. Team</strong></p>
+        </div>
+        
+        <div style="background: #f8f9fa; padding: 20px; text-align: center; color: #666; font-size: 12px;">
+            <p>Jason & Co. | Where Ambition Meets Artistry</p>
+        </div>
+    </div>
+    """
+    
+    # Admin notification email
+    admin_template = f"""
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #D4AF37;">New Contact Inquiry #{inquiry_id}</h2>
+        
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <p><strong>Name:</strong> {inquiry_data['name']}</p>
+            <p><strong>Email:</strong> {inquiry_data['email']}</p>
+            <p><strong>Phone:</strong> {inquiry_data.get('phone', 'Not provided')}</p>
+            <p><strong>Company:</strong> {inquiry_data.get('company', 'Not provided')}</p>
+            <p><strong>Subject:</strong> {inquiry_data['subject']}</p>
+            <p><strong>Budget Range:</strong> {inquiry_data.get('budget_range', 'Not specified')}</p>
+            <p><strong>Timeline:</strong> {inquiry_data.get('timeline', 'Not specified')}</p>
+            <p><strong>Preferred Location:</strong> {inquiry_data.get('preferred_location', 'Not specified')}</p>
+            
+            <h3>Message:</h3>
+            <p style="background: white; padding: 15px; border-radius: 5px;">{inquiry_data['message']}</p>
+            
+            <p><strong>Preferred Contact Methods:</strong> {', '.join(inquiry_data.get('preferred_contact', []))}</p>
+        </div>
+        
+        <p><strong>Response Required:</strong> Within 2 hours during business hours</p>
+    </div>
+    """
+    
+    try:
+        # Send customer confirmation
+        await send_email(
+            to=inquiry_data['email'],
+            subject="Your Jason & Co. Inquiry Received",
+            html_content=customer_template
+        )
+        
+        # Send admin notification
+        admin_email = os.getenv('SUPPORT_EMAIL', 'jonathan@jasonjewels.com')
+        await send_email(
+            to=admin_email,
+            subject=f"New Contact Inquiry: {inquiry_data['subject']} - #{inquiry_id}",
+            html_content=admin_template
+        )
+        
+        logger.info(f"Contact inquiry emails sent for #{inquiry_id}")
+        
+    except Exception as e:
+        logger.error(f"Failed to send contact inquiry emails: {e}")
+
+async def send_consultation_booking_email(booking_data: Dict[str, Any], booking_id: int):
+    """Send consultation booking confirmation"""
+    
+    consultation_types = {
+        'virtual': 'Virtual Consultation',
+        'in-person': 'In-Person Atelier Visit', 
+        'premium': 'Premium Design Session'
+    }
+    
+    consultation_name = consultation_types.get(booking_data['consultation_type'], booking_data['consultation_type'])
+    
+    customer_template = f"""
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: linear-gradient(135deg, #D4AF37 0%, #FFD700 100%); padding: 30px; text-align: center;">
+            <h1 style="color: white; margin: 0; font-size: 28px;">Consultation Request Received</h1>
+        </div>
+        
+        <div style="padding: 30px; background: white;">
+            <h2 style="color: #333;">Hello {booking_data['name']},</h2>
+            
+            <p style="color: #666; line-height: 1.6;">Your {consultation_name} request has been received. We'll confirm your appointment within 24 hours.</p>
+            
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #D4AF37;">
+                <h3 style="color: #333; margin-top: 0;">Consultation Details:</h3>
+                <p><strong>Type:</strong> {consultation_name}</p>
+                <p><strong>Booking ID:</strong> #{booking_id}</p>
+                {"<p><strong>Preferred Date:</strong> " + str(booking_data.get('preferred_date', 'To be scheduled')) + "</p>" if booking_data.get('preferred_date') else "<p><strong>Scheduling:</strong> To be arranged</p>"}
+                {"<p><strong>Budget Range:</strong> " + booking_data.get('budget_range', '') + "</p>" if booking_data.get('budget_range') else ""}
+            </div>
+            
+            <h3 style="color: #333;">What to Expect:</h3>
+            <ul style="color: #666; line-height: 1.6;">
+                <li>Detailed discussion of your project vision</li>
+                <li>Material and design recommendations</li>
+                <li>Timeline and investment planning</li>
+                <li>Next steps in the creation process</li>
+            </ul>
+            
+            <p style="color: #666;">Questions? Call us at <strong style="color: #D4AF37;">(212) 555-GOLD</strong></p>
+            
+            <p style="color: #333;">Best regards,<br><strong>The Jason & Co. Design Team</strong></p>
+        </div>
+        
+        <div style="background: #f8f9fa; padding: 20px; text-align: center; color: #666; font-size: 12px;">
+            <p>Jason & Co. | Where Ambition Meets Artistry</p>
+        </div>
+    </div>
+    """
+    
+    try:
+        await send_email(
+            to=booking_data['email'],
+            subject=f"Jason & Co. Consultation Request Confirmed - #{booking_id}",
+            html_content=customer_template
+        )
+        
+        # Send admin notification
+        admin_email = os.getenv('SUPPORT_EMAIL', 'jonathan@jasonjewels.com')
+        admin_template = f"""
+        <h2>New Consultation Booking #{booking_id}</h2>
+        <p><strong>Type:</strong> {consultation_name}</p>
+        <p><strong>Client:</strong> {booking_data['name']} ({booking_data['email']})</p>
+        <p><strong>Phone:</strong> {booking_data.get('phone', 'Not provided')}</p>
+        <p><strong>Project:</strong> {booking_data.get('project_description', 'Not provided')}</p>
+        <p><strong>Budget:</strong> {booking_data.get('budget_range', 'Not specified')}</p>
+        """
+        
+        await send_email(
+            to=admin_email,
+            subject=f"New Consultation Booking: {consultation_name} - #{booking_id}",
+            html_content=admin_template
+        )
+        
+        logger.info(f"Consultation booking emails sent for #{booking_id}")
+        
+    except Exception as e:
+        logger.error(f"Failed to send consultation booking emails: {e}")
+
+async def send_consultation_confirmation_email(email: str, booking_data: Dict[str, Any]):
+    """Send consultation confirmation when admin confirms booking"""
+    
+    confirmation_template = f"""
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: linear-gradient(135deg, #D4AF37 0%, #FFD700 100%); padding: 30px; text-align: center;">
+            <h1 style="color: white; margin: 0; font-size: 28px;">Consultation Confirmed!</h1>
+        </div>
+        
+        <div style="padding: 30px; background: white;">
+            <h2 style="color: #333;">Hello {booking_data['name']},</h2>
+            
+            <p style="color: #666; line-height: 1.6;">Great news! Your consultation has been confirmed.</p>
+            
+            <div style="background: #e8f5e8; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2d5a2d;">
+                <h3 style="color: #2d5a2d; margin-top: 0;">Confirmed Details:</h3>
+                <p><strong>Type:</strong> {booking_data['consultation_type']}</p>
+                <p><strong>Date & Time:</strong> {booking_data.get('confirmed_date', 'TBD')}</p>
+                {"<p><strong>Meeting Link:</strong> <a href='" + booking_data.get('meeting_link', '') + "' style='color: #D4AF37;'>Join Meeting</a></p>" if booking_data.get('meeting_link') else ""}
+                <p><strong>Booking ID:</strong> #{booking_data['booking_id']}</p>
+            </div>
+            
+            <h3 style="color: #333;">Preparation:</h3>
+            <ul style="color: #666; line-height: 1.6;">
+                <li>Gather any inspiration images or references</li>
+                <li>Consider your budget and timeline preferences</li>
+                <li>Prepare questions about materials and design options</li>
+                <li>Think about how you'll use the piece</li>
+            </ul>
+            
+            <p style="color: #666;">We're excited to discuss your vision! Call <strong style="color: #D4AF37;">(212) 555-GOLD</strong> if you need to reschedule.</p>
+            
+            <p style="color: #333;">Looking forward to our meeting,<br><strong>The Jason & Co. Design Team</strong></p>
+        </div>
+    </div>
+    """
+    
+    try:
+        await send_email(
+            to=email,
+            subject="Consultation Confirmed - Jason & Co.",
+            html_content=confirmation_template
+        )
+        logger.info(f"Consultation confirmation sent to {email}")
+    except Exception as e:
+        logger.error(f"Failed to send consultation confirmation: {e}")
+
+# ============================================================================
+# EMAIL SERVICE CLASS (for your existing notification system)
+# ============================================================================
 
 class EmailService:
     """Enhanced email service with support for all notification types"""
@@ -169,305 +399,6 @@ class EmailService:
             "from": self.from_email,
             "to": data["to"],
             "subject": f"Order Confirmation - {order_number} | Jason & Co.",
-            "html": html_content
-        }
-
-    def _template_order_update(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """Order status update email template"""
-        customer_name = data.get("user_name", "Valued Customer")
-        order_number = data.get("order_number", "N/A")
-        status = data.get("status", "updated")
-        status_message = data.get("status_message", "Your order status has been updated")
-        
-        content = f"""
-        <p>Dear {customer_name},</p>
-        <p>We have an update on your order <strong>#{order_number}</strong>.</p>
-        
-        <div style="background: #f8f8f8; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
-            <h3 style="color: #D4AF37; margin: 0;">Order Status: {status.title()}</h3>
-            <p style="margin: 10px 0 0 0; color: #666;">{status_message}</p>
-        </div>
-        
-        <p>You can track your order status anytime by visiting your account.</p>
-        """
-        
-        html_content = self._get_base_template(
-            title="Order Update",
-            content=content,
-            cta_text="Track Order",
-            cta_link=f"https://jasonjewels.com/orders/{order_number}"
-        )
-        
-        return {
-            "from": self.from_email,
-            "to": data["to"],
-            "subject": f"Order Update - {order_number} | Jason & Co.",
-            "html": html_content
-        }
-
-    def _template_order_shipped(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """Shipping notification email template"""
-        customer_name = data.get("user_name", "Valued Customer")
-        order_number = data.get("order_number", "N/A")
-        tracking_number = data.get("tracking_number", "")
-        carrier = data.get("carrier", "")
-        estimated_delivery = data.get("estimated_delivery", "3-5 business days")
-        
-        tracking_section = ""
-        if tracking_number and carrier:
-            tracking_section = f"""
-            <div style="background: #e8f5e8; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h3 style="color: #2d5a2d; margin: 0 0 10px 0;">Tracking Information</h3>
-                <p style="margin: 5px 0;"><strong>Carrier:</strong> {carrier}</p>
-                <p style="margin: 5px 0;"><strong>Tracking Number:</strong> {tracking_number}</p>
-                <p style="margin: 5px 0;"><strong>Estimated Delivery:</strong> {estimated_delivery}</p>
-            </div>
-            """
-        
-        content = f"""
-        <p>Great news, {customer_name}!</p>
-        <p>Your order <strong>#{order_number}</strong> has shipped and is on its way to you.</p>
-        
-        {tracking_section}
-        
-        <div style="background: #f8f8f8; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #333; margin-top: 0;">📦 Your Package is En Route</h3>
-            <p style="margin: 10px 0;">We've carefully packaged your jewelry with premium materials to ensure it arrives in perfect condition.</p>
-        </div>
-        """
-        
-        html_content = self._get_base_template(
-            title="Your Order Has Shipped!",
-            content=content,
-            cta_text="Track Package",
-            cta_link=f"https://jasonjewels.com/orders/{order_number}"
-        )
-        
-        return {
-            "from": self.from_email,
-            "to": data["to"],
-            "subject": f"Your Order Has Shipped - {order_number} | Jason & Co.",
-            "html": html_content
-        }
-
-    def _template_order_delivered(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """Delivery confirmation email template"""
-        customer_name = data.get("user_name", "Valued Customer")
-        order_number = data.get("order_number", "N/A")
-        
-        content = f"""
-        <p>Congratulations, {customer_name}!</p>
-        <p>Your order <strong>#{order_number}</strong> has been successfully delivered.</p>
-        
-        <div style="background: #e8f5e8; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
-            <h3 style="color: #2d5a2d; margin: 0;">🎉 Delivery Complete!</h3>
-            <p style="margin: 10px 0 0 0;">Your exceptional jewelry pieces are now ready to be enjoyed.</p>
-        </div>
-        
-        <p>We hope you love your new pieces! If you have any questions or concerns, don't hesitate to reach out.</p>
-        
-        <div style="background: #f8f8f8; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h4 style="color: #333; margin-top: 0;">Care Instructions</h4>
-            <p style="margin: 5px 0;">• Store in provided jewelry box to prevent scratching</p>
-            <p style="margin: 5px 0;">• Clean with soft cloth and mild jewelry cleaner</p>
-            <p style="margin: 5px 0;">• Avoid exposure to chemicals and moisture</p>
-        </div>
-        """
-        
-        html_content = self._get_base_template(
-            title="Order Delivered!",
-            content=content,
-            cta_text="Leave a Review",
-            cta_link="https://jasonjewels.com/reviews"
-        )
-        
-        return {
-            "from": self.from_email,
-            "to": data["to"],
-            "subject": f"Order Delivered - {order_number} | Jason & Co.",
-            "html": html_content
-        }
-
-    def _template_security_alert(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """Security alert email template"""
-        customer_name = data.get("user_name", "Valued Customer")
-        alert_type = data.get("alert_type", "security event")
-        alert_message = data.get("alert_message", "We detected unusual activity on your account")
-        timestamp = data.get("timestamp", datetime.now().strftime("%B %d, %Y at %I:%M %p"))
-        ip_address = data.get("ip_address", "")
-        
-        ip_section = f"<p><strong>IP Address:</strong> {ip_address}</p>" if ip_address else ""
-        
-        content = f"""
-        <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #856404; margin: 0 0 10px 0;">🔒 Security Alert</h3>
-            <p style="margin: 0; color: #856404;">We detected {alert_type} on your account.</p>
-        </div>
-        
-        <p>Dear {customer_name},</p>
-        <p>{alert_message}</p>
-        
-        <div style="background: #f8f8f8; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h4 style="color: #333; margin-top: 0;">Event Details</h4>
-            <p><strong>Time:</strong> {timestamp}</p>
-            {ip_section}
-        </div>
-        
-        <p><strong>If this was you:</strong> No action is needed.</p>
-        <p><strong>If this wasn't you:</strong> Please change your password immediately and contact our support team.</p>
-        """
-        
-        html_content = self._get_base_template(
-            title="Security Alert",
-            content=content,
-            cta_text="Review Account Security",
-            cta_link="https://jasonjewels.com/account/security"
-        )
-        
-        return {
-            "from": self.from_email,
-            "to": data["to"],
-            "subject": "Security Alert - Jason & Co. Account",
-            "html": html_content
-        }
-
-    def _template_price_drop(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """Price drop alert email template"""
-        customer_name = data.get("user_name", "Valued Customer")
-        product_name = data.get("product_name", "Product")
-        old_price = data.get("old_price", 0)
-        new_price = data.get("new_price", 0)
-        savings = old_price - new_price
-        product_url = data.get("product_url", "https://jasonjewels.com/shop")
-        product_image = data.get("product_image", "")
-        
-        image_section = ""
-        if product_image:
-            image_section = f"""
-            <div style="text-align: center; margin: 20px 0;">
-                <img src="{product_image}" alt="{product_name}" style="max-width: 200px; border-radius: 8px;">
-            </div>
-            """
-        
-        content = f"""
-        <p>Great news, {customer_name}!</p>
-        <p>A piece from your wishlist just dropped in price.</p>
-        
-        {image_section}
-        
-        <div style="background: #e8f5e8; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
-            <h3 style="color: #2d5a2d; margin: 0 0 10px 0;">{product_name}</h3>
-            <p style="margin: 5px 0; text-decoration: line-through; color: #999;">${old_price:.2f}</p>
-            <p style="margin: 5px 0; font-size: 24px; color: #D4AF37; font-weight: bold;">${new_price:.2f}</p>
-            <p style="margin: 10px 0 0 0; color: #2d5a2d; font-weight: bold;">You save ${savings:.2f}!</p>
-        </div>
-        
-        <p>Don't wait too long - this price won't last forever!</p>
-        """
-        
-        html_content = self._get_base_template(
-            title="Price Drop Alert! 🎉",
-            content=content,
-            cta_text="Buy Now",
-            cta_link=product_url
-        )
-        
-        return {
-            "from": self.from_email,
-            "to": data["to"],
-            "subject": f"Price Drop Alert: {product_name} | Jason & Co.",
-            "html": html_content
-        }
-
-    def _template_abandoned_cart(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """Abandoned cart reminder email template"""
-        customer_name = data.get("user_name", "Valued Customer")
-        cart_items = data.get("cart_items", [])
-        cart_total = data.get("cart_total", 0)
-        
-        items_html = ""
-        for item in cart_items[:3]:  # Show max 3 items
-            items_html += f"""
-            <div style="display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #eee;">
-                <div style="flex: 1;">
-                    <strong>{item['name']}</strong><br>
-                    <small style="color: #666;">Qty: {item['quantity']} × ${item['unit_price']:.2f}</small>
-                </div>
-            </div>
-            """
-        
-        content = f"""
-        <p>Hi {customer_name},</p>
-        <p>You left some beautiful pieces in your cart. Don't let them slip away!</p>
-        
-        <div style="background: #f8f8f8; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #333; margin-top: 0;">Your Cart ({len(cart_items)} items)</h3>
-            {items_html}
-            <div style="text-align: right; padding: 15px; font-weight: bold; font-size: 18px; color: #D4AF37;">
-                Total: ${cart_total:.2f}
-            </div>
-        </div>
-        
-        <p>These exceptional pieces are waiting for someone who appreciates true artistry. Complete your purchase now and make them yours.</p>
-        """
-        
-        html_content = self._get_base_template(
-            title="Your Cart is Waiting",
-            content=content,
-            cta_text="Complete Purchase",
-            cta_link="https://jasonjewels.com/cart"
-        )
-        
-        return {
-            "from": self.from_email,
-            "to": data["to"],
-            "subject": "Your Cart is Waiting | Jason & Co.",
-            "html": html_content
-        }
-
-    def _template_new_product(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """New product launch email template"""
-        customer_name = data.get("user_name", "Valued Customer")
-        product_name = data.get("product_name", "New Product")
-        product_description = data.get("product_description", "")
-        product_price = data.get("product_price", 0)
-        product_url = data.get("product_url", "https://jasonjewels.com/shop")
-        product_image = data.get("product_image", "")
-        
-        image_section = ""
-        if product_image:
-            image_section = f"""
-            <div style="text-align: center; margin: 20px 0;">
-                <img src="{product_image}" alt="{product_name}" style="max-width: 300px; border-radius: 8px;">
-            </div>
-            """
-        
-        content = f"""
-        <p>Dear {customer_name},</p>
-        <p>We're excited to introduce our latest masterpiece, crafted with the precision and artistry you've come to expect from Jason & Co.</p>
-        
-        {image_section}
-        
-        <div style="background: #f8f8f8; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
-            <h3 style="color: #D4AF37; margin: 0 0 10px 0;">{product_name}</h3>
-            <p style="color: #666; margin: 10px 0;">{product_description}</p>
-            <p style="font-size: 24px; color: #333; font-weight: bold; margin: 15px 0;">${product_price:.2f}</p>
-        </div>
-        
-        <p>This piece embodies our philosophy: <em>Where Ambition Meets Artistry</em>. Be among the first to own this exceptional creation.</p>
-        """
-        
-        html_content = self._get_base_template(
-            title="New Arrival: Designed Without Limits",
-            content=content,
-            cta_text="Shop Now",
-            cta_link=product_url
-        )
-        
-        return {
-            "from": self.from_email,
-            "to": data["to"],
-            "subject": f"New Arrival: {product_name} | Jason & Co.",
             "html": html_content
         }
 

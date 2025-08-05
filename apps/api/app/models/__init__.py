@@ -11,3 +11,4 @@ from app.models.wishlist import WishlistItem
 from app.models.user_address import UserAddress
 from app.models.user_settings import UserSetting
 from app.models.notification_preferences import NotificationPreference
+from app.models.contact import ContactInquiry, ConsultationBooking, LocationNotification
