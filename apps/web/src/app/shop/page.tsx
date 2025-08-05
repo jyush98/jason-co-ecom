@@ -1,7 +1,7 @@
 // app/shop/page.tsx
 export const dynamic = "force-dynamic";
 
-import Shop from "@/components/ShopPage";
+import ProductList from '@/components/ProductList';
 import { createCategoryMetadata } from '@/lib/seo/metadata';
 import { BreadcrumbSchema, CollectionSchema } from '@/components/seo/SchemaMarkup';
 import { Suspense } from 'react';
@@ -23,17 +23,18 @@ import { Suspense } from 'react';
  */
 
 interface ShopPageProps {
-  searchParams: {
+  searchParams: Promise<{
     category?: string;
     search?: string;
     sortBy?: string;
     page?: string;
-  };
+  }>;
 }
 
 // Dynamic metadata generation based on category and search
 export async function generateMetadata({ searchParams }: ShopPageProps) {
-  const { category, search } = searchParams;
+  const params = await searchParams;
+  const { category, search } = params;
 
   // If there's a search query, optimize for search results
   if (search) {
@@ -90,7 +91,8 @@ export async function generateStaticParams() {
 }
 
 export default async function ShopPage({ searchParams }: ShopPageProps) {
-  const { category, search } = searchParams;
+  const params = await searchParams;
+  const { category, search } = params;
 
   // Generate breadcrumb navigation for SEO and UX
   const generateBreadcrumbs = () => {
@@ -140,15 +142,13 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
         />
       </Suspense>
 
-      {/* Your existing Shop component with analytics tracking */}
-      <ShopWithAnalytics searchParams={searchParams} />
+      {/* Direct ProductList integration - no wrapper needed */}
+      <ProductList
+        initialCategory={category}
+        initialSearch={search}
+      />
     </div>
   );
-}
-
-// Wrapper component to add analytics to your existing Shop component
-function ShopWithAnalytics({ searchParams }: { searchParams: ShopPageProps['searchParams'] }) {
-  return <Shop />;
 }
 
 // Separate component for Collection Schema to handle async data fetching

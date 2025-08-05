@@ -16,9 +16,10 @@ import { useGA4Ecommerce } from "@/lib/hooks/useGA4";
 
 interface ProductListProps {
     initialCategory?: string;
+    initialSearch?: string;
 }
 
-export default function ProductList({ initialCategory }: ProductListProps) {
+export default function ProductList({ initialCategory, initialSearch }: ProductListProps) {
     const { trackProductView } = useGA4Ecommerce();
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -41,9 +42,9 @@ export default function ProductList({ initialCategory }: ProductListProps) {
 
     // Initialize search from URL params
     useEffect(() => {
-        const querySearch = searchParams?.get("search") || "";
+        const querySearch = initialSearch || searchParams?.get("search") || "";
         setSearch(querySearch);
-    }, [searchParams]);
+    }, [initialSearch, searchParams]);
 
     // Initialize category from props
     useEffect(() => {
