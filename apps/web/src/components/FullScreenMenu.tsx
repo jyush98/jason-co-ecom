@@ -46,8 +46,8 @@ const FullscreenMenu = ({
 
     // Menu item variants for staggered animation
     const menuItemVariants = {
-        hidden: { 
-            opacity: 0, 
+        hidden: {
+            opacity: 0,
             y: 30,
         },
         visible: (i: number) => ({
@@ -77,7 +77,7 @@ const FullscreenMenu = ({
     const textVariants = {
         hidden: { fontStyle: "normal" },
         visible: { fontStyle: "normal" },
-        hover: { 
+        hover: {
             fontStyle: "italic",
             transition: { duration: 0.3, ease: "easeInOut" }
         }
@@ -91,12 +91,12 @@ const FullscreenMenu = ({
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0, transition: { duration: 0.4 } }}
-                        className="fixed left-0 right-0 top-[85px] bottom-0 bg-white text-black dark:bg-black dark:text-white z-40"
+                        className="fixed inset-0 bg-white text-black dark:bg-black dark:text-white z-[70]"
                     >
                         {/* Main Navigation Container */}
                         <div className="flex items-center justify-center min-h-full px-8 md:px-16">
                             <div className="w-full max-w-4xl">
-                                
+
                                 {/* Menu Items */}
                                 <div className="space-y-8 md:space-y-12">
                                     {categories.map((category, index) => (
@@ -112,15 +112,15 @@ const FullscreenMenu = ({
                                             onClick={() => startTransition(category.path)}
                                         >
                                             {/* Number */}
-                                            <motion.span 
+                                            <motion.span
                                                 variants={numberVariants}
                                                 className="text-sm md:text-base font-light tracking-wider text-gray-400 dark:text-gray-500 min-w-[3rem]"
                                             >
                                                 {String(index + 1).padStart(2, '0')}
                                             </motion.span>
-                                            
+
                                             {/* Category Name */}
-                                            <motion.h2 
+                                            <motion.h2
                                                 variants={textVariants}
                                                 className="text-4xl md:text-6xl lg:text-7xl font-serif leading-none tracking-tight transition-colors duration-300"
                                                 style={{
@@ -134,7 +134,7 @@ const FullscreenMenu = ({
                                 </div>
 
                                 {/* Close indicator */}
-                                <motion.div 
+                                <motion.div
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     transition={{ delay: 0.8 }}
@@ -142,7 +142,7 @@ const FullscreenMenu = ({
                                 >
                                     <button
                                         onClick={onClose}
-                                        className="text-sm tracking-widest text-gray-400 hover:text-white dark:hover:text-white transition-colors duration-300"
+                                        className="text-sm tracking-widest text-gray-400 hover:text-black dark:hover:text-white transition-colors duration-300"
                                     >
                                         ESC TO CLOSE
                                     </button>
@@ -161,7 +161,7 @@ const FullscreenMenu = ({
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.4 }}
-                        className="fixed inset-0 bg-black z-50 flex items-center justify-center"
+                        className="fixed inset-0 bg-black z-[80] flex items-center justify-center"
                     >
                         <motion.div
                             initial={{ opacity: 0, scale: 0.98 }}
