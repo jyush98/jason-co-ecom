@@ -5,8 +5,8 @@ from sqlalchemy import asc, desc
 from sqlalchemy.orm import Session
 from app.core.db import get_db
 from app.models.product import Product
-from app.schemas.product import ProductSchema
-from typing import List, Optional
+from app.schemas.product import PaginatedProductsResponse
+from typing import Optional
 from app.routes.clerk_webhooks import router as clerk_webhook_router
 from app.routes.stripe_webhooks import router as stripe_webhook_router
 from app.routes.user import router as user_router
@@ -67,7 +67,7 @@ async def log_requests(request: Request, call_next):
     response = await call_next(request)
     return response
 
-@app.get("/products", response_model=List[ProductSchema])
+@app.get("/products", response_model=PaginatedProductsResponse)
 def get_products(
     db: Session = Depends(get_db),
     name: Optional[str] = Query(None, description="Filter by product name"),
@@ -78,10 +78,11 @@ def get_products(
     page_size: int = Query(10, ge=1, le=100, description="Number of products per page"),
     sort_by: Optional[str] = Query(None, description="Field to sort by (e.g., price, name)"),
     sort_order: Optional[str] = Query("asc", description="Sort order (asc or desc)"),
-
 ):
+    # Build the query
     query = db.query(Product)
 
+    # Apply filters
     if name:
         query = query.filter(Product.name.ilike(f"%{name}%"))
     if min_price:
@@ -96,8 +97,20 @@ def get_products(
         order = asc(getattr(Product, sort_by)) if sort_order == "asc" else desc(getattr(Product, sort_by))
         query = query.order_by(order)
 
-     # Apply pagination
+    # Get total count BEFORE applying pagination
     total_count = query.count()
+    
+    # Apply pagination
     products = query.offset((page - 1) * page_size).limit(page_size).all()
-
-    return products
+    
+    # Calculate total pages
+    total_pages = (total_count + page_size - 1) // page_size  # Ceiling division
+    
+    # Return the paginated response
+    return PaginatedProductsResponse(
+        products=products,
+        total=total_count,
+        page=page,
+        pageSize=page_size,
+        totalPages=total_pages
+    )

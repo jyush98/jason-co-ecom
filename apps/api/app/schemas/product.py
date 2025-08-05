@@ -15,3 +15,13 @@ class ProductSchema(BaseModel):
 
     class Config:
         from_attributes = True  # Allows conversion from SQLAlchemy models
+
+class PaginatedProductsResponse(BaseModel):
+    products: List[ProductSchema]
+    total: int
+    page: int
+    pageSize: int
+    totalPages: int
+
+    class Config:
+        orm_mode = True
