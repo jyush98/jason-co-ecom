@@ -18,27 +18,28 @@ export interface CartItem {
   };
 }
 
-interface UseCartOptions {
-  enabled?: boolean;
-  refetchOnMount?: boolean;
-}
-
-export const useCart = (options: UseCartOptions = { enabled: true, refetchOnMount: true }) => {
-  const { getToken, isSignedIn, isLoaded } = useAuth();
+export const useCart = () => {
+  const auth = useAuth();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchCart = useCallback(async () => {
-    // Don't fetch if auth isn't loaded yet or user isn't signed in
-    if (!isLoaded || !isSignedIn || !options.enabled) {
+    // Wait for auth to be loaded and check if user is signed in
+    if (!auth.isLoaded) {
+      return; // Don't do anything while auth is loading
+    }
+
+    if (!auth.isSignedIn) {
+      // User is not signed in, set empty cart and stop loading
+      setCart([]);
       setLoading(false);
       return;
     }
 
     try {
       setError(null);
-      const token = await getToken();
+      const token = await auth.getToken();
 
       if (!token) {
         console.warn("No auth token available");
@@ -51,10 +52,7 @@ export const useCart = (options: UseCartOptions = { enabled: true, refetchOnMoun
 
       if (Array.isArray(cartData)) {
         setCart(cartData);
-      } else if (cartData === null || cartData === undefined) {
-        setCart([]);
       } else {
-        console.warn("Unexpected cart data format:", cartData);
         setCart([]);
       }
     } catch (err) {
@@ -64,19 +62,12 @@ export const useCart = (options: UseCartOptions = { enabled: true, refetchOnMoun
     } finally {
       setLoading(false);
     }
-  }, [getToken, isLoaded, isSignedIn, options.enabled]);
+  }, [auth.isLoaded, auth.isSignedIn, auth.getToken]);
 
-  // Refetch function for manual refresh
-  const refetch = useCallback(() => {
-    setLoading(true);
+  // Only fetch when auth is loaded
+  useEffect(() => {
     fetchCart();
   }, [fetchCart]);
-
-  useEffect(() => {
-    if (options.refetchOnMount) {
-      fetchCart();
-    }
-  }, [fetchCart, options.refetchOnMount]);
 
   // Calculate cart totals
   const cartTotal = cart.reduce((total, item) => total + (item.product.price * item.quantity), 0);
@@ -86,9 +77,9 @@ export const useCart = (options: UseCartOptions = { enabled: true, refetchOnMoun
     cart,
     loading,
     error,
-    refetch,
+    refetch: fetchCart,
     cartTotal,
     itemCount,
-    isSignedIn: isSignedIn && isLoaded
+    isSignedIn: auth.isSignedIn && auth.isLoaded
   };
 };
