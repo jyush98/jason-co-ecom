@@ -33,7 +33,7 @@ const ContactHero = () => {
     return (
         <section className="relative h-[60vh] md:h-[70vh] flex items-center justify-center overflow-hidden">
             {/* Background */}
-            <div className="absolute inset-0 bg-gradient-to-br from-black via-gray-900 to-black" />
+            <div className="absolute inset-0 bg-gradient-to-br from-white via-gray-100 to-white dark:from-black dark:via-gray-900 dark:to-black" />
 
             {/* Content overlay */}
             <div className="absolute inset-0 bg-white/5 dark:bg-black/20 backdrop-blur-[2px]" />
@@ -48,7 +48,7 @@ const ContactHero = () => {
                 {/* Main heading */}
                 <motion.h1
                     variants={itemVariants}
-                    className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight"
+                    className="text-5xl md:text-7xl font-bold text-black dark:text-white mb-6 tracking-tight"
                 >
                     GET IN{' '}
                     <span className="text-[#D4AF37] font-black tracking-wider">
@@ -59,7 +59,7 @@ const ContactHero = () => {
                 {/* Subtitle */}
                 <motion.p
                     variants={itemVariants}
-                    className="text-xl md:text-2xl text-gray-300 mb-8 font-light leading-relaxed"
+                    className="text-xl md:text-2xl text-gray-700 dark:text-gray-300 mb-8 font-light leading-relaxed"
                 >
                     Ready to create something extraordinary?
                     <br className="hidden md:block" />
@@ -76,7 +76,7 @@ const ContactHero = () => {
                     <motion.div
                         variants={iconVariants}
                         whileHover={{ scale: 1.1, y: -2 }}
-                        className="flex flex-col items-center gap-2 text-gray-400 hover:text-[#D4AF37] transition-colors duration-300 cursor-pointer"
+                        className="flex flex-col items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-[#D4AF37] transition-colors duration-300 cursor-pointer"
                     >
                         <div className="p-3 rounded-full border border-gray-600 hover:border-[#D4AF37] transition-colors duration-300">
                             <Phone size={24} />
@@ -87,7 +87,7 @@ const ContactHero = () => {
                     <motion.div
                         variants={iconVariants}
                         whileHover={{ scale: 1.1, y: -2 }}
-                        className="flex flex-col items-center gap-2 text-gray-400 hover:text-[#D4AF37] transition-colors duration-300 cursor-pointer"
+                        className="flex flex-col items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-[#D4AF37] transition-colors duration-300 cursor-pointer"
                     >
                         <div className="p-3 rounded-full border border-gray-600 hover:border-[#D4AF37] transition-colors duration-300">
                             <Mail size={24} />
@@ -98,7 +98,7 @@ const ContactHero = () => {
                     <motion.div
                         variants={iconVariants}
                         whileHover={{ scale: 1.1, y: -2 }}
-                        className="flex flex-col items-center gap-2 text-gray-400 hover:text-[#D4AF37] transition-colors duration-300 cursor-pointer"
+                        className="flex flex-col items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-[#D4AF37] transition-colors duration-300 cursor-pointer"
                     >
                         <div className="p-3 rounded-full border border-gray-600 hover:border-[#D4AF37] transition-colors duration-300">
                             <MapPin size={24} />
@@ -109,7 +109,7 @@ const ContactHero = () => {
                     <motion.div
                         variants={iconVariants}
                         whileHover={{ scale: 1.1, y: -2 }}
-                        className="flex flex-col items-center gap-2 text-gray-400 hover:text-[#D4AF37] transition-colors duration-300 cursor-pointer"
+                        className="flex flex-col items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-[#D4AF37] transition-colors duration-300 cursor-pointer"
                     >
                         <div className="p-3 rounded-full border border-gray-600 hover:border-[#D4AF37] transition-colors duration-300">
                             <Calendar size={24} />

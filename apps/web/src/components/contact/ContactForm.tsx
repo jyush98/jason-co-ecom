@@ -150,7 +150,7 @@ const ContactForm = () => {
     }
 
     return (
-        <section className="py-20 md:py-32 px-6 md:px-20">
+        <section className="py-20 md:py-32 px-6 md:px-20 bg-gray-100 dark:bg-gray-900">
             <div className="max-w-4xl mx-auto">
                 <motion.div
                     variants={containerVariants}
