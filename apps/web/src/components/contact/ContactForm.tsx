@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Send, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
+import { submitContactInquiry } from '@/utils/api'
 
 interface ContactFormData {
     name: string
@@ -71,20 +72,24 @@ const ContactForm = () => {
         if (!validateForm()) return
 
         setIsSubmitting(true)
+        setSubmitStatus('idle') // Reset status
 
         try {
-            // Simulate API call - replace with actual endpoint
-            const response = await fetch('/api/contact/inquiry', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    ...formData,
-                    source: 'contact_page',
-                    submitted_at: new Date()
-                })
+            const response = await submitContactInquiry({
+                name: formData.name,
+                email: formData.email,
+                phone: formData.phone || undefined,
+                company: formData.company || undefined,
+                subject: formData.subject,
+                message: formData.message,
+                budget_range: formData.budget_range || undefined,
+                timeline: formData.timeline || undefined,
+                preferred_location: formData.preferred_location,
+                preferred_contact: formData.preferred_contact
             })
 
-            if (response.ok) {
+            // Check for success - the API should return {success: true, ...} or just succeed with 200
+            if (response && (response.success !== false)) {
                 setSubmitStatus('success')
                 // Reset form after success
                 setTimeout(() => {
@@ -94,11 +99,12 @@ const ContactForm = () => {
                         timeline: '', preferred_contact: [], preferred_location: 'nyc-atelier'
                     })
                     setSubmitStatus('idle')
-                }, 3000)
+                }, 5000) // Give user more time to read success message
             } else {
                 setSubmitStatus('error')
             }
         } catch (error) {
+            console.error('Contact form submission error:', error)
             setSubmitStatus('error')
         } finally {
             setIsSubmitting(false)
@@ -138,19 +144,25 @@ const ContactForm = () => {
                 <h3 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4">
                     Message Sent Successfully!
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed">
+                <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed mb-6">
                     Thank you for reaching out. We typically respond within 2 hours during business hours.
                     For urgent custom order inquiries, call us directly at{' '}
                     <a href="tel:+12125555GOLD" className="text-[#D4AF37] hover:text-[#FFD700] transition-colors">
                         (212) 555-GOLD
                     </a>
                 </p>
+                <button
+                    onClick={() => setSubmitStatus('idle')}
+                    className="bg-[#D4AF37] hover:bg-[#FFD700] text-black font-medium py-2 px-6 rounded-lg transition-colors"
+                >
+                    Send Another Message
+                </button>
             </motion.div>
         )
     }
 
     return (
-        <section className="py-20 md:py-32 px-6 md:px-20 bg-gray-100 dark:bg-gray-900">
+        <section className="py-20 md:py-32 px-6 md:px-20 bg-gray-50 dark:bg-gray-900">
             <div className="max-w-4xl mx-auto">
                 <motion.div
                     variants={containerVariants}
@@ -192,9 +204,9 @@ const ContactForm = () => {
                                 type="text"
                                 value={formData.name}
                                 onChange={(e) => handleInputChange('name', e.target.value)}
-                                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all duration-300 bg-white dark:bg-black ${errors.name
-                                        ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
-                                        : 'border-gray-300 dark:border-gray-600 hover:border-[#D4AF37]'
+                                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all duration-300 bg-white dark:bg-black text-gray-900 dark:text-white ${errors.name
+                                    ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
+                                    : 'border-gray-300 dark:border-gray-600 hover:border-[#D4AF37]'
                                     }`}
                                 placeholder="Your full name"
                             />
@@ -214,9 +226,9 @@ const ContactForm = () => {
                                 type="email"
                                 value={formData.email}
                                 onChange={(e) => handleInputChange('email', e.target.value)}
-                                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all duration-300 bg-white dark:bg-black ${errors.email
-                                        ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
-                                        : 'border-gray-300 dark:border-gray-600 hover:border-[#D4AF37]'
+                                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all duration-300 bg-white dark:bg-black text-gray-900 dark:text-white ${errors.email
+                                    ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
+                                    : 'border-gray-300 dark:border-gray-600 hover:border-[#D4AF37]'
                                     }`}
                                 placeholder="your.email@domain.com"
                             />
@@ -239,7 +251,7 @@ const ContactForm = () => {
                                 type="tel"
                                 value={formData.phone}
                                 onChange={(e) => handleInputChange('phone', e.target.value)}
-                                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all duration-300 bg-white dark:bg-black hover:border-[#D4AF37]"
+                                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all duration-300 bg-white dark:bg-black text-gray-900 dark:text-white hover:border-[#D4AF37]"
                                 placeholder="(555) 123-4567"
                             />
                         </div>
@@ -252,7 +264,7 @@ const ContactForm = () => {
                                 type="text"
                                 value={formData.company}
                                 onChange={(e) => handleInputChange('company', e.target.value)}
-                                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all duration-300 bg-white dark:bg-black hover:border-[#D4AF37]"
+                                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all duration-300 bg-white dark:bg-black text-gray-900 dark:text-white hover:border-[#D4AF37]"
                                 placeholder="Your company name"
                             />
                         </div>
@@ -267,7 +279,7 @@ const ContactForm = () => {
                             <select
                                 value={formData.subject}
                                 onChange={(e) => handleInputChange('subject', e.target.value)}
-                                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all duration-300 bg-white dark:bg-black hover:border-[#D4AF37]"
+                                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all duration-300 bg-white dark:bg-black text-gray-900 dark:text-white hover:border-[#D4AF37]"
                             >
                                 <option value="general">General Inquiry</option>
                                 <option value="custom_order">Custom Order</option>
@@ -285,7 +297,7 @@ const ContactForm = () => {
                             <select
                                 value={formData.budget_range}
                                 onChange={(e) => handleInputChange('budget_range', e.target.value)}
-                                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all duration-300 bg-white dark:bg-black hover:border-[#D4AF37]"
+                                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all duration-300 bg-white dark:bg-black text-gray-900 dark:text-white hover:border-[#D4AF37]"
                             >
                                 <option value="">Select budget range</option>
                                 <option value="under_5k">Under $5,000</option>
@@ -307,7 +319,7 @@ const ContactForm = () => {
                             <select
                                 value={formData.timeline}
                                 onChange={(e) => handleInputChange('timeline', e.target.value)}
-                                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all duration-300 bg-white dark:bg-black hover:border-[#D4AF37]"
+                                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all duration-300 bg-white dark:bg-black text-gray-900 dark:text-white hover:border-[#D4AF37]"
                             >
                                 <option value="">When do you need this?</option>
                                 <option value="asap">ASAP / Rush Order</option>
@@ -326,7 +338,7 @@ const ContactForm = () => {
                             <select
                                 value={formData.preferred_location}
                                 onChange={(e) => handleInputChange('preferred_location', e.target.value)}
-                                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all duration-300 bg-white dark:bg-black hover:border-[#D4AF37]"
+                                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all duration-300 bg-white dark:bg-black text-gray-900 dark:text-white hover:border-[#D4AF37]"
                             >
                                 <option value="nyc-atelier">NYC Atelier</option>
                                 <option value="virtual">Virtual Consultation</option>
@@ -346,9 +358,9 @@ const ContactForm = () => {
                             value={formData.message}
                             onChange={(e) => handleInputChange('message', e.target.value)}
                             rows={5}
-                            className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all duration-300 bg-white dark:bg-black resize-none ${errors.message
-                                    ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
-                                    : 'border-gray-300 dark:border-gray-600 hover:border-[#D4AF37]'
+                            className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all duration-300 bg-white dark:bg-black text-gray-900 dark:text-white resize-none ${errors.message
+                                ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
+                                : 'border-gray-300 dark:border-gray-600 hover:border-[#D4AF37]'
                                 }`}
                             placeholder="Describe your project, inspiration, or questions. The more details you provide, the better we can assist you..."
                         />
@@ -377,8 +389,8 @@ const ContactForm = () => {
                                     type="button"
                                     onClick={() => toggleContactMethod(method.id)}
                                     className={`p-3 rounded-lg border text-sm font-medium transition-all duration-300 ${formData.preferred_contact.includes(method.id)
-                                            ? 'bg-[#D4AF37] border-[#D4AF37] text-black'
-                                            : 'border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white hover:border-[#D4AF37] hover:bg-[#D4AF37]/10'
+                                        ? 'bg-[#D4AF37] border-[#D4AF37] text-black'
+                                        : 'border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white hover:border-[#D4AF37] hover:bg-[#D4AF37]/10'
                                         }`}
                                 >
                                     {method.label}

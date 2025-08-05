@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { useState, useEffect } from 'react'
 import {
     MapPin,
     Phone,
@@ -11,10 +12,30 @@ import {
     Users,
     Calendar,
     ExternalLink,
-    CheckCircle
+    CheckCircle,
+    Loader2,
+    AlertCircle
 } from 'lucide-react'
+import { getBusinessHours } from '@/utils/api'
+
+interface BusinessHours {
+    [key: string]: string
+}
+
+interface BusinessHoursResponse {
+    hours: BusinessHours
+    holiday_notice?: string
+    emergency_notice?: string
+    timezone?: string
+}
 
 const ContactInfo = () => {
+    const [businessHours, setBusinessHours] = useState<BusinessHours | null>(null)
+    const [hoursLoading, setHoursLoading] = useState(true)
+    const [hoursError, setHoursError] = useState(false)
+    const [holidayNotice, setHolidayNotice] = useState<string>('')
+    const [emergencyNotice, setEmergencyNotice] = useState<string>('')
+
     const containerVariants = {
         hidden: { opacity: 0 },
         visible: {
@@ -31,6 +52,32 @@ const ContactInfo = () => {
             transition: { duration: 0.6, ease: "easeOut" }
         }
     }
+
+    // Load business hours from API
+    useEffect(() => {
+        const loadBusinessHours = async () => {
+            try {
+                const response: BusinessHoursResponse = await getBusinessHours()
+                if (response && response.hours) {
+                    setBusinessHours(response.hours)
+                    setHolidayNotice(response.holiday_notice || businessInfo.hours.holiday)
+                    setEmergencyNotice(response.emergency_notice || businessInfo.hours.emergency)
+                } else {
+                    // Fallback to static hours
+                    setBusinessHours(businessInfo.hours.regular)
+                }
+            } catch (error) {
+                console.error('Failed to load business hours:', error)
+                setHoursError(true)
+                // Fallback to static hours
+                setBusinessHours(businessInfo.hours.regular)
+            } finally {
+                setHoursLoading(false)
+            }
+        }
+
+        loadBusinessHours()
+    }, [])
 
     const businessInfo = {
         legal: {
@@ -187,7 +234,7 @@ const ContactInfo = () => {
                             </div>
                         </motion.div>
 
-                        {/* Business Hours */}
+                        {/* Business Hours - Dynamic */}
                         <motion.div
                             variants={itemVariants}
                             className="bg-white dark:bg-black rounded-2xl p-8 border border-gray-200 dark:border-gray-800 hover:border-[#D4AF37] hover:shadow-lg transition-all duration-300"
@@ -195,10 +242,25 @@ const ContactInfo = () => {
                             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
                                 <Clock className="text-[#D4AF37]" size={24} />
                                 Business Hours
+                                {hoursLoading && <Loader2 size={16} className="animate-spin text-[#D4AF37]" />}
                             </h3>
 
+                            {hoursLoading ? (
+                                <div className="flex items-center justify-center py-8">
+                                    <Loader2 size={24} className="animate-spin text-[#D4AF37]" />
+                                    <span className="ml-2 text-gray-600 dark:text-gray-400">Loading hours...</span>
+                                </div>
+                            ) : hoursError ? (
+                                <div className="flex items-center gap-2 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg mb-4">
+                                    <AlertCircle size={16} className="text-red-500" />
+                                    <span className="text-red-700 dark:text-red-400 text-sm">
+                                        Unable to load current hours. Showing standard hours.
+                                    </span>
+                                </div>
+                            ) : null}
+
                             <div className="space-y-3">
-                                {Object.entries(businessInfo.hours.regular).map(([days, hours]) => (
+                                {businessHours && Object.entries(businessHours).map(([days, hours]) => (
                                     <div key={days} className="flex justify-between items-center">
                                         <span className="text-gray-600 dark:text-gray-400 font-medium">{days}</span>
                                         <span className="text-gray-900 dark:text-white">{hours}</span>
@@ -208,10 +270,10 @@ const ContactInfo = () => {
 
                             <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
                                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                                    <strong>Holiday Notice:</strong> {businessInfo.hours.holiday}
+                                    <strong>Holiday Notice:</strong> {holidayNotice}
                                 </p>
                                 <p className="text-sm text-[#D4AF37] font-medium">
-                                    <strong>VIP Service:</strong> {businessInfo.hours.emergency}
+                                    <strong>VIP Service:</strong> {emergencyNotice}
                                 </p>
                             </div>
                         </motion.div>

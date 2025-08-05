@@ -1,8 +1,9 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { MapPin, Phone, Mail, Clock, ArrowRight, Bell } from 'lucide-react'
+import { MapPin, Phone, Mail, Clock, ArrowRight, Bell, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
 import { useState } from 'react'
+import { subscribeLocationNotification } from '@/utils/api'
 
 interface Location {
     id: string
@@ -31,6 +32,7 @@ interface Location {
 
 const LocationsGrid = () => {
     const [notifyEmails, setNotifyEmails] = useState<{ [key: string]: string }>({})
+    const [notifyStatus, setNotifyStatus] = useState<{ [key: string]: 'idle' | 'loading' | 'success' | 'error' }>({})
 
     const containerVariants = {
         hidden: { opacity: 0 },
@@ -130,18 +132,28 @@ const LocationsGrid = () => {
         const email = notifyEmails[locationId]
         if (!email || !/\S+@\S+\.\S+/.test(email)) return
 
+        setNotifyStatus(prev => ({ ...prev, [locationId]: 'loading' }))
+
         try {
-            await fetch('/api/contact/location-notify', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, location_id: locationId })
+            const response = await subscribeLocationNotification({
+                email,
+                location_id: locationId
             })
 
-            // Clear email input and show success
-            setNotifyEmails(prev => ({ ...prev, [locationId]: '' }))
-            // Could add toast notification here
+            if (response && (response.success !== false)) {
+                setNotifyStatus(prev => ({ ...prev, [locationId]: 'success' }))
+                setNotifyEmails(prev => ({ ...prev, [locationId]: '' }))
+
+                // Reset success status after 3 seconds
+                setTimeout(() => {
+                    setNotifyStatus(prev => ({ ...prev, [locationId]: 'idle' }))
+                }, 3000)
+            } else {
+                setNotifyStatus(prev => ({ ...prev, [locationId]: 'error' }))
+            }
         } catch (error) {
             console.error('Failed to sign up for notifications:', error)
+            setNotifyStatus(prev => ({ ...prev, [locationId]: 'error' }))
         }
     }
 
@@ -179,9 +191,14 @@ const LocationsGrid = () => {
                             <p className="text-gray-600 dark:text-gray-400">
                                 {location.address.city}, {location.address.state} {location.address.zip}
                             </p>
-                            <button className="text-[#D4AF37] hover:text-[#FFD700] text-sm font-medium mt-2 transition-colors">
-                                Get Directions →
-                            </button>
+                            <a
+                                href={`https://maps.google.com/?q=${encodeURIComponent(`${location.address.street}, ${location.address.city}, ${location.address.state} ${location.address.zip}`)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[#D4AF37] hover:text-[#FFD700] text-sm font-medium mt-2 transition-colors inline-flex items-center gap-1"
+                            >
+                                Get Directions <ArrowRight size={14} />
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -245,71 +262,102 @@ const LocationsGrid = () => {
         </motion.div>
     )
 
-    const renderFutureLocation = (location: Location) => (
-        <motion.div
-            variants={itemVariants}
-            whileHover={{ scale: 1.02, y: -4 }}
-            className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/50 dark:to-gray-800/50 rounded-2xl p-8 border border-gray-200 dark:border-gray-700 hover:border-[#D4AF37] hover:shadow-xl transition-all duration-300 relative overflow-hidden"
-        >
-            {/* Coming Soon Badge */}
-            <div className="absolute top-4 right-4 px-3 py-1 bg-[#D4AF37] text-black rounded-full text-sm font-bold">
-                Coming Soon
-            </div>
+    const renderFutureLocation = (location: Location) => {
+        const status = notifyStatus[location.id] || 'idle'
 
-            {/* Location Header */}
-            <div className="mb-6">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                    {location.name}
-                </h3>
-                <div className="flex items-center gap-2 text-[#D4AF37] font-medium">
-                    <MapPin size={16} />
-                    <span>{location.city}{location.state && `, ${location.state}`}{location.country && `, ${location.country}`}</span>
+        return (
+            <motion.div
+                variants={itemVariants}
+                whileHover={{ scale: 1.02, y: -4 }}
+                className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/50 dark:to-gray-800/50 rounded-2xl p-8 border border-gray-200 dark:border-gray-700 hover:border-[#D4AF37] hover:shadow-xl transition-all duration-300 relative overflow-hidden"
+            >
+                {/* Coming Soon Badge */}
+                <div className="absolute top-4 right-4 px-3 py-1 bg-[#D4AF37] text-black rounded-full text-sm font-bold">
+                    {location.status === 'planning' ? 'In Planning' : 'Coming Soon'}
                 </div>
-                {location.expectedOpen && (
-                    <p className="text-gray-600 dark:text-gray-400 mt-2">
-                        Expected Opening: <span className="font-medium">{location.expectedOpen}</span>
-                    </p>
-                )}
-            </div>
 
-            {/* Features Preview */}
-            <div className="mb-6">
-                <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Planned Features</h4>
-                <div className="space-y-2">
-                    {location.features.map((feature, index) => (
-                        <div key={index} className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-[#D4AF37] rounded-full flex-shrink-0" />
-                            <span className="text-gray-600 dark:text-gray-400">{feature}</span>
+                {/* Location Header */}
+                <div className="mb-6">
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                        {location.name}
+                    </h3>
+                    <div className="flex items-center gap-2 text-[#D4AF37] font-medium">
+                        <MapPin size={16} />
+                        <span>{location.city}{location.state && `, ${location.state}`}{location.country && `, ${location.country}`}</span>
+                    </div>
+                    {location.expectedOpen && (
+                        <p className="text-gray-600 dark:text-gray-400 mt-2">
+                            Expected Opening: <span className="font-medium">{location.expectedOpen}</span>
+                        </p>
+                    )}
+                </div>
+
+                {/* Features Preview */}
+                <div className="mb-6">
+                    <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Planned Features</h4>
+                    <div className="space-y-2">
+                        {location.features.map((feature, index) => (
+                            <div key={index} className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-[#D4AF37] rounded-full flex-shrink-0" />
+                                <span className="text-gray-600 dark:text-gray-400">{feature}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Notify Me Section */}
+                <div className="space-y-3">
+                    <h4 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                        <Bell size={16} className="text-[#D4AF37]" />
+                        Get Notified When We Open
+                    </h4>
+
+                    {status === 'success' ? (
+                        <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                            <CheckCircle size={20} className="text-green-600 dark:text-green-400" />
+                            <span className="text-green-700 dark:text-green-400 font-medium">
+                                You're subscribed! We'll notify you when we open.
+                            </span>
                         </div>
-                    ))}
-                </div>
-            </div>
+                    ) : (
+                        <>
+                            <div className="flex gap-2">
+                                <input
+                                    type="email"
+                                    value={notifyEmails[location.id] || ''}
+                                    onChange={(e) => setNotifyEmails(prev => ({ ...prev, [location.id]: e.target.value }))}
+                                    placeholder="your.email@domain.com"
+                                    disabled={status === 'loading'}
+                                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all duration-300 bg-white dark:bg-black text-gray-900 dark:text-white disabled:opacity-50"
+                                />
+                                <button
+                                    onClick={() => handleNotifySignup(location.id)}
+                                    disabled={status === 'loading' || !notifyEmails[location.id]?.trim()}
+                                    className="px-4 py-2 bg-[#D4AF37] hover:bg-[#FFD700] text-black font-medium rounded-lg transition-all duration-300 hover:scale-105 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                                >
+                                    {status === 'loading' ? (
+                                        <Loader2 size={16} className="animate-spin" />
+                                    ) : (
+                                        <Bell size={16} />
+                                    )}
+                                    {status === 'loading' ? 'Subscribing...' : 'Notify'}
+                                </button>
+                            </div>
 
-            {/* Notify Me Section */}
-            <div className="space-y-3">
-                <h4 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                    <Bell size={16} className="text-[#D4AF37]" />
-                    Get Notified When We Open
-                </h4>
-                <div className="flex gap-2">
-                    <input
-                        type="email"
-                        value={notifyEmails[location.id] || ''}
-                        onChange={(e) => setNotifyEmails(prev => ({ ...prev, [location.id]: e.target.value }))}
-                        placeholder="your.email@domain.com"
-                        className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all duration-300 bg-white dark:bg-black"
-                    />
-                    <button
-                        onClick={() => handleNotifySignup(location.id)}
-                        className="px-4 py-2 bg-[#D4AF37] hover:bg-[#FFD700] text-black font-medium rounded-lg transition-all duration-300 hover:scale-105 flex items-center gap-1"
-                    >
-                        <Bell size={16} />
-                        Notify
-                    </button>
+                            {status === 'error' && (
+                                <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                                    <AlertCircle size={16} className="text-red-600 dark:text-red-400" />
+                                    <span className="text-red-700 dark:text-red-400 text-sm">
+                                        Failed to subscribe. Please try again.
+                                    </span>
+                                </div>
+                            )}
+                        </>
+                    )}
                 </div>
-            </div>
-        </motion.div>
-    )
+            </motion.div>
+        )
+    }
 
     return (
         <section className="py-20 md:py-32 px-6 md:px-20 bg-gray-50 dark:bg-gray-900/20">

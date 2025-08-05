@@ -8,6 +8,35 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 const cache = new Map(); // Simple in-memory cache
 
+export interface ContactInquiryData {
+    name: string
+    email: string
+    phone?: string
+    company?: string
+    subject: string
+    message: string
+    budget_range?: string
+    timeline?: string
+    preferred_location?: string
+    preferred_contact: string[]
+}
+
+export interface ConsultationBookingData {
+    name: string
+    email: string
+    phone?: string
+    consultation_type: string
+    preferred_date?: string
+    project_description?: string
+    budget_range?: string
+    timeline?: string
+}
+
+export interface LocationNotificationData {
+    email: string
+    location_id: string
+}
+
 export const fetchProducts = async (filters: {
     name?: string;
     minPrice?: number;
@@ -116,3 +145,84 @@ export const fetchOrders = async (clerkId: string): Promise<Order[]> => {
         return [];
     }
 };
+
+export async function submitContactInquiry(data: ContactInquiryData) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/contact/inquiry`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        })
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        return await response.json()
+    } catch (error) {
+        console.error('Contact inquiry submission failed:', error)
+        throw error
+    }
+}
+
+// Consultation booking
+export async function bookConsultation(data: ConsultationBookingData) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/contact/consultation`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        })
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        return await response.json()
+    } catch (error) {
+        console.error('Consultation booking failed:', error)
+        throw error
+    }
+}
+
+// Location notification signup
+export async function subscribeLocationNotification(data: LocationNotificationData) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/contact/location-notify`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        })
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        return await response.json()
+    } catch (error) {
+        console.error('Location notification signup failed:', error)
+        throw error
+    }
+}
+
+// Get business hours
+export async function getBusinessHours() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/contact/hours`)
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        return await response.json()
+    } catch (error) {
+        console.error('Failed to fetch business hours:', error)
+        throw error
+    }
+}
