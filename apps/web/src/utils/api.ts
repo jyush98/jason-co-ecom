@@ -1,6 +1,6 @@
 "use client";
 
-import { Product } from "../types/product";
+import { Product, ProductListResponse, Category, Collection } from "../types/product";
 import { User } from "../types/user";
 import { Order } from "../types/order";
 
@@ -39,75 +39,75 @@ export interface LocationNotificationData {
 
 export const fetchProducts = async (filters: {
     name?: string;
-    minPrice?: number;
-    maxPrice?: number;
-    category?: string;
+    category_id?: number;
+    category?: string; // Legacy support
+    collection_id?: number;
+    minPrice?: number; // Will be converted to cents
+    maxPrice?: number; // Will be converted to cents
+    featured?: boolean;
+    status?: string;
     page?: number;
     pageSize?: number;
     sortBy?: string;
     sortOrder?: string;
-}) => {
+}): Promise<ProductListResponse> => {
     const queryParams = new URLSearchParams();
+
+    // Add filters to query params
     if (filters.name) queryParams.append("name", filters.name);
-    if (filters.minPrice) queryParams.append("min_price", filters.minPrice.toString());
-    if (filters.maxPrice) queryParams.append("max_price", filters.maxPrice.toString());
-    if (filters.category && filters.category != "All" && filters.category != "") queryParams.append("category", filters.category);
+    if (filters.category_id) queryParams.append("category_id", filters.category_id.toString());
+    if (filters.category && filters.category !== "All" && filters.category !== "") {
+        queryParams.append("category", filters.category);
+    }
+    if (filters.collection_id) queryParams.append("collection_id", filters.collection_id.toString());
+
+    // Convert dollar prices to cents for backend
+    if (filters.minPrice) queryParams.append("min_price", (filters.minPrice * 100).toString());
+    if (filters.maxPrice) queryParams.append("max_price", (filters.maxPrice * 100).toString());
+
+    if (filters.featured !== undefined) queryParams.append("featured", filters.featured.toString());
+    if (filters.status) queryParams.append("status", filters.status);
     if (filters.page) queryParams.append("page", filters.page.toString());
     if (filters.pageSize) queryParams.append("page_size", filters.pageSize.toString());
     if (filters.sortBy) queryParams.append("sort_by", filters.sortBy);
     if (filters.sortOrder) queryParams.append("sort_order", filters.sortOrder);
 
-    const cacheKey = queryParams.toString();
-    if (cache.has(cacheKey)) {
-        return cache.get(cacheKey); // ✅ Return cached response
-    }
-
     try {
-        const url = `${API_BASE_URL}/products?${cacheKey}`;
-        console.log('Fetching from URL:', url); // Debug log
+        const url = `${API_BASE_URL}/api/products?${queryParams.toString()}`;
+        console.log('Fetching products from:', url);
 
         const response = await fetch(url);
-
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
-        const data = await response.json();
-        console.log('Raw API response:', data); // Debug log
+        const data: ProductListResponse = await response.json();
+        console.log('Products response:', data);
 
-        // Ensure consistent return format
-        const normalizedData = {
-            products: Array.isArray(data) ? data : (data.products || data.items || []),
-            total: data.total || data.count || (Array.isArray(data) ? data.length : 0),
-            page: data.page || 1,
-            pageSize: data.pageSize || data.page_size || filters.pageSize || 10
-        };
-
-        console.log('Normalized data:', normalizedData); // Debug log
-
-        cache.set(cacheKey, normalizedData); // ✅ Store response in cache
-        return normalizedData;
+        return data;
     } catch (error) {
         console.error("Error fetching products:", error);
-        // Return consistent format even on error
         return {
             products: [],
             total: 0,
             page: 1,
-            pageSize: filters.pageSize || 10
+            page_size: filters.pageSize || 20,
+            total_pages: 0,
+            has_next: false,
+            has_prev: false
         };
     }
 };
 
 export const fetchProduct = async (productId: number): Promise<Product | null> => {
     try {
-        const response = await fetch(`${API_BASE_URL}/products/${productId}`);
-
+        const response = await fetch(`${API_BASE_URL}/api/products/${productId}`);
         if (!response.ok) {
             throw new Error(`Failed to fetch product: ${response.statusText}`);
         }
 
-        return await response.json();
+        const product: Product = await response.json();
+        return product;
     } catch (error) {
         console.error("Error fetching product:", error);
         return null;
@@ -226,3 +226,109 @@ export async function getBusinessHours() {
         throw error
     }
 }
+
+// ==========================================
+// CATEGORY API FUNCTIONS - FIXED
+// ==========================================
+
+export const fetchCategories = async (options: {
+    includeInactive?: boolean;
+    featuredOnly?: boolean;
+    parentId?: number;
+} = {}): Promise<Category[]> => {
+    const queryParams = new URLSearchParams();
+
+    if (options.includeInactive) queryParams.append("include_inactive", "true");
+    if (options.featuredOnly) queryParams.append("featured_only", "true");
+    if (options.parentId !== undefined) queryParams.append("parent_id", options.parentId.toString());
+
+    try {
+        const url = `${API_BASE_URL}/categories?${queryParams.toString()}`;
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch categories: ${response.statusText}`);
+        }
+
+        // FIXED: Backend returns array directly, not nested object
+        const data = await response.json();
+        return data; // Changed from data.categories || []
+    } catch (error) {
+        console.error("Error fetching categories:", error);
+        return [];
+    }
+};
+
+export const fetchCategory = async (categoryId: number): Promise<Category | null> => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/categories/${categoryId}`);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch category: ${response.statusText}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching category:", error);
+        return null;
+    }
+};
+
+// ==========================================
+// COLLECTION API FUNCTIONS - FIXED
+// ==========================================
+
+export const fetchCollections = async (options: {
+    featuredOnly?: boolean;
+    collectionType?: string;
+    includeInactive?: boolean;
+} = {}): Promise<Collection[]> => {
+    const queryParams = new URLSearchParams();
+
+    if (options.featuredOnly) queryParams.append("featured_only", "true");
+    if (options.collectionType) queryParams.append("collection_type", options.collectionType);
+    if (options.includeInactive) queryParams.append("include_inactive", "true");
+
+    try {
+        const url = `${API_BASE_URL}/collections?${queryParams.toString()}`;
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch collections: ${response.statusText}`);
+        }
+
+        // FIXED: Backend returns array directly, not nested object
+        const data = await response.json();
+        return data; // Changed from data.collections || []
+    } catch (error) {
+        console.error("Error fetching collections:", error);
+        return [];
+    }
+};
+
+export const fetchCollectionProducts = async (
+    collectionId: number,
+    page: number = 1,
+    pageSize: number = 20
+): Promise<ProductListResponse> => {
+    try {
+        const url = `${API_BASE_URL}/api/collections/${collectionId}/products?page=${page}&page_size=${pageSize}`;
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch collection products: ${response.statusText}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching collection products:", error);
+        return {
+            products: [],
+            total: 0,
+            page: 1,
+            page_size: pageSize,
+            total_pages: 0,
+            has_next: false,
+            has_prev: false
+        };
+    }
+};

@@ -12,3 +12,5 @@ from app.models.user_address import UserAddress
 from app.models.user_settings import UserSetting
 from app.models.notification_preferences import NotificationPreference
 from app.models.contact import ContactInquiry, ConsultationBooking, LocationNotification
+from app.models.category import Category
+from app.models.collection import Collection

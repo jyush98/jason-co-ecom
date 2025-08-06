@@ -1,4 +1,4 @@
-// app/product/[id]/page.tsx
+// app/product/[id]/page.tsx - FIXED TypeScript Errors
 import { notFound } from "next/navigation";
 import { ProductDetailView } from "@/components/products";
 import { Product } from "@/types/product";
@@ -10,6 +10,38 @@ import type { Metadata } from "next";
 interface ProductPageProps {
   params: Promise<{ id: string }>;
 }
+
+// ==========================================
+// UTILITY FUNCTIONS - ADDED
+// ==========================================
+
+/**
+ * Safely extract category name from product.category
+ * Handles both Category object and string values
+ */
+const getCategoryName = (product: Product): string => {
+  // Try category_name first (from ProductSummary API)
+  if (product.category_name) return product.category_name;
+
+  // Try category object name
+  if (product.category && typeof product.category === 'object' && 'name' in product.category) {
+    return product.category.name;
+  }
+
+  // Fallback to string category
+  if (typeof product.category === 'string') return product.category;
+
+  // Default fallback
+  return 'Jewelry';
+};
+
+/**
+ * Get category URL slug safely
+ */
+const getCategorySlug = (product: Product): string => {
+  const categoryName = getCategoryName(product);
+  return categoryName.toLowerCase().replace(/\s+/g, '-');
+};
 
 // Enhanced metadata generation with luxury jewelry optimization
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
@@ -29,17 +61,18 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
     }
 
     const product = await res.json();
+    const categoryName = getCategoryName(product);
     const images = product.image_urls?.length ? product.image_urls : [product.image_url].filter(Boolean);
 
     // Use the comprehensive metadata generator
     return createProductMetadata({
       product: {
         name: product.name,
-        description: product.description || `Discover this exceptional ${product.category || 'jewelry'} piece from Jason & Co. Handcrafted luxury designed without limits.`,
+        description: product.description || `Discover this exceptional ${categoryName.toLowerCase()} piece from Jason & Co. Handcrafted luxury designed without limits.`,
         price: product.price,
-        category: product.category || 'Jewelry',
-        inStock: true, // Update based on your inventory system
-        sku: product.id.toString()
+        category: categoryName,
+        inStock: product.in_stock ?? true,
+        sku: product.sku || product.id.toString()
       },
       images: images.map((img: string) =>
         img.startsWith('http') ? img : `${process.env.NEXT_PUBLIC_BASE_URL || 'https://jasonandco.shop'}${img}`
@@ -90,19 +123,19 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
     const product: Product = await res.json();
 
-    // Generate SEO-optimized breadcrumbs
+    // FIXED: Generate SEO-optimized breadcrumbs with safe category handling
     const generateBreadcrumbs = (product: Product) => {
       const items = [
         { name: 'Home', url: '/' },
         { name: 'Shop', url: '/shop' }
       ];
 
-      // Add category if available
-      if (product.category) {
-        const categoryName = product.category.charAt(0).toUpperCase() + product.category.slice(1);
+      // Add category if available - FIXED: Safe category handling
+      const categoryName = getCategoryName(product);
+      if (categoryName && categoryName !== 'Jewelry') {
         items.push({
           name: categoryName,
-          url: `/shop?category=${product.category.toLowerCase()}`
+          url: `/shop?category=${getCategorySlug(product)}`
         });
       }
 
@@ -128,6 +161,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     const breadcrumbItems = generateBreadcrumbs(product);
     const productSlug = generateProductSlug(product.name);
     const canonicalUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://jasonandco.shop'}/product/${product.id}/${productSlug}`;
+    const categoryName = getCategoryName(product);
 
     return (
       <>
@@ -136,12 +170,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
         {/* ===== STRUCTURED DATA FOR SEO ===== */}
 
-        {/* Product Schema for Rich Search Results */}
+        {/* Product Schema for Rich Search Results - FIXED */}
         <ProductSchema
           product={{
             name: product.name,
-            description: product.description || `Exceptional ${product.category || 'jewelry'} piece from Jason & Co. Handcrafted luxury designed without limits.`,
-            price: product.price,
+            description: product.description || `Exceptional ${categoryName.toLowerCase()} piece from Jason & Co. Handcrafted luxury designed without limits.`,
+            price: product.price / 100, // Convert cents to dollars
             images: product.image_urls?.length
               ? product.image_urls.map((img: string) =>
                 img.startsWith('http') ? img : `${process.env.NEXT_PUBLIC_BASE_URL || 'https://jasonandco.shop'}${img}`
@@ -149,9 +183,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
               : product.image_url
                 ? [product.image_url.startsWith('http') ? product.image_url : `${process.env.NEXT_PUBLIC_BASE_URL || 'https://jasonandco.shop'}${product.image_url}`]
                 : [`${process.env.NEXT_PUBLIC_BASE_URL || 'https://jasonandco.shop'}/images/product-placeholder.jpg`],
-            category: product.category || 'Jewelry',
-            inStock: true, // Update based on your inventory system
-            sku: product.id.toString(),
+            category: categoryName, // FIXED: Safe string category
+            inStock: product.in_stock ?? true,
+            sku: product.sku || product.id.toString(),
             brand: 'Jason & Co.'
           }}
         />
@@ -159,7 +193,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         {/* Breadcrumb Schema for Navigation SEO */}
         <BreadcrumbSchema items={breadcrumbItems} />
 
-        {/* Additional Product-Specific Schema */}
+        {/* Additional Product-Specific Schema - FIXED */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -169,7 +203,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               '@id': canonicalUrl,
               url: canonicalUrl,
               name: `${product.name} - Jason & Co.`,
-              description: product.description || `Luxury ${product.category || 'jewelry'} piece from Jason & Co.`,
+              description: product.description || `Luxury ${categoryName.toLowerCase()} piece from Jason & Co.`,
               isPartOf: {
                 '@id': `${process.env.NEXT_PUBLIC_BASE_URL || 'https://jasonandco.shop'}/#website`
               },

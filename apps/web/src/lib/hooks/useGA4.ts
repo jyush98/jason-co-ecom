@@ -3,7 +3,7 @@
 
 import { useEffect, useCallback } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { ga4, GA4Product, GA4CustomDimensions, createProductFromData, determinePriceTier, getJewelryType } from '@/lib/analytics/ga4';
+import { ga4, GA4Product, GA4CustomDimensions, createProductFromData, determinePriceTier, getJewelryType, getCategoryName } from '@/lib/analytics/ga4';
 
 export interface Product {
     id: number;
@@ -70,14 +70,24 @@ function safeCreateGA4Product(product: Product | CartProduct, quantity: number =
 }
 
 // ✅ FIXED: Safe custom dimensions extraction
-function extractCustomDimensions(product: Product | CartProduct): Partial<GA4CustomDimensions> {
+const extractCustomDimensions = (product: any): GA4CustomDimensions => {
+    // This works with any product structure
+    const categoryName = product.category_name ||
+        product.category?.name ||
+        product.category ||
+        'Jewelry';
+
+    const price = product.price_display ?
+        parseFloat(product.price_display.replace('$', '')) :
+        (product.price ? product.price / 100 : 0);
+
     return {
-        jewelry_type: getJewelryType(product.category),
-        metal_type: extractMetalType(product),
-        collection: extractCollection(product),
-        price_tier: determinePriceTier(product.price)
+        jewelry_type: getJewelryType(categoryName),
+        metal_type: product.materials?.[0] || 'unknown',
+        collection: product.collections?.[0]?.name || 'general',
+        price_tier: determinePriceTier(price)
     };
-}
+};
 
 // ✅ FIXED: Safe metal type extraction
 function extractMetalType(product: Product | CartProduct): string {

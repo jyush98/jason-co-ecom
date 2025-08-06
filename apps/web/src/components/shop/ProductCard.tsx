@@ -24,20 +24,36 @@ export default function ProductCard({
     const [isActive, setIsActive] = useState(false);
     const [showQuickView, setShowQuickView] = useState(false);
 
-    const primary = product.image_urls?.[0] || product.image_url;
-    const hover = product.image_urls?.[1] || product.image_url;
+    // FIXED: Handle undefined values with fallbacks
+    const primary = product.image_urls?.[0] || product.image_url || '';
+    const hover = product.image_urls?.[1] || product.image_url || '';
+
+    // FIXED: Use display_theme and ensure proper fallback
     const isDark = product.display_theme === "dark";
 
     // Priority loading for above-fold products (first 6-8 typically)
     const isPriority = index < 8;
 
+    // FIXED: Handle price correctly - price is in cents, convert to dollars
     const formatPrice = (price: number) => {
+        const priceInDollars = price / 100; // Convert cents to dollars
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
             currency: 'USD',
             minimumFractionDigits: 0,
             maximumFractionDigits: 0,
-        }).format(price);
+        }).format(priceInDollars);
+    };
+
+    // FIXED: Get category name safely
+    const getCategoryName = (product: Product): string => {
+        // Try category_name first (from API), then category object name, then fallback
+        if (product.category_name) return product.category_name;
+        if (product.category && typeof product.category === 'object' && 'name' in product.category) {
+            return product.category.name;
+        }
+        if (typeof product.category === 'string') return product.category;
+        return "Jewelry";
     };
 
     const itemVariants = {
@@ -57,6 +73,11 @@ export default function ProductCard({
             },
         },
     };
+
+    // Don't render if no primary image
+    if (!primary) {
+        return null;
+    }
 
     return (
         <motion.div
@@ -108,22 +129,24 @@ export default function ProductCard({
                             />
                         </motion.div>
 
-                        {/* Hover Image - Optimized */}
-                        <motion.div
-                            className="absolute inset-0"
-                            style={{
-                                opacity: isActive ? 1 : 0,
-                                transition: "opacity 0.6s cubic-bezier(0.4, 0.0, 0.2, 1)",
-                            }}
-                            aria-hidden="true"
-                        >
-                            <JewelryImage.Product
-                                src={hover}
-                                alt={`${product.name} alternate view`}
-                                priority={false} // Hover images don't need priority
-                                className="object-contain p-6 md:p-8 h-full w-full"
-                            />
-                        </motion.div>
+                        {/* Hover Image - Optimized (only show if different from primary) */}
+                        {hover && hover !== primary && (
+                            <motion.div
+                                className="absolute inset-0"
+                                style={{
+                                    opacity: isActive ? 1 : 0,
+                                    transition: "opacity 0.6s cubic-bezier(0.4, 0.0, 0.2, 1)",
+                                }}
+                                aria-hidden="true"
+                            >
+                                <JewelryImage.Product
+                                    src={hover}
+                                    alt={`${product.name} alternate view`}
+                                    priority={false} // Hover images don't need priority
+                                    className="object-contain p-6 md:p-8 h-full w-full"
+                                />
+                            </motion.div>
+                        )}
 
                         {/* Elegant overlay gradient */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -139,7 +162,7 @@ export default function ProductCard({
                             transition={{ duration: 0.3 }}
                         >
                             <span className="px-3 py-1 text-xs tracking-widest uppercase bg-white/90 dark:bg-black/90 text-black dark:text-white backdrop-blur-sm border border-black/10 dark:border-white/20">
-                                {product.category || "Jewelry"}
+                                {getCategoryName(product)}
                             </span>
                         </motion.div>
                     </div>

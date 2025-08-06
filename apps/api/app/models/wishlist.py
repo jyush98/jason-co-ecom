@@ -32,7 +32,7 @@ class WishlistItem(Base):
     
     # Relationships
     user = relationship("User", back_populates="wishlist_items")
-    product = relationship("Product")
+    product = relationship("Product", back_populates="wishlist_items")
     
     # Ensure one product per user (no duplicates)
     __table_args__ = (

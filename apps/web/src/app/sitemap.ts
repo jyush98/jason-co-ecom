@@ -47,7 +47,7 @@ async function fetchAllProducts(): Promise<Product[]> {
         }
 
         // Fetch all products without pagination for complete sitemap
-        const response = await fetch(`${API_BASE_URL}/products?page_size=1000`, {
+        const response = await fetch(`${API_BASE_URL}/api/products?page_size=1000`, {
             // Cache for 1 hour to improve build performance while keeping content fresh
             next: { revalidate: 3600 }
         });

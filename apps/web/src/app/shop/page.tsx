@@ -163,7 +163,7 @@ async function CollectionSchemaWrapper({
 }) {
   try {
     // Fetch featured products for the collection schema
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/products?${new URLSearchParams({
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products?${new URLSearchParams({
       ...(category && category !== 'All' && { category }),
       ...(search && { name: search }),
       page_size: '6' // Featured items for schema

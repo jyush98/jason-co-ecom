@@ -1,5 +1,8 @@
 // lib/analytics/ga4.ts
-// FIXED: Fully Resolved TypeScript Errors for GA4 Enhanced E-commerce
+// UPDATED: Compatible with Epic #11 Product and Cart types
+
+import { Product } from '@/types/product';
+import { CartItem } from '@/types/cart';
 
 export interface GA4Product {
     item_id: string;
@@ -281,24 +284,115 @@ class GA4Analytics {
     }
 }
 
-// Helper functions for luxury jewelry e-commerce
+// ==========================================
+// CONVERSION HELPERS - UPDATED for Epic #11
+// ==========================================
 
-export function createProductFromData(productData: any): GA4Product {
+/**
+ * Convert Product to GA4Product format
+ * Handles your enhanced Product type from Epic #11
+ */
+export function convertProductToGA4(product: Product): GA4Product {
+    const price = product.price ? product.price / 100 : 0; // Convert cents to dollars for GA4
+    const categoryName = getCategoryName(product); // This ensures we always have a string
+
     return {
-        item_id: productData.id || productData.sku || 'unknown',
-        item_name: productData.name || productData.title || 'Unknown Product',
-        item_category: productData.category || 'Jewelry',
-        item_category2: productData.subcategory,
+        item_id: product.sku || product.id.toString(),
+        item_name: product.name,
+        item_category: categoryName,
+        item_category2: product.product_type || undefined,
         item_brand: 'Jason & Co',
-        price: parseFloat(productData.price) || 0,
-        currency: productData.currency || 'USD',
-        quantity: productData.quantity || 1,
-        item_variant: productData.variant || productData.metal,
+        price: price,
+        currency: 'USD',
+        quantity: 1,
+        item_variant: getMaterialVariant(product),
         affiliation: 'Jason & Co Jewelry'
     };
 }
 
+/**
+ * Convert CartItem to GA4Product format
+ * Handles your enhanced CartItem type from Epic #11
+ */
+export function convertCartItemToGA4(cartItem: CartItem): GA4Product {
+    const price = cartItem.product.price ? cartItem.product.price / 100 : 0; // Convert cents to dollars
+    const categoryName = cartItem.product.category || 'Jewelry'; // Ensure we have a string
+
+    return {
+        item_id: cartItem.product.id.toString(),
+        item_name: cartItem.product.name,
+        item_category: categoryName,
+        item_brand: 'Jason & Co',
+        price: price,
+        currency: 'USD',
+        quantity: cartItem.quantity,
+        affiliation: 'Jason & Co Jewelry'
+    };
+}
+
+/**
+ * Convert array of CartItems to GA4Products
+ */
+export function convertCartItemsToGA4(cartItems: CartItem[]): GA4Product[] {
+    return cartItems.map(convertCartItemToGA4);
+}
+
+/**
+ * Legacy function - updated to use new types
+ */
+export function createProductFromData(productData: Product | CartItem | any): GA4Product {
+    // Handle different data structures
+    if ('product' in productData) {
+        // It's a CartItem
+        return convertCartItemToGA4(productData as CartItem);
+    } else if ('price' in productData && 'id' in productData) {
+        // It's a Product
+        return convertProductToGA4(productData as Product);
+    } else {
+        // Legacy/unknown structure - fallback
+        return {
+            item_id: productData.id || productData.sku || 'unknown',
+            item_name: productData.name || productData.title || 'Unknown Product',
+            item_category: productData.category || 'Jewelry',
+            item_category2: productData.subcategory,
+            item_brand: 'Jason & Co',
+            price: parseFloat(productData.price) || 0,
+            currency: productData.currency || 'USD',
+            quantity: productData.quantity || 1,
+            item_variant: productData.variant || productData.metal,
+            affiliation: 'Jason & Co Jewelry'
+        };
+    }
+}
+
+// ==========================================
+// HELPER FUNCTIONS - UPDATED
+// ==========================================
+
+/**
+ * Safely get category name from Product
+ */
+export function getCategoryName(product: Product): string {
+    if (product.category_name) return product.category_name;
+    if (product.category && typeof product.category === 'object' && 'name' in product.category) {
+        return product.category.name;
+    }
+    if (typeof product.category === 'string') return product.category;
+    return 'Jewelry';
+}
+
+/**
+ * Get material variant for GA4 tracking
+ */
+function getMaterialVariant(product: Product): string | undefined {
+    if (product.materials && product.materials.length > 0) {
+        return product.materials[0]; // Primary material
+    }
+    return undefined;
+}
+
 export function determinePriceTier(price: number): string {
+    // Price is in dollars for this function
     if (price >= 5000) return 'luxury';
     if (price >= 1000) return 'premium';
     if (price >= 500) return 'mid-range';
