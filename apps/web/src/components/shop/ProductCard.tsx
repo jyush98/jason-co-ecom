@@ -27,6 +27,7 @@ export default function ProductCard({
     // FIXED: Handle undefined values with fallbacks
     const primary = product.image_urls?.[0] || product.image_url || '';
     const hover = product.image_urls?.[1] || product.image_url || '';
+    const hasHoverImage = hover && hover !== primary;
 
     // FIXED: Use display_theme and ensure proper fallback
     const isDark = product.display_theme === "dark";
@@ -111,33 +112,30 @@ export default function ProductCard({
                         transition: { duration: 0.4, ease: "easeOut" }
                     }}
                 >
-                    {/* Image Container */}
+                    {/* Image Container - FIXED HOVER BEHAVIOR */}
                     <div className="relative aspect-square overflow-hidden">
-                        {/* Primary Image - Optimized */}
-                        <motion.div
-                            className="absolute inset-0"
-                            style={{
-                                opacity: isActive ? 0 : 1,
-                                transition: "opacity 0.6s cubic-bezier(0.4, 0.0, 0.2, 1)",
-                            }}
-                        >
+                        {/* Primary Image - Always visible as base layer */}
+                        <div className="absolute inset-0">
                             <JewelryImage.Product
                                 src={primary}
                                 alt={`${product.name} main image`}
                                 priority={isPriority}
                                 className="object-contain p-6 md:p-8 h-full w-full"
                             />
-                        </motion.div>
+                        </div>
 
-                        {/* Hover Image - Optimized (only show if different from primary) */}
-                        {hover && hover !== primary && (
+                        {/* Hover Image - FIXED: Only shows when hovering AND different image exists */}
+                        {hasHoverImage && (
                             <motion.div
                                 className="absolute inset-0"
-                                style={{
-                                    opacity: isActive ? 1 : 0,
-                                    transition: "opacity 0.6s cubic-bezier(0.4, 0.0, 0.2, 1)",
+                                initial={{ opacity: 0 }}
+                                animate={{
+                                    opacity: isActive ? 1 : 0
                                 }}
-                                aria-hidden="true"
+                                transition={{
+                                    duration: 0.5,
+                                    ease: "easeInOut"
+                                }}
                             >
                                 <JewelryImage.Product
                                     src={hover}
@@ -148,8 +146,8 @@ export default function ProductCard({
                             </motion.div>
                         )}
 
-                        {/* Elegant overlay gradient */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                        {/* Elegant overlay gradient - FIXED: Lower opacity so it doesn't cover image */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/3 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                         {/* Category Badge */}
                         <motion.div

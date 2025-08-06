@@ -154,7 +154,7 @@ export default function ProductList({ initialCategory, initialSearch }: ProductL
     // Loading state for initial load
     if (loading && products.length === 0) {
         return (
-            <div className="pt-[var(--navbar-height)] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 md:pb-20 bg-white text-black dark:bg-black dark:text-white transition-colors duration-500">
+            <div className="pt-[var(--navbar-height)] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 md:pb-20 transition-colors duration-500">
                 {/* Header */}
                 <div className="text-center mb-12">
                     <h1 className="text-3xl md:text-5xl font-serif tracking-wide mb-4">
@@ -168,7 +168,7 @@ export default function ProductList({ initialCategory, initialSearch }: ProductL
     }
 
     return (
-        <div className="pt-[var(--navbar-height)] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 md:pb-20 bg-white text-black dark:bg-black dark:text-white transition-colors duration-500">
+        <div className="pt-[var(--navbar-height)] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 md:pb-20 transition-colors duration-500">
 
             {/* Header */}
             <motion.div
