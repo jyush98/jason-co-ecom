@@ -175,7 +175,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           product={{
             name: product.name,
             description: product.description || `Exceptional ${categoryName.toLowerCase()} piece from Jason & Co. Handcrafted luxury designed without limits.`,
-            price: product.price / 100, // Convert cents to dollars
+            price: product.price,
             images: product.image_urls?.length
               ? product.image_urls.map((img: string) =>
                 img.startsWith('http') ? img : `${process.env.NEXT_PUBLIC_BASE_URL || 'https://jasonandco.shop'}${img}`

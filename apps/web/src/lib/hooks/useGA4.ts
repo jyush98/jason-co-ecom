@@ -1,29 +1,15 @@
-// hooks/useGA4.ts
-// React hooks for Google Analytics 4 integration
+// hooks/useGA4.ts - Complete GA4 hooks implementation
 
 import { useEffect, useCallback } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { ga4, GA4Product, GA4CustomDimensions, createProductFromData, determinePriceTier, getJewelryType, getCategoryName } from '@/lib/analytics/ga4';
+import { ga4, GA4Product, GA4CustomDimensions, determinePriceTier, getJewelryType } from '@/lib/analytics/ga4';
 
-export interface Product {
-    id: number;
-    name: string;
-    description: string | null;
-    price: number;
-    image_url: string | null;
-    image_urls: string[] | null;
-    category: string;
-    featured: boolean;
-    details: Record<string, any> | null;
-    display_theme: string;
-}
-
-export interface CartProduct {
+// ✅ SIMPLE: Define minimal interface for GA4 tracking
+interface GA4TrackingItem {
     id: number;
     name: string;
     price: number;
-    image_url?: string;
-    category: string;
+    category?: string;
     description?: string;
 }
 
@@ -55,112 +41,96 @@ export function useGA4PageTracking() {
     }, [pathname, searchParams]);
 }
 
-// ✅ FIXED: Safe GA4 product conversion
-function safeCreateGA4Product(product: Product | CartProduct, quantity: number = 1): GA4Product {
+// ✅ SIMPLE: Convert any product-like object to GA4 format
+function toGA4Product(item: GA4TrackingItem, quantity: number = 1): GA4Product {
     return {
-        item_id: String(product.id),
-        item_name: product.name || 'Unknown Product',
-        item_category: product.category || 'Jewelry',
+        item_id: String(item.id),
+        item_name: item.name,
+        item_category: item.category || 'Jewelry',
         item_brand: 'Jason & Co',
-        price: Number(product.price) || 0,
+        price: Number(item.price),
         currency: 'USD',
         quantity: quantity,
         affiliation: 'Jason & Co Jewelry'
     };
 }
 
-// ✅ FIXED: Safe custom dimensions extraction
-const extractCustomDimensions = (product: any): GA4CustomDimensions => {
-    // This works with any product structure
-    const categoryName = product.category_name ||
-        product.category?.name ||
-        product.category ||
-        'Jewelry';
-
-    const price = product.price_display ?
-        parseFloat(product.price_display.replace('$', '')) :
-        (product.price ? product.price / 100 : 0);
-
-    return {
-        jewelry_type: getJewelryType(categoryName),
-        metal_type: product.materials?.[0] || 'unknown',
-        collection: product.collections?.[0]?.name || 'general',
-        price_tier: determinePriceTier(price)
-    };
-};
-
-// ✅ FIXED: Safe metal type extraction
-function extractMetalType(product: Product | CartProduct): string {
-    const searchText = `${product.name || ''} ${('description' in product) ? product.description || '' : ''}`.toLowerCase();
-
-    if (searchText.includes('gold')) {
-        if (searchText.includes('rose') || searchText.includes('pink')) return 'rose_gold';
-        if (searchText.includes('white')) return 'white_gold';
+// ✅ SIMPLE: Extract metal type from product name
+function extractMetalType(name: string): string {
+    const lowerName = name.toLowerCase();
+    if (lowerName.includes('gold')) {
+        if (lowerName.includes('rose') || lowerName.includes('pink')) return 'rose_gold';
+        if (lowerName.includes('white')) return 'white_gold';
         return 'yellow_gold';
     }
-    if (searchText.includes('silver')) return 'silver';
-    if (searchText.includes('platinum')) return 'platinum';
-    if (searchText.includes('steel')) return 'stainless_steel';
-
+    if (lowerName.includes('silver')) return 'silver';
+    if (lowerName.includes('platinum')) return 'platinum';
+    if (lowerName.includes('steel')) return 'stainless_steel';
+    if (lowerName.includes('titanium')) return 'titanium';
     return 'mixed';
 }
 
-// ✅ FIXED: Safe collection extraction
-function extractCollection(product: Product | CartProduct): string {
-    if ('featured' in product && product.featured) {
-        return 'featured';
-    }
-
-    // Check if it's a custom product based on category or name
-    const name = (product.name || '').toLowerCase();
-    const category = (product.category || '').toLowerCase();
-
-    if (name.includes('custom') || category.includes('custom')) {
-        return 'custom';
-    }
-
+// ✅ SIMPLE: Extract collection from category
+function extractCollection(category?: string): string {
+    if (!category) return 'main';
+    
+    const lowerCategory = category.toLowerCase();
+    if (lowerCategory.includes('ring')) return 'rings';
+    if (lowerCategory.includes('necklace')) return 'necklaces';
+    if (lowerCategory.includes('earring')) return 'earrings';
+    if (lowerCategory.includes('bracelet')) return 'bracelets';
+    if (lowerCategory.includes('watch')) return 'watches';
     return 'main';
 }
 
-// E-commerce tracking hook with proper typing
-export function useGA4Ecommerce() {
-    const trackProductView = useCallback((product: Product) => {
-        try {
-            const ga4Product = safeCreateGA4Product(product);
-            const customDimensions = extractCustomDimensions(product);
+// ✅ SIMPLE: Get custom dimensions for any item
+function getCustomDimensions(item: GA4TrackingItem): GA4CustomDimensions {
+    return {
+        jewelry_type: getJewelryType(item.category || 'Jewelry'),
+        metal_type: extractMetalType(item.name || ''),
+        collection: extractCollection(item.category),
+        price_tier: determinePriceTier(Number(item.price))
+    };
+}
 
+// E-commerce tracking hook - works with ANY product-like object
+export function useGA4Ecommerce() {
+    const trackProductView = useCallback((product: GA4TrackingItem) => {
+        try {
+            const ga4Product = toGA4Product(product);
+            const customDimensions = getCustomDimensions(product);
             ga4.viewItem(ga4Product, customDimensions);
-            console.log('✅ GA4: Product view tracked', { product: product.name, category: product.category });
+            console.log('✅ GA4: Product view tracked', product.name);
         } catch (error) {
             console.error('❌ GA4: Product view tracking failed', error);
         }
     }, []);
 
-    const trackAddToCart = useCallback((product: Product | CartProduct, quantity: number = 1) => {
+    const trackAddToCart = useCallback((product: GA4TrackingItem, quantity: number = 1) => {
         try {
-            const ga4Product = safeCreateGA4Product(product, quantity);
-            const customDimensions = extractCustomDimensions(product);
-
+            const ga4Product = toGA4Product(product, quantity);
+            const customDimensions = getCustomDimensions(product);
             ga4.addToCart(ga4Product, customDimensions);
-            console.log('✅ GA4: Add to cart tracked', { product: product.name, quantity, category: product.category });
+            console.log('✅ GA4: Add to cart tracked', product.name, quantity);
         } catch (error) {
             console.error('❌ GA4: Add to cart tracking failed', error);
         }
     }, []);
 
-    const trackRemoveFromCart = useCallback((product: Product | CartProduct, quantity: number = 1) => {
+    const trackRemoveFromCart = useCallback((product: GA4TrackingItem, quantity: number = 1) => {
         try {
-            const ga4Product = safeCreateGA4Product(product, quantity);
+            const ga4Product = toGA4Product(product, quantity);
             ga4.removeFromCart(ga4Product);
-            console.log('✅ GA4: Remove from cart tracked', { product: product.name });
+            console.log('✅ GA4: Remove from cart tracked', product.name);
         } catch (error) {
             console.error('❌ GA4: Remove from cart tracking failed', error);
         }
     }, []);
 
+    // ✅ FLEXIBLE: Works with your actual cart items structure
     const trackPurchase = useCallback((orderData: {
         id: string;
-        items: Array<{ product: Product | CartProduct; quantity: number }>;
+        items: Array<{ product: GA4TrackingItem; quantity: number }>;
         total: number;
         currency?: string;
         coupon?: string;
@@ -169,7 +139,7 @@ export function useGA4Ecommerce() {
     }) => {
         try {
             const ga4Products = orderData.items.map(item =>
-                safeCreateGA4Product(item.product, item.quantity)
+                toGA4Product(item.product, item.quantity)
             );
 
             ga4.purchase(
@@ -183,19 +153,20 @@ export function useGA4Ecommerce() {
                     coupon: orderData.coupon
                 }
             );
-            console.log('✅ GA4: Purchase tracked', { orderId: orderData.id, total: orderData.total });
+            console.log('✅ GA4: Purchase tracked', orderData.id, orderData.total);
         } catch (error) {
             console.error('❌ GA4: Purchase tracking failed', error);
         }
     }, []);
 
-    const trackBeginCheckout = useCallback((cartItems: Array<{ product: Product | CartProduct; quantity: number }>, total: number) => {
+    // ✅ FLEXIBLE: Works with your actual cart items structure
+    const trackBeginCheckout = useCallback((cartItems: Array<{ product: GA4TrackingItem; quantity: number }>, total: number) => {
         try {
             const ga4Products = cartItems.map(item =>
-                safeCreateGA4Product(item.product, item.quantity)
+                toGA4Product(item.product, item.quantity)
             );
             ga4.beginCheckout(ga4Products, total);
-            console.log('✅ GA4: Begin checkout tracked', { itemCount: cartItems.length, total });
+            console.log('✅ GA4: Begin checkout tracked', cartItems.length, 'items', total);
         } catch (error) {
             console.error('❌ GA4: Begin checkout tracking failed', error);
         }
@@ -210,25 +181,25 @@ export function useGA4Ecommerce() {
     };
 }
 
-// Search tracking hook with proper typing
+// Search tracking hook
 export function useGA4Search() {
-    const trackSearch = useCallback((query: string, results?: Product[]) => {
+    const trackSearch = useCallback((query: string, results?: GA4TrackingItem[]) => {
         try {
             ga4.search(query, results?.length);
-            console.log('✅ GA4: Search tracked', { query, resultCount: results?.length });
+            console.log('✅ GA4: Search tracked', query, results?.length);
         } catch (error) {
             console.error('❌ GA4: Search tracking failed', error);
         }
     }, []);
 
-    const trackSearchResultClick = useCallback((product: Product, position: number) => {
+    const trackSearchResultClick = useCallback((product: GA4TrackingItem, position: number) => {
         try {
-            const ga4Product = { ...safeCreateGA4Product(product), index: position };
+            const ga4Product = { ...toGA4Product(product), index: position };
             ga4.viewItem(ga4Product, {
-                jewelry_type: getJewelryType(product.category),
+                jewelry_type: getJewelryType(product.category || 'Jewelry'),
                 collection: 'search_results'
             });
-            console.log('✅ GA4: Search result click tracked', { product: product.name, position });
+            console.log('✅ GA4: Search result click tracked', product.name, position);
         } catch (error) {
             console.error('❌ GA4: Search result click tracking failed', error);
         }
@@ -264,7 +235,7 @@ export function useGA4LuxuryEvents() {
     const trackGalleryEngagement = useCallback((action: string, imageName: string, timeSpent?: number) => {
         try {
             ga4.galleryEngagement(action, imageName, timeSpent);
-            console.log('✅ GA4: Gallery engagement tracked', { action, imageName, timeSpent });
+            console.log('✅ GA4: Gallery engagement tracked', action, imageName);
         } catch (error) {
             console.error('❌ GA4: Gallery engagement tracking failed', error);
         }
@@ -273,7 +244,7 @@ export function useGA4LuxuryEvents() {
     const trackSocialShare = useCallback((platform: string, contentType: string, productId?: string) => {
         try {
             ga4.socialShare(platform, contentType, productId || 'general');
-            console.log('✅ GA4: Social share tracked', { platform, contentType, productId });
+            console.log('✅ GA4: Social share tracked', platform, contentType);
         } catch (error) {
             console.error('❌ GA4: Social share tracking failed', error);
         }
@@ -282,7 +253,7 @@ export function useGA4LuxuryEvents() {
     const trackVideoEngagement = useCallback((action: string, videoTitle: string, progress?: number) => {
         try {
             ga4.videoEngagement(action, videoTitle, progress);
-            console.log('✅ GA4: Video engagement tracked', { action, videoTitle, progress });
+            console.log('✅ GA4: Video engagement tracked', action, videoTitle);
         } catch (error) {
             console.error('❌ GA4: Video engagement tracking failed', error);
         }
@@ -291,7 +262,7 @@ export function useGA4LuxuryEvents() {
     const trackNewsletterSignup = useCallback((source: string) => {
         try {
             ga4.generateLead('newsletter', 50);
-            console.log('✅ GA4: Newsletter signup tracked', { source });
+            console.log('✅ GA4: Newsletter signup tracked', source);
         } catch (error) {
             console.error('❌ GA4: Newsletter signup tracking failed', error);
         }
@@ -300,7 +271,7 @@ export function useGA4LuxuryEvents() {
     const trackContactFormSubmission = useCallback((formType: string, estimatedValue?: number) => {
         try {
             ga4.generateLead(formType, estimatedValue || 100);
-            console.log('✅ GA4: Contact form submission tracked', { formType, estimatedValue });
+            console.log('✅ GA4: Contact form submission tracked', formType);
         } catch (error) {
             console.error('❌ GA4: Contact form submission tracking failed', error);
         }
@@ -327,7 +298,7 @@ export function useGA4ErrorTracking() {
                     error_type: error.name,
                     page_location: window.location.href
                 });
-                console.log('✅ GA4: Error tracked', { error: error.message });
+                console.log('✅ GA4: Error tracked', error.message);
             } catch (trackingError) {
                 console.error('❌ GA4: Error tracking failed', trackingError);
             }

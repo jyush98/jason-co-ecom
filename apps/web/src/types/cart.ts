@@ -1,81 +1,34 @@
-// types/cart.ts - UPDATED to fix TypeScript errors
+// types/cart.ts - Complete cart types that match your actual API
 
-import { Product } from './product';
-import { Order, OrderItem, OrderStatus } from './order'; // Using your existing types
+import { Order, OrderItem, OrderStatus } from './order';
 
-// Enhanced CartItem that works with GA4 tracking - FIXED
+// ✅ SIMPLE: CartItem matches what your API actually returns
 export interface CartItem {
     product_id: number;
     quantity: number;
     product: {
-        // Core required fields
         id: number;
         name: string;
-        price: number;
-
-        // Optional fields from your current API
+        price: number;           // Price in cents from your API
         image_url?: string;
-        category?: string;
+        category?: string;       // Simple string from your database
         description?: string;
         display_theme?: string;
-
-        // ADDED: Required fields for GA4 compatibility
-        image_urls?: string[]; // Default to [image_url] or []
-        featured: boolean; // Default to false
-        details?: Record<string, any>; // Default to {} or {display_theme}
-
-        // ADDED: Additional fields that may be expected
-        price_display?: string; // Formatted price like "$24.99"
-        in_stock?: boolean; // Default to true
-        inventory_count?: number; // Default to 1
-        track_inventory?: boolean; // Default to false
-        average_rating?: number; // Default to 0
-        created_at?: string; // Default to current timestamp
     };
-
-    // Enhanced fields for premium cart experience
+    // Optional enhanced fields
     saved_for_later?: boolean;
     date_added?: string;
-    custom_options?: Record<string, string>; // For engravings, sizes, etc.
+    custom_options?: Record<string, string>;
 }
 
-// Alternative: CartProduct type that matches your API exactly
-export interface CartProduct {
-    id: number;
-    name: string;
-    price: number;
-    image_url?: string;
-    category?: string;
-    description?: string;
-    display_theme?: string;
-
-    // Required for GA4 compatibility - with defaults
-    image_urls: string[];
-    featured: boolean;
-    details: Record<string, any>;
-    price_display: string;
-    in_stock: boolean;
-    inventory_count: number;
-    track_inventory: boolean;
-    average_rating: number;
-    created_at: string;
-
-    // Status fields
-    status?: 'active' | 'draft' | 'archived';
-    searchable?: boolean;
-    available_online?: boolean;
-    view_count?: number;
-    review_count?: number;
-}
-
-// Cart state and operations
+// ✅ SIMPLE: Cart matches what your API actually returns
 export interface Cart {
     id?: string;
     items: CartItem[];
-    subtotal: number;
-    tax: number;
-    shipping: number;
-    total: number;
+    subtotal: number;           // Price in cents
+    tax: number;               // Price in cents
+    shipping: number;          // Price in cents
+    total: number;             // Price in cents
     item_count: number;
     promo_code?: string;
     promo_discount?: number;
@@ -209,7 +162,7 @@ export interface CartAnalytics {
 export interface SavedItem {
     id: string;
     product_id: number;
-    product: Product;
+    product: CartItem['product']; // Use the same product structure as cart
     date_saved: string;
     notes?: string;
 }
@@ -217,7 +170,7 @@ export interface SavedItem {
 // Recently viewed items
 export interface RecentlyViewedItem {
     product_id: number;
-    product: Product;
+    product: CartItem['product']; // Use the same product structure as cart
     viewed_at: string;
 }
 
@@ -311,6 +264,7 @@ export interface CheckoutStepProps {
     onClick?: (step: CheckoutStep) => void;
 }
 
+// Order details for confirmation pages
 export interface OrderDetails {
     id: number;
     order_number: string;
@@ -358,16 +312,13 @@ export type CartItemKey = keyof CartItem;
 export type CheckoutFormKey = keyof CheckoutFormData;
 export type ShippingAddressKey = keyof ShippingAddress;
 
-// ==========================================
-// TYPE GUARDS AND UTILITIES - UPDATED
-// ==========================================
-
+// Simple, reliable type guards
 export const isValidCartItem = (item: any): item is CartItem => {
     return (
-        typeof item === 'object' &&
+        item &&
         typeof item.product_id === 'number' &&
         typeof item.quantity === 'number' &&
-        typeof item.product === 'object' &&
+        item.product &&
         typeof item.product.id === 'number' &&
         typeof item.product.name === 'string' &&
         typeof item.product.price === 'number'
@@ -376,7 +327,7 @@ export const isValidCartItem = (item: any): item is CartItem => {
 
 export const isValidShippingAddress = (address: any): address is ShippingAddress => {
     return (
-        typeof address === 'object' &&
+        address &&
         typeof address.first_name === 'string' &&
         typeof address.last_name === 'string' &&
         typeof address.address_line_1 === 'string' &&
@@ -387,73 +338,19 @@ export const isValidShippingAddress = (address: any): address is ShippingAddress
     );
 };
 
-// ==========================================
-// CART ITEM ENHANCEMENT UTILITIES - NEW
-// ==========================================
-
-/**
- * Enhance a cart item with required fields for GA4 compatibility
- * This ensures your cart items have all the fields needed for analytics
- */
-export const enhanceCartItem = (item: CartItem): CartItem => {
-    const enhanced: CartItem = {
-        ...item,
-        product: {
-            ...item.product,
-            // Ensure required fields exist with sensible defaults
-            image_urls: item.product.image_urls || (item.product.image_url ? [item.product.image_url] : []),
-            featured: item.product.featured ?? false,
-            details: item.product.details || (item.product.display_theme ? { display_theme: item.product.display_theme } : {}),
-            price_display: item.product.price_display || `$${(item.product.price / 100).toFixed(2)}`,
-            in_stock: item.product.in_stock ?? true,
-            inventory_count: item.product.inventory_count ?? 1,
-            track_inventory: item.product.track_inventory ?? false,
-            average_rating: item.product.average_rating ?? 0,
-            created_at: item.product.created_at || new Date().toISOString()
-        }
-    };
-
-    return enhanced;
+// Cart utility functions
+export const getCartItemTotal = (item: CartItem): number => {
+    return item.product.price * item.quantity;
 };
 
-/**
- * Enhance an array of cart items
- */
-export const enhanceCartItems = (items: CartItem[]): CartItem[] => {
-    return items.map(enhanceCartItem);
+export const getCartSubtotal = (items: CartItem[]): number => {
+    return items.reduce((total, item) => total + getCartItemTotal(item), 0);
 };
 
-/**
- * Convert CartItem to Product format for GA4 tracking
- * This creates a Product-compatible object from your cart item
- */
-export const cartItemToProduct = (item: CartItem): Product => {
-    const enhanced = enhanceCartItem(item);
+export const getCartItemCount = (items: CartItem[]): number => {
+    return items.reduce((count, item) => count + item.quantity, 0);
+};
 
-    return {
-        id: enhanced.product.id,
-        name: enhanced.product.name,
-        price: enhanced.product.price,
-        price_display: enhanced.product.price_display!,
-        image_url: enhanced.product.image_url,
-        image_urls: enhanced.product.image_urls!,
-        featured: enhanced.product.featured!,
-        details: enhanced.product.details!,
-        in_stock: enhanced.product.in_stock!,
-        inventory_count: enhanced.product.inventory_count!,
-        track_inventory: enhanced.product.track_inventory!,
-        average_rating: enhanced.product.average_rating!,
-        created_at: enhanced.product.created_at!,
-        description: enhanced.product.description,
-        category_name: enhanced.product.category,
-        display_theme: enhanced.product.display_theme,
-
-        // Additional required Product fields with defaults
-        inventory_policy: 'continue',
-        status: 'active',
-        searchable: true,
-        available_online: true,
-        view_count: 0,
-        review_count: 0
-    } as Product;
+export const findCartItem = (items: CartItem[], productId: number): CartItem | undefined => {
+    return items.find(item => item.product_id === productId);
 };
