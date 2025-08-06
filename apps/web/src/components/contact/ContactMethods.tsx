@@ -94,7 +94,7 @@ const ContactMethods = () => {
     }
 
     return (
-        <section className="py-20 md:py-32 px-6 md:px-20">
+        <section className="py-20 md:py-32 px-6 md:px-20 bg-slate-50 dark:bg-gray-950">
             <div className="max-w-7xl mx-auto">
                 {/* Section Header */}
                 <motion.div
