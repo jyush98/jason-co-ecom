@@ -406,7 +406,11 @@ const LocationsGrid = () => {
                     {/* Future Locations */}
                     {locations
                         .filter(location => location.status !== 'open')
-                        .map(location => renderFutureLocation(location))}
+                        .map(location => (
+                            <div key={location.id}>
+                                {renderFutureLocation(location)}
+                            </div>
+                        ))}
                 </motion.div>
 
                 {/* Expansion Vision */}
