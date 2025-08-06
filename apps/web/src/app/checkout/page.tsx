@@ -490,7 +490,7 @@ function CheckoutOrderSummary({ cart, shippingMethod, subtotal, shippingCost, ta
                         <div className="flex-1 min-w-0">
                             <h4 className="text-sm font-medium truncate">{item.product.name}</h4>
                             <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
-                            <p className="text-sm font-medium">{formatCartPrice(item.product.price * item.quantity / 100)}</p>
+                            <p className="text-sm font-medium">{formatCartPrice(item.product.price * item.quantity)}</p>
                         </div>
                     </div>
                 ))}

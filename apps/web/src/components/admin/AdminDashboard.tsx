@@ -261,7 +261,7 @@ export default function AdminDashboard() {
       currency: 'USD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(price);
+    }).format(price / 100);
   }, []);
 
   const getStatusColor = useCallback((status: string) => {

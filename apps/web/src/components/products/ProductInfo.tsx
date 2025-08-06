@@ -18,7 +18,7 @@ export default function ProductInfo({ product, isDark = false }: ProductInfoProp
             currency: 'USD',
             minimumFractionDigits: 0,
             maximumFractionDigits: 0,
-        }).format(price);
+        }).format(price / 100);
     };
 
     const infoVariants = {
@@ -47,7 +47,7 @@ export default function ProductInfo({ product, isDark = false }: ProductInfoProp
                 {/* Category Badge */}
                 <div className="inline-block">
                     <span className="px-3 py-1 text-xs tracking-[0.2em] uppercase bg-gold/10 text-gold border border-gold/20 font-medium">
-                        {product.category || "La Collection"}
+                        {product.category_name || "La Collection"}
                     </span>
                 </div>
 

@@ -157,7 +157,7 @@ export default function AccountDashboard({ onTabChange }: AccountDashboardProps)
             currency: 'USD',
             minimumFractionDigits: 0,
             maximumFractionDigits: 0,
-        }).format(amount);
+        }).format(amount / 100);
     };
 
     const getStatusColor = (status: string) => {

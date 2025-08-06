@@ -354,5 +354,5 @@ export const formatCartPrice = (amount: number): string => {
         currency: CART_CONFIG.currency.code,
         minimumFractionDigits: CART_CONFIG.currency.decimals,
         maximumFractionDigits: CART_CONFIG.currency.decimals,
-    }).format(amount);
+    }).format(amount / 100);
 };

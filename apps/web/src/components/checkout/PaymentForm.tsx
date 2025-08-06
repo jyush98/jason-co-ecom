@@ -63,7 +63,7 @@ export default function PaymentForm({
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    amount: Math.round(orderTotal * 100), // Convert to cents
+                    amount: Math.round(orderTotal), // Convert to cents
                     currency: 'usd',
                     shipping_address: formData.shipping_address,
                 }),

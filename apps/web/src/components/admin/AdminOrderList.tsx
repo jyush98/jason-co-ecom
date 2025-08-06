@@ -258,7 +258,7 @@ export default function AdminOrderList() {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-    }).format(price);
+    }).format(price / 100);
   };
 
   const formatDate = (dateString: string) => {
