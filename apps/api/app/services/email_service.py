@@ -335,24 +335,30 @@ class EmailService:
             return {"error": str(e)}
 
     def _template_order_confirmation(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """Order confirmation email template"""
+        """Order confirmation email template - Updated for prices in cents"""
         customer_name = data.get("user_name", "Valued Customer")
         order_number = data.get("order_number", "N/A")
-        total = data.get("total", 0)
+        total_cents = data.get("total", 0)  # Total is in cents
         items = data.get("items", [])
+        
+        # Convert total from cents to dollars for display
+        total_dollars = total_cents / 100
         
         # Build items HTML
         items_html = ""
         for item in items:
-            item_total = item["unit_price"] * item["quantity"] 
+            # All price fields are in cents, convert to dollars for display
+            unit_price_dollars = item["unit_price"] / 100
+            item_total_dollars = (item["unit_price"] * item["quantity"]) / 100
+            
             items_html += f"""
             <tr>
                 <td style="padding: 12px; border-bottom: 1px solid #eee;">
                     <strong>{item["name"]}</strong><br>
-                    <small style="color: #666;">Qty: {item["quantity"]} × ${item["unit_price"]:.2f}</small>
+                    <small style="color: #666;">Qty: {item["quantity"]} × ${unit_price_dollars:.2f}</small>
                 </td>
                 <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right;">
-                    <strong>${item_total:.2f}</strong>
+                    <strong>${item_total_dollars:.2f}</strong>
                 </td>
             </tr>
             """
@@ -374,7 +380,7 @@ class EmailService:
                 <tr style="background: #f8f8f8;">
                     <td style="padding: 15px; font-weight: bold; font-size: 18px;">Total</td>
                     <td style="padding: 15px; text-align: right; font-weight: bold; font-size: 18px; color: #D4AF37;">
-                        ${total:.2f}
+                        ${total_dollars:.2f}
                     </td>
                 </tr>
             </table>
@@ -402,16 +408,34 @@ class EmailService:
             "html": html_content
         }
 
-    # Legacy function for backward compatibility
+    # Legacy function for backward compatibility - Updated for cents
     def send_order_confirmation_email(self, to_email: str, order_number: str, order_details: Dict[str, Any]):
-        """Legacy function - kept for backward compatibility"""
+        """Legacy function - kept for backward compatibility - Updated for prices in cents"""
         try:
+            # Ensure total is handled correctly if passed in dollars vs cents
+            total = order_details.get("total", 0)
+            
+            # Convert items to ensure unit_price is in cents
+            items = order_details.get("items", [])
+            processed_items = []
+            
+            for item in items:
+                unit_price = item.get("unit_price", 0)
+                # If unit_price looks like it's in dollars (decimal), convert to cents
+                if isinstance(unit_price, (int, float)) and unit_price < 100:
+                    # Likely in dollars, convert to cents
+                    unit_price = int(unit_price * 100)
+                processed_items.append({
+                    **item,
+                    "unit_price": unit_price
+                })
+            
             email_data = {
                 "to": to_email,
                 "user_name": order_details.get("customer_name", "Valued Customer"),
                 "order_number": order_number,
-                "total": order_details.get("total", 0),
-                "items": order_details.get("items", [])
+                "total": total,  # Should be in cents
+                "items": processed_items
             }
             
             email_content = self._template_order_confirmation(email_data)
