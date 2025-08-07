@@ -1,7 +1,7 @@
+"use client";
 // lib/auth/integration.ts
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useAuth, useUser } from '@clerk/nextjs';
 import { currentUser } from '@clerk/nextjs/server';
 import type { User as ClerkUser } from '@clerk/nextjs/server';
 import { apiClient } from '../api/client';
