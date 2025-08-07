@@ -1,10 +1,9 @@
 # models/notification_preferences.py - Notification Preferences Database Model
 
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text, Boolean, JSON
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, JSON
 from sqlalchemy.orm import relationship, Session
 from sqlalchemy.sql import func
 from app.core.db import Base
-import json
 from typing import Dict, Any, Optional
 from datetime import datetime
 

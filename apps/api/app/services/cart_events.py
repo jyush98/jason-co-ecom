@@ -5,7 +5,6 @@ from sqlalchemy.orm import Session
 from app.models.user import User
 from app.models.cart import CartItem
 from app.services.notification_service import send_abandoned_cart_reminder
-import asyncio
 import logging
 
 logger = logging.getLogger(__name__)

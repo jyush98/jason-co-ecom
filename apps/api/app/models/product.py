@@ -1,6 +1,6 @@
 # models/product.py - CORRECTED for post-migration database
 
-from sqlalchemy import Column, Integer, String, Float, Text, Boolean, DateTime, ForeignKey, Index
+from sqlalchemy import Column, Integer, String, Float, Text, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import JSONB, ARRAY

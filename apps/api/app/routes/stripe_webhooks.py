@@ -4,7 +4,7 @@ import stripe
 from fastapi import APIRouter, Request, HTTPException, Depends
 from app.core.db import get_db
 from sqlalchemy.orm import Session
-from app.models.order import Order, OrderItem
+from app.models.order import Order
 from app.models.cart import CartItem
 
 router = APIRouter()

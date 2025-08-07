@@ -78,7 +78,7 @@ class WishlistCollection(Base):
 
 # Database utility functions for wishlist operations
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from typing import List
 
 def add_to_wishlist(
     db: Session, 

@@ -12,7 +12,6 @@ from app.models.order import Order, OrderItem
 from app.models.user import User
 from app.auth import verify_clerk_token
 from app.services.email_service import EmailService
-import asyncio
 import logging
 
 # Configure logging

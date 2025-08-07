@@ -1,12 +1,9 @@
 # app/services/wishlist_events.py - Wishlist Event Handlers
 
-from typing import List
 from sqlalchemy.orm import Session
-from app.models.user import User
 from app.models.product import Product
 from app.models.wishlist import WishlistItem
 from app.services.notification_service import send_wishlist_price_drop
-import asyncio
 import logging
 
 logger = logging.getLogger(__name__)

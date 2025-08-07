@@ -1,7 +1,6 @@
 # app/tasks/notification_tasks.py - Background Tasks for Notifications
 
 from celery import Celery
-from sqlalchemy.orm import Session
 from app.core.db import SessionLocal
 from app.services.cart_events import check_abandoned_carts
 from app.services.wishlist_events import trigger_price_drop_notifications

@@ -1,8 +1,8 @@
 # routes/account.py - Address Management API Endpoints for Jason & Co.
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field, validator
-from typing import Optional, List
+from typing import Optional
 from app.core.db import get_db
 from app.models.user import User
 from app.models.user_address import UserAddress

@@ -7,14 +7,13 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, and_, or_
 from datetime import datetime, timedelta
-import json
 
 from app.core.db import get_db
 from app.models.custom_order import CustomOrder, CustomOrderImage, CustomOrderTimeline, DesignConsultation
 from app.schemas.custom_order import (
     CustomOrderOut, CustomOrderCreate, CustomOrderUpdate, CustomOrderSummary,
     CustomOrderFormComplete, CustomOrderResponse, CustomOrderListResponse,
-    CustomOrderImageCreate, DesignConsultationCreate, DesignConsultationOut
+    DesignConsultationCreate, DesignConsultationOut
 )
 from app.utils.s3 import upload_inspiration_image
 

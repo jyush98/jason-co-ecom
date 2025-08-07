@@ -13,7 +13,7 @@ import logging
 import asyncio
 from typing import Optional, List
 from pydantic import BaseModel
-from sqlalchemy import func, or_, and_
+from sqlalchemy import func, or_
 from sqlalchemy.orm import joinedload
 from app.services.order_events import trigger_order_status_update
 

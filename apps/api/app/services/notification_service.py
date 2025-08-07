@@ -1,10 +1,8 @@
 # services/notification_service.py - Core notification delivery service
 from typing import Dict, Any, Optional, List
 from sqlalchemy.orm import Session
-from datetime import datetime, timedelta
 import asyncio
 from enum import Enum
-import json
 import logging
 
 from app.models.user import User

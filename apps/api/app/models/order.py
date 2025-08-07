@@ -2,7 +2,6 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime, Text, Boolean, JSON, ForeignKey
 from sqlalchemy.orm import relationship
 from app.core.db import Base  # Using your existing import
-from sqlalchemy.sql import func
 from datetime import datetime
 from enum import Enum
 import uuid

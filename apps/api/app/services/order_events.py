@@ -1,6 +1,5 @@
 # app/services/order_events.py - Order Event Handlers with Notifications
 
-from typing import Dict, Any
 from sqlalchemy.orm import Session
 from app.models.user import User
 from app.models.order import Order

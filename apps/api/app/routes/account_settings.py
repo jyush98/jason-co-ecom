@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any
+from typing import Optional
 from app.core.db import get_db
 from app.models.user import User
 from app.auth import verify_clerk_token
