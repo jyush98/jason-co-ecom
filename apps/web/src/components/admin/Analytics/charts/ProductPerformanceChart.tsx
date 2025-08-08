@@ -16,9 +16,7 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer,
-  ScatterChart,
-  Scatter
+  ResponsiveContainer
 } from 'recharts';
 import {
   Package,
@@ -28,8 +26,7 @@ import {
   RefreshCw,
   ShoppingBag,
   DollarSign,
-  Trophy,
-  AlertTriangle
+  Trophy
 } from 'lucide-react';
 import { useProductAnalytics } from '@/lib/hooks/useAnalytics';
 

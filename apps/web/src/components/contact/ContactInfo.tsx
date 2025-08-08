@@ -3,7 +3,6 @@
 import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import {
-    MapPin,
     Phone,
     Mail,
     Clock,

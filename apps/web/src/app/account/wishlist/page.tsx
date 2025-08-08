@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useAuth, useUser } from "@clerk/nextjs";
+import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import WishlistPage from "@/components/wishlist/WishlistPage";
 

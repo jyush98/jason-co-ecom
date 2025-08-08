@@ -6,12 +6,10 @@ import {
   Bell, 
   ShoppingCart, 
   Package, 
-  AlertTriangle, 
-  MessageSquare,
+  AlertTriangle,
   DollarSign,
   Users,
   X,
-  Check,
   Clock,
   ChevronRight
 } from "lucide-react";

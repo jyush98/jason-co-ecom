@@ -2,7 +2,6 @@
 "use client";
 
 import { CreditCard, Check, AlertCircle } from "lucide-react";
-import { getOrderStatusColor } from "@/utils";
 
 interface PaymentInfoCardProps {
     paymentMethod: string;

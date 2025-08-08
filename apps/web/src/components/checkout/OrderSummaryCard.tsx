@@ -2,7 +2,6 @@
 "use client";
 
 import { Package } from "lucide-react";
-import { formatCartPrice } from "@/config/cartConfig";
 import { OrderDetails } from "@/utils";
 import { OrderSummaryItem } from "./OrderSummaryItem";
 import { OrderTotals } from "./OrderTotals";

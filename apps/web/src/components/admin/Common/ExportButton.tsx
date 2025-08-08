@@ -7,14 +7,11 @@ import {
     FileText,
     FileSpreadsheet,
     File,
-    Image,
     ChevronDown,
     Check,
-    Clock,
     AlertCircle,
     X,
-    Filter,
-    Calendar
+    Filter
 } from "lucide-react";
 
 export interface ExportFormat {

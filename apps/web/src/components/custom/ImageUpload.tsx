@@ -1,11 +1,7 @@
 'use client';
 
-import React, { useState, useRef, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-    Upload, X, Image as ImageIcon, Camera, FileImage,
-    AlertCircle, CheckCircle, RotateCw, Crop, Eye
-} from 'lucide-react';
+import { useState, useRef, useCallback } from 'react';
+
 import { toast } from 'react-hot-toast';
 
 export interface UploadedImage {

@@ -6,8 +6,6 @@ import {
     TrendingUp,
     TrendingDown,
     Minus,
-    Info,
-    MoreHorizontal,
     RefreshCw,
     Download,
     ExternalLink,
@@ -17,12 +15,9 @@ import {
     DollarSign,
     Users,
     ShoppingCart,
-    Package,
-    Target,
-    ArrowUpRight,
-    ArrowDownRight
+    Package
 } from "lucide-react";
-import { formatGrowth, formatGrowthNumber } from "@/utils/analyticsUtils";
+import { formatGrowthNumber } from "@/utils/analyticsUtils";
 
 // Types for MetricCard
 export interface MetricData {

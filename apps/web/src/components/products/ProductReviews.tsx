@@ -4,7 +4,6 @@
 import { useState, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { Star, ChevronLeft, ChevronRight, User } from "lucide-react";
-import { PRODUCT_CONFIG } from "@/config/productConfig";
 
 interface Review {
     id: string;

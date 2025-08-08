@@ -16,7 +16,6 @@ import {
     RefreshCw,
     AlertTriangle,
     BarChart3,
-    PieChart as PieChartIcon,
     Activity,
     Navigation
 } from 'lucide-react';

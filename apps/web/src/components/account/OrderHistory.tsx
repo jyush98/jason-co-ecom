@@ -7,11 +7,9 @@ import Link from "next/link";
 import {
     Package,
     Calendar,
-    DollarSign,
     Eye,
     Filter,
     Search,
-    ArrowUpDown,
     ChevronDown,
     Truck,
     CheckCircle,

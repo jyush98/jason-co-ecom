@@ -1,6 +1,6 @@
 'use client'
 
-import { motion, useInView } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { useRef } from 'react'
 import { Star, Award, Users } from 'lucide-react'
 

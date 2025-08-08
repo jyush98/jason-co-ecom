@@ -9,11 +9,8 @@ import {
     Repeat,
     DollarSign,
     Activity,
-    Calendar,
     Target,
-    Award,
     AlertTriangle,
-    Filter,
     Download,
     RefreshCw
 } from 'lucide-react';
@@ -28,11 +25,7 @@ import {
     ResponsiveContainer,
     PieChart,
     Pie,
-    Cell,
-    BarChart,
-    Bar,
-    LineChart,
-    Line
+    Cell
 } from 'recharts';
 
 // Types for Customer Analytics

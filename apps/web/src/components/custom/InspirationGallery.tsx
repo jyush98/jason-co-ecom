@@ -3,8 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Search, Filter, Heart, Share2, Eye, Clock, DollarSign,
-    Sparkles, ChevronDown, X, Play, Image as ImageIcon
+    Search, Filter, Heart, Share2, Eye, Clock, DollarSign, ChevronDown, X, Play, Image as ImageIcon
 } from 'lucide-react';
 
 // Types for inspiration gallery

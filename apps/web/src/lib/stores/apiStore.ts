@@ -15,7 +15,7 @@ interface ApiCacheEntry<T> {
 
 // Request tracking
 interface PendingRequest {
-    promise: Promise<any>;
+    promise: Promise<unknown>;
     abortController: AbortController;
     timestamp: number;
 }
@@ -43,7 +43,7 @@ interface RequestStats {
 
 interface ApiState {
     // Cache management
-    cache: Map<string, ApiCacheEntry<any>>;
+    cache: Map<string, ApiCacheEntry<unknown>>;
 
     // Request tracking
     pendingRequests: Map<string, PendingRequest>;
@@ -69,12 +69,12 @@ interface ApiState {
     isCacheValid: (key: string, maxAge?: number) => boolean;
 
     // Request state management
-    setRequestPending: (key: string, promise: Promise<any>, abortController: AbortController) => void;
+    setRequestPending: (key: string, promise: Promise<unknown>, abortController: AbortController) => void;
     setRequestComplete: (key: string, success: boolean, responseTime?: number) => void;
     setRequestError: (key: string, error: string) => void;
     cancelRequest: (key: string) => boolean;
     isPendingRequest: (key: string) => boolean;
-    getPendingRequest: (key: string) => Promise<any> | null;
+    getPendingRequest: (key: string) => Promise<unknown> | null;
 
     // Cache management
     clearExpired: () => number;
@@ -90,7 +90,7 @@ interface ApiState {
     updateConfig: (config: Partial<ApiState['config']>) => void;
 
     // Utilities
-    generateCacheKey: (endpoint: string, params?: Record<string, any>) => string;
+    generateCacheKey: (endpoint: string, params?: Record<string, unknown>) => string;
     warmCache: (keys: string[]) => Promise<void>;
 }
 
@@ -123,7 +123,7 @@ export const useApiStore = create<ApiState>()(
             // Cache operations
             getCached: <T>(key: string, maxAge?: number): T | null => {
                 const state = get();
-                const entry = state.cache.get(key);
+                const entry = state.cache.get(key) as ApiCacheEntry<T> | undefined;
 
                 if (!entry) {
                     // Record cache miss
@@ -187,8 +187,10 @@ export const useApiStore = create<ApiState>()(
                     const sortedEntries = Array.from(newCache.entries())
                         .sort((a, b) => {
                             // Sort by hit count (ascending) then by timestamp (ascending)
-                            const hitDiff = a[1].hitCount - b[1].hitCount;
-                            return hitDiff !== 0 ? hitDiff : a[1].timestamp - b[1].timestamp;
+                            const aEntry = a[1] as ApiCacheEntry<unknown>;
+                            const bEntry = b[1] as ApiCacheEntry<unknown>;
+                            const hitDiff = aEntry.hitCount - bEntry.hitCount;
+                            return hitDiff !== 0 ? hitDiff : aEntry.timestamp - bEntry.timestamp;
                         });
 
                     const entriesToRemove = sortedEntries.slice(0, newCache.size - state.config.maxCacheSize);
@@ -243,7 +245,7 @@ export const useApiStore = create<ApiState>()(
             },
 
             // Request state management
-            setRequestPending: (key: string, promise: Promise<any>, abortController: AbortController) => {
+            setRequestPending: (key: string, promise: Promise<unknown>, abortController: AbortController) => {
                 const state = get();
 
                 // Check if deduplication is enabled and request is already pending
@@ -333,7 +335,7 @@ export const useApiStore = create<ApiState>()(
                 return get().pendingRequests.has(key);
             },
 
-            getPendingRequest: (key: string): Promise<any> | null => {
+            getPendingRequest: (key: string): Promise<unknown> | null => {
                 const pendingRequest = get().pendingRequests.get(key);
                 return pendingRequest ? pendingRequest.promise : null;
             },
@@ -381,8 +383,10 @@ export const useApiStore = create<ApiState>()(
                 // Sort entries by hit count (ascending) then by timestamp (ascending)
                 const sortedEntries = Array.from(state.cache.entries())
                     .sort((a, b) => {
-                        const hitDiff = a[1].hitCount - b[1].hitCount;
-                        return hitDiff !== 0 ? hitDiff : a[1].timestamp - b[1].timestamp;
+                        const aEntry = a[1] as ApiCacheEntry<unknown>;
+                        const bEntry = b[1] as ApiCacheEntry<unknown>;
+                        const hitDiff = aEntry.hitCount - bEntry.hitCount;
+                        return hitDiff !== 0 ? hitDiff : aEntry.timestamp - bEntry.timestamp;
                     });
 
                 const entriesToRemove = sortedEntries.slice(0, state.cache.size - target);
@@ -449,7 +453,7 @@ export const useApiStore = create<ApiState>()(
             },
 
             // Utilities
-            generateCacheKey: (endpoint: string, params?: Record<string, any>): string => {
+            generateCacheKey: (endpoint: string, params?: Record<string, unknown>): string => {
                 const baseKey = endpoint.replace(/^\/+/, '').replace(/\/+/g, '_');
 
                 if (!params || Object.keys(params).length === 0) {

@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { SHOP_CONFIG, getDefaultCategory, getDefaultSort } from "@/config";
+import { getDefaultCategory, getDefaultSort } from "@/config";
 
 export interface UseShopFiltersReturn {
     // Filter state

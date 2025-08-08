@@ -4,12 +4,8 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Search,
-    Filter,
     X,
     Calendar,
-    DollarSign,
-    Package,
-    Users,
     ChevronDown,
     RotateCcw,
     Download,

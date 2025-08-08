@@ -7,7 +7,6 @@ import {
     Package,
     TrendingUp,
     Star,
-    Download,
     RefreshCw,
     ShoppingBag,
     DollarSign,
@@ -25,7 +24,7 @@ import Link from 'next/link';
 import ProductPerformanceChart from './charts/ProductPerformanceChart';
 import { useProductAnalytics } from '@/lib/hooks/useAnalytics';
 import { MetricCard } from '../Common';
-import { FilterBar, DateRangePicker, ExportButton } from '../Common';
+import { ExportButton } from '../Common';
 
 export default function ProductAnalytics() {
     const [timeRange, setTimeRange] = useState('30d');

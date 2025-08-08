@@ -11,7 +11,6 @@ import {
     Users,
     Package,
     TrendingUp,
-    MessageSquare,
     Settings,
     Bell,
     Search,
@@ -19,16 +18,11 @@ import {
     X,
     ChevronDown,
     Home,
-    BarChart3,
-    UserCog,
-    Archive,
     Megaphone,
     FileText,
     LogOut,
     Crown,
     SearchX,
-    Globe,
-    Target,
     LineChart
 } from "lucide-react";
 

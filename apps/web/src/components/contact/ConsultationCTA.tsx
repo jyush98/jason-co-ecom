@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Calendar, Video, MapPin, Star, ArrowRight, Clock, DollarSign, X, CheckCircle, AlertCircle, Loader2, Phone } from 'lucide-react'
+import { Calendar, Video, MapPin, Star, ArrowRight, Clock, DollarSign, X, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
 import { bookConsultation } from '@/utils/api'
 
 interface ConsultationFormData {

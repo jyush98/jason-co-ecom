@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
-import { CreditCard, Lock, Check, AlertCircle, Loader2, Shield } from "lucide-react";
+import { CreditCard, AlertCircle, Loader2, Shield } from "lucide-react";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { CART_CONFIG } from "@/config/cartConfig";
 import { PaymentMethod, CheckoutFormData, ShippingAddress } from "@/types/cart";

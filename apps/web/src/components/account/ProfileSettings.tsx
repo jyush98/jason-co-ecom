@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useUser, useAuth } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import {
     User,
     Mail,

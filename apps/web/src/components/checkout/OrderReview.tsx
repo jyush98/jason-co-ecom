@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import {
     Check,
     CreditCard,
-    MapPin,
     Truck,
     Package,
     Loader2,

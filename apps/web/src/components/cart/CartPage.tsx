@@ -8,7 +8,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@clerk/nextjs";
 import { CART_CONFIG } from "@/config/cartConfig";
-import { Cart, CartItem as CartItemType } from "@/types/cart";
+import { Cart } from "@/types/cart";
 import { Product } from "@/types/product";
 import { formatCartPrice } from "@/config/cartConfig";
 import { useCartData, useCartActions } from "@/app/store/cartStore";

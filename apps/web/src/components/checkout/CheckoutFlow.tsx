@@ -1,13 +1,13 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Check, Lock } from "lucide-react";
 import Link from "next/link";
 
 // ✅ Updated imports - using our new modular structure
 import { useCheckoutFlow } from "@/lib/hooks";
-import { validateShippingAddress, calculateCheckoutProgress } from "@/utils";
+import { calculateCheckoutProgress } from "@/utils";
 import { CART_CONFIG } from "@/config";
 import { ShippingForm, PaymentForm, OrderReview } from "@/components/checkout";
 import { useCartData } from "@/app/store/cartStore";

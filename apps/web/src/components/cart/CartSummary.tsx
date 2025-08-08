@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Gift, Tag, Check, X, AlertCircle, Truck, Shield } from "lucide-react";
+import { Gift, Tag, Check, X, Truck, Shield } from "lucide-react";
 import Link from "next/link";
 import { CART_CONFIG } from "@/config/cartConfig";
 import { formatCartPrice } from "@/config/cartConfig";

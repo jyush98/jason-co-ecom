@@ -12,7 +12,6 @@ import {
     EmptyState
 } from "@/components/shop";
 import { SHOP_CONFIG, getDefaultCategory, getDefaultSort } from "@/config";
-import { useGA4Ecommerce } from "@/lib/hooks/useGA4";
 
 interface ProductListProps {
     initialCategory?: string;

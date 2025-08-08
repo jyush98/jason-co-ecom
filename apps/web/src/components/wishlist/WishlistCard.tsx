@@ -4,18 +4,14 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-    Heart,
     ShoppingCart,
     Trash2,
     Edit3,
     Save,
     X,
-    MoreVertical,
-    Star,
     Calendar,
     Tag,
-    Eye,
-    Check
+    Eye
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";

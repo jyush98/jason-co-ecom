@@ -12,9 +12,7 @@ import {
   CheckCircle,
   Clock,
   Star,
-  AlertCircle,
-  Edit,
-  Trash2
+  AlertCircle
 } from "lucide-react";
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment } from "react";

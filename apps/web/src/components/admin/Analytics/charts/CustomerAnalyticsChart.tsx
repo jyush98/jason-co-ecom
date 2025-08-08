@@ -26,7 +26,6 @@ import {
     UserPlus,
     UserCheck,
     DollarSign,
-    MapPin,
     RefreshCw,
     Download
 } from 'lucide-react';

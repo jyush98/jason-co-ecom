@@ -10,14 +10,12 @@ import {
     Filter,
     Grid,
     List,
-    Plus,
     Trash2,
     ArrowLeft,
     Package,
     Star,
     Calendar,
     DollarSign,
-    Settings,
     X
 } from "lucide-react";
 import Link from "next/link";
@@ -28,10 +26,7 @@ import {
     useWishlistStats,
     useWishlistLoading,
     useWishlistError,
-    useWishlistActions,
-    useWishlistUtils,
-    WishlistItem,
-    WishlistCollection
+    useWishlistActions
 } from "@/app/store/wishlistStore";
 import { formatCartPrice } from "@/config/cartConfig";
 import WishlistCard from "./WishlistCard";

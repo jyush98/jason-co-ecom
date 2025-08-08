@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useAuth } from "@clerk/nextjs";
 import {
   BarChart3,
-  Users,
   Package,
   DollarSign,
   ShoppingCart,
@@ -18,7 +17,6 @@ import {
 import AdminOrderList from "./AdminOrderList";
 import AdminCustomOrderList from "./AdminCustomOrderList";
 import { MetricCard, DataTable, FilterBar, MetricData } from "@/components/admin/Common";
-import AdvancedAnalytics from "./Analytics/AdvancedAnalytics";
 
 interface OrderStats {
   total_orders: number;

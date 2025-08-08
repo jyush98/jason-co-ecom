@@ -4,14 +4,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
     Loader2,
     RefreshCw,
-    Zap,
-    Circle,
     RotateCcw,
     Database,
     Download,
     Upload,
     Search,
-    Clock,
     TrendingUp
 } from "lucide-react";
 

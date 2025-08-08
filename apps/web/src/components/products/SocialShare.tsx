@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Share2, Heart, Bookmark, Copy, Check } from "lucide-react";
+import { Share2, Bookmark, Copy, Check } from "lucide-react";
 import { Product } from "@/types/product";
 import AddToWishlistButton from "../wishlist/AddToWishListButton";
 

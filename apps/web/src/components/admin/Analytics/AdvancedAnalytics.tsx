@@ -11,13 +11,9 @@ import {
     UserPlus,
     Repeat,
     DollarSign,
-    Activity,
     Target,
     Award,
     Globe,
-    Calendar,
-    Filter,
-    Download,
     RefreshCw,
     AlertTriangle,
     Package

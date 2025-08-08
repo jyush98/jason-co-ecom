@@ -22,12 +22,9 @@ import {
     Calendar,
     TrendingUp,
     TrendingDown,
-    DollarSign,
-    Eye,
     BarChart3,
     PieChart as PieChartIcon,
     Download,
-    Filter,
     RefreshCw
 } from 'lucide-react';
 

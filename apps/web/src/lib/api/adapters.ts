@@ -4,7 +4,7 @@
 // Import your actual domain types
 import { User } from '@/types/user';
 import { Cart, CartItem } from '@/types/cart';
-import { Order, OrderItem, OrderStatus } from '@/types/order';
+import { Order, OrderStatus } from '@/types/order';
 
 // Import API types
 import { UserResponse, Cart as ApiCart, CartItem as ApiCartItem, OrderResponse, UserStatus, UserRole, OrderStatus as ApiOrderStatus, PaymentStatus } from './types';
