@@ -5,9 +5,9 @@ uvicorn[standard]==0.24.0
 gunicorn==21.2.0
 python-multipart>=0.0.6
 
-# Database
-sqlalchemy==2.0.23
-alembic==1.12.1
+# Database - UPDATED for Python 3.13 compatibility
+sqlalchemy==2.0.25
+alembic==1.13.1
 psycopg2-binary==2.9.9
 
 # Authentication & Authorization
