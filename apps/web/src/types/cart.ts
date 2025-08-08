@@ -1,6 +1,6 @@
 // types/cart.ts - Complete cart types that match your actual API
 
-import { Order, OrderItem, OrderStatus } from './order';
+import { Order } from './order'; // ✅ FIXED: Only import what we actually use
 
 // ✅ SIMPLE: CartItem matches what your API actually returns
 export interface CartItem {
@@ -312,29 +312,84 @@ export type CartItemKey = keyof CartItem;
 export type CheckoutFormKey = keyof CheckoutFormData;
 export type ShippingAddressKey = keyof ShippingAddress;
 
-// Simple, reliable type guards
-export const isValidCartItem = (item: any): item is CartItem => {
-    return (
+// ✅ FIXED: Type guards with proper typing instead of any
+export const isValidCartItem = (item: unknown): item is CartItem => {
+    return Boolean(
         item &&
-        typeof item.product_id === 'number' &&
-        typeof item.quantity === 'number' &&
-        item.product &&
-        typeof item.product.id === 'number' &&
-        typeof item.product.name === 'string' &&
-        typeof item.product.price === 'number'
+        typeof item === 'object' &&
+        'product_id' in item &&
+        'quantity' in item &&
+        'product' in item &&
+        typeof (item as CartItem).product_id === 'number' &&
+        typeof (item as CartItem).quantity === 'number' &&
+        (item as CartItem).product &&
+        typeof (item as CartItem).product.id === 'number' &&
+        typeof (item as CartItem).product.name === 'string' &&
+        typeof (item as CartItem).product.price === 'number'
     );
 };
 
-export const isValidShippingAddress = (address: any): address is ShippingAddress => {
-    return (
+export const isValidShippingAddress = (address: unknown): address is ShippingAddress => {
+    return Boolean(
         address &&
-        typeof address.first_name === 'string' &&
-        typeof address.last_name === 'string' &&
-        typeof address.address_line_1 === 'string' &&
-        typeof address.city === 'string' &&
-        typeof address.state === 'string' &&
-        typeof address.postal_code === 'string' &&
-        typeof address.country === 'string'
+        typeof address === 'object' &&
+        'first_name' in address &&
+        'last_name' in address &&
+        'address_line_1' in address &&
+        'city' in address &&
+        'state' in address &&
+        'postal_code' in address &&
+        'country' in address &&
+        typeof (address as ShippingAddress).first_name === 'string' &&
+        typeof (address as ShippingAddress).last_name === 'string' &&
+        typeof (address as ShippingAddress).address_line_1 === 'string' &&
+        typeof (address as ShippingAddress).city === 'string' &&
+        typeof (address as ShippingAddress).state === 'string' &&
+        typeof (address as ShippingAddress).postal_code === 'string' &&
+        typeof (address as ShippingAddress).country === 'string'
+    );
+};
+
+// ==========================================
+// ADDITIONAL TYPE GUARDS
+// ==========================================
+
+export const isValidCart = (cart: unknown): cart is Cart => {
+    return Boolean(
+        cart &&
+        typeof cart === 'object' &&
+        'items' in cart &&
+        'subtotal' in cart &&
+        'total' in cart &&
+        'currency' in cart &&
+        Array.isArray((cart as Cart).items) &&
+        typeof (cart as Cart).subtotal === 'number' &&
+        typeof (cart as Cart).total === 'number' &&
+        typeof (cart as Cart).currency === 'string'
+    );
+};
+
+export const isValidPaymentMethod = (method: unknown): method is PaymentMethod => {
+    return Boolean(
+        method &&
+        typeof method === 'object' &&
+        'id' in method &&
+        'type' in method &&
+        typeof (method as PaymentMethod).id === 'string' &&
+        ['card', 'paypal', 'apple_pay', 'google_pay'].includes((method as PaymentMethod).type)
+    );
+};
+
+export const isValidShippingMethod = (method: unknown): method is ShippingMethod => {
+    return Boolean(
+        method &&
+        typeof method === 'object' &&
+        'id' in method &&
+        'name' in method &&
+        'price' in method &&
+        typeof (method as ShippingMethod).id === 'string' &&
+        typeof (method as ShippingMethod).name === 'string' &&
+        typeof (method as ShippingMethod).price === 'number'
     );
 };
 

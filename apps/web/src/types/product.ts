@@ -1,5 +1,40 @@
 // types/product.ts - CORRECTED to match backend Epic #11 schema
 
+// ==========================================
+// JSON/JSONB FIELD TYPES
+// ==========================================
+
+export interface ProductDimensions {
+    length?: number;
+    width?: number;
+    height?: number;
+    unit?: string;
+}
+
+export interface GemstoneInfo {
+    type: string;
+    cut?: string;
+    carat?: number;
+    color?: string;
+    clarity?: string;
+    origin?: string;
+    certification?: string;
+    [key: string]: string | number | undefined;
+}
+
+export interface ProductDetails {
+    style?: string;
+    occasion?: string;
+    collection?: string;
+    limited_edition?: boolean;
+    warranty_years?: number;
+    [key: string]: string | number | boolean | undefined;
+}
+
+// ==========================================
+// CORE PRODUCT TYPES
+// ==========================================
+
 export interface Product {
     // Core fields - MATCH ProductSummary from backend
     id: number;
@@ -32,14 +67,9 @@ export interface Product {
 
     // Product attributes - CORRECTED types to match backend
     weight?: number;
-    dimensions?: {
-        length?: number;
-        width?: number;
-        height?: number;
-        unit?: string;
-    }; // JSONB in backend
+    dimensions?: ProductDimensions; // JSONB in backend
     materials?: string[]; // ARRAY(String) in backend
-    gemstones?: Record<string, any>; // FIXED: JSONB in backend, not string[]
+    gemstones?: GemstoneInfo; // ✅ FIXED: JSONB in backend with proper typing
     care_instructions?: string;
     product_type?: string;
 
@@ -71,7 +101,7 @@ export interface Product {
     review_count?: number;
 
     // Legacy fields - Keep for compatibility
-    details?: Record<string, any>; // JSONB in backend
+    details?: ProductDetails; // ✅ FIXED: JSONB in backend with proper typing
     display_theme?: string;
 
     // Admin
@@ -260,14 +290,9 @@ export interface ProductCreateForm {
 
     // Attributes
     weight?: number;
-    dimensions?: {
-        length?: number;
-        width?: number;
-        height?: number;
-        unit?: string;
-    };
+    dimensions?: ProductDimensions;
     materials?: string[];
-    gemstones?: Record<string, any>; // FIXED: JSONB type
+    gemstones?: GemstoneInfo; // ✅ FIXED: Proper typing instead of any
     care_instructions?: string;
 
     // Media
@@ -413,19 +438,44 @@ export type SortOrder = 'asc' | 'desc';
 export type SortField = 'name' | 'price' | 'created_at' | 'view_count' | 'average_rating';
 
 // ==========================================
-// TYPE GUARDS
+// TYPE GUARDS - ✅ FIXED: Proper typing instead of any
 // ==========================================
 
-export const isProduct = (item: any): item is Product => {
-    return item && typeof item.id === 'number' && typeof item.name === 'string' && typeof item.price === 'number';
+export const isProduct = (item: unknown): item is Product => {
+    return Boolean(
+        item &&
+        typeof item === 'object' &&
+        'id' in item &&
+        'name' in item &&
+        'price' in item &&
+        typeof (item as Product).id === 'number' &&
+        typeof (item as Product).name === 'string' &&
+        typeof (item as Product).price === 'number'
+    );
 };
 
-export const isCategory = (item: any): item is Category => {
-    return item && typeof item.id === 'number' && typeof item.name === 'string';
+export const isCategory = (item: unknown): item is Category => {
+    return Boolean(
+        item &&
+        typeof item === 'object' &&
+        'id' in item &&
+        'name' in item &&
+        typeof (item as Category).id === 'number' &&
+        typeof (item as Category).name === 'string'
+    );
 };
 
-export const isCollection = (item: any): item is Collection => {
-    return item && typeof item.id === 'number' && typeof item.name === 'string' && typeof item.collection_type === 'string';
+export const isCollection = (item: unknown): item is Collection => {
+    return Boolean(
+        item &&
+        typeof item === 'object' &&
+        'id' in item &&
+        'name' in item &&
+        'collection_type' in item &&
+        typeof (item as Collection).id === 'number' &&
+        typeof (item as Collection).name === 'string' &&
+        typeof (item as Collection).collection_type === 'string'
+    );
 };
 
 // ==========================================

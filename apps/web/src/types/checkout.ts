@@ -1,7 +1,111 @@
 // types/checkout.ts
 
-import { Order, OrderItem, OrderStatus } from './order'; // Your existing types
+import { Order } from './order'; // Your existing types
 import { ShippingAddress, ShippingMethod, PaymentMethod, CheckoutFormData } from './cart';
+
+// ==========================================
+// VALIDATION SCHEMA TYPES
+// ==========================================
+
+export interface ValidationRule {
+  type: 'required' | 'email' | 'phone' | 'postal_code' | 'min_length' | 'max_length' | 'pattern';
+  value?: string | number;
+  message?: string;
+}
+
+export interface FieldValidationSchema {
+  [fieldName: string]: ValidationRule[];
+}
+
+export interface ValidationSchema {
+  fields: FieldValidationSchema;
+  custom_validators?: Array<{
+    name: string;
+    validator: (data: Record<string, unknown>) => boolean;
+    message: string;
+  }>;
+}
+
+// ==========================================
+// PAYMENT DATA TYPES
+// ==========================================
+
+export interface StripePaymentData {
+  payment_method_id: string;
+  payment_intent_id?: string;
+  setup_intent_id?: string;
+  save_payment_method?: boolean;
+}
+
+export interface PayPalPaymentData {
+  order_id: string;
+  payer_id: string;
+  payment_source: 'paypal';
+}
+
+export interface ApplePayPaymentData {
+  payment_token: string;
+  billing_contact: {
+    given_name: string;
+    family_name: string;
+    address_lines: string[];
+    locality: string;
+    administrative_area: string;
+    postal_code: string;
+    country_code: string;
+  };
+  shipping_contact?: {
+    given_name: string;
+    family_name: string;
+    address_lines: string[];
+    locality: string;
+    administrative_area: string;
+    postal_code: string;
+    country_code: string;
+  };
+}
+
+export type PaymentData = StripePaymentData | PayPalPaymentData | ApplePayPaymentData;
+
+// ==========================================
+// ORDER PREVIEW TYPES
+// ==========================================
+
+export interface OrderPreviewItem {
+  product_id: number;
+  product_name: string;
+  product_image_url?: string;
+  unit_price: number;
+  quantity: number;
+  line_total: number;
+  custom_options?: Record<string, string>;
+}
+
+export interface OrderPreview {
+  items: OrderPreviewItem[];
+  subtotal: number;
+  tax_amount: number;
+  shipping_cost: number;
+  discount_amount?: number;
+  total_amount: number;
+  currency: string;
+  shipping_address: ShippingAddress;
+  billing_address?: ShippingAddress;
+  shipping_method: ShippingMethod;
+  payment_method?: PaymentMethod;
+  estimated_delivery?: {
+    min_days: number;
+    max_days: number;
+    formatted: string;
+  };
+  order_notes?: string;
+  is_gift?: boolean;
+  gift_message?: string;
+}
+
+// ==========================================
+// CHECKOUT FLOW TYPES
+// ==========================================
 
 // Checkout flow state management
 export interface CheckoutFlow {
@@ -18,7 +122,7 @@ export interface CheckoutStepConfig {
   title: string;
   subtitle?: string;
   is_required: boolean;
-  validation_schema?: any; // For form validation
+  validation_schema?: ValidationSchema; // ✅ FIXED: Proper typing instead of any
   component: string; // Component name to render
 }
 
@@ -266,7 +370,10 @@ export interface CheckoutCompletion {
   }>;
 }
 
-// Component prop types for checkout
+// ==========================================
+// COMPONENT PROP TYPES
+// ==========================================
+
 export interface CheckoutFlowProps {
   initial_step?: CheckoutStepId;
   guest_email?: string;
@@ -288,7 +395,7 @@ export interface PaymentFormProps {
   order_total: number;
   shipping_address: ShippingAddress;
   shipping_method: ShippingMethod;
-  on_submit: (payment_data: any) => void;
+  on_submit: (payment_data: PaymentData) => void; // ✅ FIXED: Proper typing instead of any
   on_back: () => void;
   is_loading?: boolean;
   client_secret?: string;
@@ -296,7 +403,7 @@ export interface PaymentFormProps {
 
 export interface OrderReviewProps {
   checkout_data: CheckoutFormData;
-  order_preview: any; // Order preview data
+  order_preview: OrderPreview; // ✅ FIXED: Proper typing instead of any
   on_confirm: () => void;
   on_back: () => void;
   is_loading?: boolean;
@@ -308,11 +415,17 @@ export interface OrderConfirmationProps {
   on_track_order?: () => void;
 }
 
-// Utility types
+// ==========================================
+// UTILITY TYPES
+// ==========================================
+
 export type CheckoutFormField = keyof CheckoutFormData;
 export type CheckoutStepIndex = 0 | 1 | 2 | 3;
 
-// Type guards for checkout
+// ==========================================
+// TYPE GUARDS
+// ==========================================
+
 export const isValidCheckoutStep = (step: string): step is CheckoutStepId => {
   return ['shipping', 'payment', 'review', 'confirmation'].includes(step);
 };
@@ -325,20 +438,36 @@ export const canGoBackFromStep = (step: CheckoutStepId): boolean => {
   return step !== 'shipping' && step !== 'confirmation';
 };
 
+export const isStripePaymentData = (data: PaymentData): data is StripePaymentData => {
+  return 'payment_method_id' in data;
+};
+
+export const isPayPalPaymentData = (data: PaymentData): data is PayPalPaymentData => {
+  return 'payment_source' in data && data.payment_source === 'paypal';
+};
+
+export const isApplePayPaymentData = (data: PaymentData): data is ApplePayPaymentData => {
+  return 'payment_token' in data;
+};
+
+// ==========================================
+// CONSTANTS
+// ==========================================
+
 // Checkout step ordering and navigation
 export const CHECKOUT_STEP_ORDER: CheckoutStepId[] = ['shipping', 'payment', 'review', 'confirmation'];
 
 export const getNextStep = (current: CheckoutStepId): CheckoutStepId | null => {
   const currentIndex = CHECKOUT_STEP_ORDER.indexOf(current);
-  return currentIndex < CHECKOUT_STEP_ORDER.length - 1 
-    ? CHECKOUT_STEP_ORDER[currentIndex + 1] 
+  return currentIndex < CHECKOUT_STEP_ORDER.length - 1
+    ? CHECKOUT_STEP_ORDER[currentIndex + 1]
     : null;
 };
 
 export const getPreviousStep = (current: CheckoutStepId): CheckoutStepId | null => {
   const currentIndex = CHECKOUT_STEP_ORDER.indexOf(current);
-  return currentIndex > 0 
-    ? CHECKOUT_STEP_ORDER[currentIndex - 1] 
+  return currentIndex > 0
+    ? CHECKOUT_STEP_ORDER[currentIndex - 1]
     : null;
 };
 
@@ -346,3 +475,21 @@ export const getStepProgress = (current: CheckoutStepId): number => {
   const currentIndex = CHECKOUT_STEP_ORDER.indexOf(current);
   return ((currentIndex + 1) / CHECKOUT_STEP_ORDER.length) * 100;
 };
+
+// Validation rules constants
+export const VALIDATION_RULES = {
+  REQUIRED: { type: 'required' as const, message: 'This field is required' },
+  EMAIL: { type: 'email' as const, message: 'Please enter a valid email address' },
+  PHONE: { type: 'phone' as const, message: 'Please enter a valid phone number' },
+  POSTAL_CODE: { type: 'postal_code' as const, message: 'Please enter a valid postal code' },
+  MIN_LENGTH: (length: number) => ({
+    type: 'min_length' as const,
+    value: length,
+    message: `Must be at least ${length} characters`
+  }),
+  MAX_LENGTH: (length: number) => ({
+    type: 'max_length' as const,
+    value: length,
+    message: `Must be no more than ${length} characters`
+  })
+} as const;
