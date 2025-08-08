@@ -1,4 +1,4 @@
-// types/analytics.d.ts - Analytics tracking types
+// types/analytics.d.ts - Fixed Analytics tracking types
 
 // ==========================================
 // ANALYTICS PARAMETER TYPES
@@ -17,6 +17,10 @@ export interface GAEventParameters {
     coupon?: string;
     items?: GAItem[];
 
+    // E-commerce list events
+    item_list_id?: string;
+    item_list_name?: string;
+
     // Custom parameters
     custom_parameter?: string | number | boolean;
     user_id?: string;
@@ -27,9 +31,10 @@ export interface GAEventParameters {
 }
 
 export interface GAItem {
-    item_id?: string;
+    item_id?: string | number;  // Allow both string and number
     item_name?: string;
     category?: string;
+    item_category?: string;  // GA4 uses item_category
     quantity?: number;
     price?: number;
     currency?: string;
@@ -49,6 +54,7 @@ export interface GAItem {
     creative_name?: string;
     creative_slot?: string;
     location_id?: string;
+    item_brand?: string;  // Add item_brand support
 }
 
 export interface DataLayerEvent {
@@ -72,7 +78,7 @@ export interface VAEventData {
 }
 
 // ==========================================
-// GTAG COMMAND TYPES
+// GTAG COMMAND TYPES - FIXED
 // ==========================================
 
 export type GtagCommand =
@@ -95,20 +101,17 @@ export type GtagConfigParams = {
 };
 
 // ==========================================
-// GLOBAL WINDOW DECLARATIONS
+// GLOBAL WINDOW DECLARATIONS - FIXED
 // ==========================================
 
 declare global {
     interface Window {
-        gtag?: {
-            // ✅ FIXED: Proper typing for gtag function
-            (command: GtagCommand, targetId: string, parameters?: GtagConfigParams): void;
-            (command: 'event', eventName: string, parameters?: GAEventParameters): void;
-            (command: 'config', targetId: string, parameters?: GtagConfigParams): void;
-            (command: 'set', parameters: Record<string, string | number | boolean>): void;
-            (command: 'get', targetId: string, fieldName: string, callback?: (value: string) => void): void;
-            (command: 'consent', consentAction: 'default' | 'update', parameters: Record<string, string | boolean>): void;
-        };
+        // ✅ SIMPLIFIED: Use function type that matches Google's actual gtag implementation
+        gtag?: (
+            command: string,
+            eventNameOrTargetId: string,
+            parameters?: any
+        ) => void;
 
         // ✅ FIXED: Proper typing for dataLayer
         dataLayer: DataLayerEvent[];

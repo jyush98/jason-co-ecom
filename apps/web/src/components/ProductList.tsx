@@ -52,15 +52,15 @@ export default function ProductList({ initialCategory, initialSearch }: ProductL
 
     // GA4 Tracking - Track shop page view with product list
     useEffect(() => {
-        // Track shop page view with product list
+        // Track shop page view with product list - FIXED: Proper item structure
         if (typeof window !== 'undefined' && window.gtag && products.length > 0) {
             window.gtag('event', 'view_item_list', {
                 item_list_id: 'shop_main',
                 item_list_name: 'Main Shop',
                 items: products.slice(0, 12).map((product, index) => ({
-                    item_id: product.id,
+                    item_id: product.id.toString(), // Ensure string type
                     item_name: product.name,
-                    item_category: product.category,
+                    item_category: product.category || 'jewelry',
                     item_brand: 'Jason & Co',
                     price: product.price,
                     currency: 'USD',
