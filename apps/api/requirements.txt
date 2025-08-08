@@ -1,4 +1,4 @@
-# Jason & Co. - Production Requirements
+# Jason & Co. - Railway Production Requirements
 # Core FastAPI and server dependencies
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
@@ -13,29 +13,29 @@ psycopg2-binary==2.9.9
 # Authentication & Authorization
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
-cryptography
+cryptography>=42.0.0
 
 # Environment and configuration
 python-decouple==3.8
 python-dotenv==1.0.0
 pydantic==2.5.0
 pydantic-settings==2.1.0
-pydantic[email]
 
 # HTTP requests and API clients
-requests
-httpx
-aiofiles
+requests>=2.31.0
+httpx>=0.25.0
+aiofiles>=23.0.0
 
 # Payments
-stripe
+stripe>=7.0.0
 
 # Email service
-resend
+resend>=0.7.0
 
 # Image processing and file handling
-pillow==10.4.0
-python-magic
+pillow>=10.4.0
+# ✅ FIXED: Use python-magic instead of python-magic-bin for Railway
+python-magic>=0.4.27
 
 # AWS S3 (for file storage)
 boto3==1.34.0
@@ -72,16 +72,13 @@ faker==20.1.0
 orjson==3.9.10
 
 # CORS middleware
-fastapi-cors==0.0.6
+# ✅ REMOVED: fastapi-cors (use built-in FastAPI CORS instead)
 
 # Rate limiting
 slowapi==0.1.9
 
 # Data validation
 validators==0.22.0
-
-# File type detection
-python-magic-bin==0.4.14  # For Windows compatibility
 
 # Async database support
 asyncpg==0.29.0
@@ -95,12 +92,8 @@ secure==0.3.0
 # API documentation
 fastapi-utils==0.2.1
 
-# Timezone handling
-zoneinfo==0.2.1
-
 # Production optimizations
 ujson==5.8.0
-python-magic==0.4.27
 
 # CLI tools for management
 click==8.1.7

@@ -119,13 +119,13 @@ export {
 } from './orderUtils';
 
 // Export utility types
-// export type {
-//     OrderStatus,
-//     OrderSummary,
-//     OrderDetails,
-//     OrderItemDetails,
-//     OrderStatusUpdate
-// } from './orderUtils';
+export type {
+    OrderStatus,
+    OrderSummary,
+    OrderDetails,
+    OrderItemDetails,
+    OrderStatusUpdate
+} from '@/types/order';
 
 // Re-export commonly used types for convenience
 export type {

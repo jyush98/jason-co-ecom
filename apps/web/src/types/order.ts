@@ -189,3 +189,43 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
     cancelled: "Cancelled",
     failed: "Failed"
 } as const;
+
+export interface OrderDetails extends Order {
+    // Computed fields for detailed admin views
+    customer_full_name: string;
+    formatted_total: string;
+    formatted_date: string;
+    days_since_order: number;
+    is_cancellable: boolean;
+    is_returnable: boolean;
+    estimated_delivery?: {
+        date: Date;
+        formatted: string;
+    };
+    status_history?: OrderStatusUpdate[];
+}
+
+export interface OrderItemDetails extends OrderItem {
+    // Enhanced item details for admin/detailed views
+    product_description?: string;
+    product_sku?: string;
+    line_total: number;
+    formatted_unit_price: string;
+    formatted_line_total: string;
+    in_stock: boolean;
+    is_custom?: boolean;
+    // ... and more detailed fields
+}
+
+export interface OrderStatusUpdate {
+    // Status change tracking for order history
+    id: number;
+    order_id: number;
+    previous_status: OrderStatus;
+    new_status: OrderStatus;
+    reason?: string;
+    updated_by?: string;
+    updated_at: string;
+    customer_notified?: boolean;
+    // ... and more tracking fields
+}

@@ -1,9 +1,8 @@
-// ✅ components/checkout/OrderSummaryCard.tsx
+// ✅ components/checkout/OrderSummaryCard.tsx - FIXED
 "use client";
 
 import { Package } from "lucide-react";
 import { OrderDetails } from "@/utils";
-import { CartItem } from "@/types/cart";
 import { OrderSummaryItem } from "./OrderSummaryItem";
 import { OrderTotals } from "./OrderTotals";
 
@@ -22,17 +21,36 @@ export function OrderSummaryCard({ order, _formattedOrder }: OrderSummaryCardPro
 
             {/* Order Items */}
             <div className="space-y-4 mb-6">
-                {order.items.map((item: CartItem, index: number) => (
-                    <OrderSummaryItem key={`${item.product_id}-${index}`} item={item} />
-                ))}
+                {order.items.map((item, index) => {
+                    // ✅ FIXED: Convert OrderItem to CartItem-like structure for display
+                    const cartItemForDisplay = {
+                        product_id: item.product_id,
+                        quantity: item.quantity,
+                        custom_options: item.custom_options,
+                        product: {
+                            id: item.product_id,
+                            name: item.product_name,
+                            price: item.unit_price,
+                            image_url: item.product_image_url || '',
+                            category: item.product_category || 'jewelry'
+                        }
+                    };
+
+                    return (
+                        <OrderSummaryItem
+                            key={`${item.product_id}-${index}`}
+                            item={cartItemForDisplay}
+                        />
+                    );
+                })}
             </div>
 
             {/* Order Totals */}
             <OrderTotals
-                subtotal={order.subtotal}
-                shipping={order.shipping_cost}
-                tax={order.tax}
-                discount={order.discount}
+                subtotal={order.subtotal || 0} // ✅ FIXED: Provide default value
+                shipping={order.shipping_amount || 0} // ✅ FIXED: Use correct property name
+                tax={order.tax_amount || 0} // ✅ FIXED: Use correct property name
+                discount={order.discount_amount} // ✅ FIXED: Use correct property name
                 total={order.total_price}
             />
         </div>
