@@ -13,7 +13,7 @@ psycopg2-binary==2.9.9
 # Authentication & Authorization
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
-cryptography==41.0.8
+cryptography
 
 # Environment and configuration
 python-decouple==3.8
