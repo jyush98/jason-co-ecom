@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { fetchProducts } from "@/utils/api";
-import { Product } from "@/types/product";
+import { useProductSearch } from "@/lib/hooks";
 import {
     ShopFilters,
     ProductGrid,
@@ -19,25 +18,18 @@ interface ProductListProps {
 }
 
 export default function ProductList({ initialCategory, initialSearch }: ProductListProps) {
-    // const { trackProductView } = useGA4Ecommerce();
     const searchParams = useSearchParams();
     const router = useRouter();
 
     // State management
-    const [products, setProducts] = useState<Product[]>([]);
-    const [total, setTotal] = useState<number>(0); // Add total count
     const [search, setSearch] = useState("");
     const [category, setCategory] = useState<string>(initialCategory || getDefaultCategory());
-    const [loading, setLoading] = useState<boolean>(true);
     const [showFilters, setShowFilters] = useState<boolean>(false);
 
     // Pagination & Sorting
     const [page, setPage] = useState(1);
-    const [pageSize] = useState(SHOP_CONFIG.resultsPerPage);
     const [sortBy, setSortBy] = useState(getDefaultSort().value.split("-")[0]);
     const [sortOrder, setSortOrder] = useState(getDefaultSort().value.split("-")[1]);
-
-    const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
     // Initialize search from URL params
     useEffect(() => {
@@ -50,6 +42,23 @@ export default function ProductList({ initialCategory, initialSearch }: ProductL
         setCategory(initialCategory || getDefaultCategory());
     }, [initialCategory]);
 
+    // Use the custom hook for product fetching
+    const {
+        products,
+        loading,
+        error,
+        totalCount,
+        hasMore,
+        refetch
+    } = useProductSearch({
+        search,
+        category,
+        sortBy,
+        sortOrder,
+        page,
+        pageSize: SHOP_CONFIG.resultsPerPage
+    });
+
     // GA4 Tracking - Track shop page view with product list
     useEffect(() => {
         // Track shop page view with product list - FIXED: Proper item structure
@@ -58,7 +67,7 @@ export default function ProductList({ initialCategory, initialSearch }: ProductL
                 item_list_id: 'shop_main',
                 item_list_name: 'Main Shop',
                 items: products.slice(0, 12).map((product, index) => ({
-                    item_id: product.id.toString(), // Ensure string type
+                    item_id: product.id.toString(),
                     item_name: product.name,
                     item_category: product.category || 'jewelry',
                     item_brand: 'Jason & Co',
@@ -69,34 +78,6 @@ export default function ProductList({ initialCategory, initialSearch }: ProductL
             });
         }
     }, [products]);
-
-    // Debounced product fetching - FIXED: Handle normalized response
-    const getProducts = useCallback(() => {
-        setLoading(true);
-        fetchProducts({ name: search, category, page, pageSize, sortBy, sortOrder })
-            .then(response => {
-                // Handle the normalized response structure
-                setProducts(response.products || []);
-                setTotal(response.total || 0);
-            })
-            .catch(() => {
-                setProducts([]);
-                setTotal(0);
-            })
-            .finally(() => setLoading(false));
-    }, [search, category, page, pageSize, sortBy, sortOrder]);
-
-    // Debounced effect for API calls
-    useEffect(() => {
-        if (debounceTimer.current) clearTimeout(debounceTimer.current);
-        debounceTimer.current = setTimeout(() => {
-            getProducts();
-        }, SHOP_CONFIG.searchDebounce);
-
-        return () => {
-            if (debounceTimer.current) clearTimeout(debounceTimer.current);
-        };
-    }, [search, category, page, pageSize, sortBy, sortOrder, getProducts]);
 
     // Handler functions
     const handleCategoryChange = (value: string) => {
@@ -146,9 +127,27 @@ export default function ProductList({ initialCategory, initialSearch }: ProductL
     );
 
     // Calculate pagination info
-    const totalPages = Math.ceil(total / pageSize);
+    const totalPages = Math.ceil(totalCount / SHOP_CONFIG.resultsPerPage);
     const hasNextPage = page < totalPages;
     const hasPrevPage = page > 1;
+
+    // Error state
+    if (error) {
+        return (
+            <div className="pt-[var(--navbar-height)] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 md:pb-20 transition-colors duration-500">
+                <div className="text-center">
+                    <h2 className="text-2xl font-serif mb-4">Something went wrong</h2>
+                    <p className="text-gray-600 dark:text-gray-400 mb-6">{error}</p>
+                    <button
+                        onClick={() => refetch()}
+                        className="px-6 py-3 border border-current hover:bg-current hover:text-white dark:hover:text-black transition-all duration-300"
+                    >
+                        Try Again
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     // Loading state for initial load
     if (loading && products.length === 0) {
@@ -185,7 +184,7 @@ export default function ProductList({ initialCategory, initialSearch }: ProductL
                 </p>
             </motion.div>
 
-            {/* Filters - Pass total count instead of products.length */}
+            {/* Filters */}
             <ShopFilters
                 search={search}
                 onSearchChange={handleSearchChange}
@@ -198,7 +197,7 @@ export default function ProductList({ initialCategory, initialSearch }: ProductL
                 onToggleFilters={toggleFilters}
                 onClearFilters={clearFilters}
                 hasActiveFilters={hasActiveFilters}
-                resultCount={total} // Use total from API response
+                resultCount={totalCount} // Use totalCount from hook
                 loading={loading}
             />
 
@@ -239,7 +238,7 @@ export default function ProductList({ initialCategory, initialSearch }: ProductL
                             Page {page} of {totalPages}
                         </span>
                         <span className="text-xs text-gray-500 dark:text-gray-500">
-                            ({total} total)
+                            ({totalCount} total)
                         </span>
                     </div>
 

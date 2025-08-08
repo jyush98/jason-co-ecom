@@ -26,7 +26,7 @@ export function useProductSearch(params: UseProductSearchParams): UseProductSear
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState(0);
-  
+
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
   const abortController = useRef<AbortController | null>(null);
 
@@ -45,10 +45,10 @@ export function useProductSearch(params: UseProductSearchParams): UseProductSear
     if (abortController.current) {
       abortController.current.abort();
     }
-    
+
     // Create new abort controller
     abortController.current = new AbortController();
-    
+
     setLoading(true);
     setError(null);
 
@@ -62,12 +62,17 @@ export function useProductSearch(params: UseProductSearchParams): UseProductSear
         sortOrder,
       };
 
+      // FIXED: Handle the normalized API response structure
       const result = await fetchProducts(searchParams);
-      
+
       // Only update if request wasn't aborted
       if (!abortController.current?.signal.aborted) {
-        setProducts(result);
-        setTotalCount(result.length); // This might need adjustment based on your API response
+        // FIXED: Extract products and total from the normalized response
+        const productsData = result?.products || [];
+        const total = result?.total || 0;
+
+        setProducts(productsData);
+        setTotalCount(total); // Use actual total count from API
         setError(null);
       }
     } catch (err) {
@@ -114,8 +119,9 @@ export function useProductSearch(params: UseProductSearchParams): UseProductSear
     await fetchProductsData();
   }, [fetchProductsData]);
 
-  // Computed values
-  const hasMore = products.length >= pageSize;
+  // FIXED: Computed values - properly calculate hasMore based on pagination
+  const totalPages = Math.ceil(totalCount / pageSize);
+  const hasMore = page < totalPages;
 
   return {
     products,
