@@ -6,7 +6,7 @@ import { Order } from "../types/order";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-const cache = new Map(); // Simple in-memory cache
+// const cache = new Map(); // Simple in-memory cache
 
 export interface ContactInquiryData {
     name: string

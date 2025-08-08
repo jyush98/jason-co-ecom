@@ -187,7 +187,7 @@ export const formatOrderDateTime = (dateString: string): string => {
 // ✅ Simplified order summary formatting - works with your Order type
 export const formatOrderSummary = (order: Order) => {
     const itemCount = order.items.length;
-    const customerName = order.customer_first_name && order.customer_last_name 
+    const customerName = order.customer_first_name && order.customer_last_name
         ? `${order.customer_first_name} ${order.customer_last_name}`
         : 'Customer';
 
@@ -242,7 +242,7 @@ export const calculateOrderMetrics = (orders: OrderSummary[]) => {
         return counts;
     }, {} as Record<OrderStatus, number>);
 
-    const completedOrders = orders.filter(order => 
+    const completedOrders = orders.filter(order =>
         order.status === 'delivered' || order.status === 'completed'
     ).length;
     const completionRate = totalOrders > 0 ? (completedOrders / totalOrders) * 100 : 0;
@@ -279,7 +279,7 @@ export const calculateEstimatedDelivery = (
     }
 
     // Add business days (skip weekends)
-    let deliveryDate = new Date(order);
+    const deliveryDate = new Date(order);
     let addedDays = 0;
 
     while (addedDays < businessDays) {
@@ -300,8 +300,15 @@ export const calculateEstimatedDelivery = (
     };
 };
 
-// Order validation
-export const validateOrderData = (orderData: any): { isValid: boolean; errors: string[] } => {
+// ✅ FIXED: Order validation with proper typing
+export interface OrderValidationData {
+    items?: unknown[];
+    shipping_address?: unknown;
+    total_price?: number;
+    [key: string]: unknown; // Allow additional properties for flexibility
+}
+
+export const validateOrderData = (orderData: OrderValidationData): { isValid: boolean; errors: string[] } => {
     const errors: string[] = [];
 
     if (!orderData.items || !Array.isArray(orderData.items) || orderData.items.length === 0) {
@@ -324,7 +331,7 @@ export const validateOrderData = (orderData: any): { isValid: boolean; errors: s
 
 // Convert Order to OrderSummary (for lists)
 export const orderToSummary = (order: Order): OrderSummary => {
-    const customerName = order.customer_first_name && order.customer_last_name 
+    const customerName = order.customer_first_name && order.customer_last_name
         ? `${order.customer_first_name} ${order.customer_last_name}`
         : undefined;
 

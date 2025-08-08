@@ -191,7 +191,7 @@ export default function AdminCustomOrderList() {
       setLoading(true);
       setError(null);
 
-      let headers: Record<string, string> = {
+      const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       };
 

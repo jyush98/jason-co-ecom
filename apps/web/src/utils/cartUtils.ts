@@ -1,6 +1,6 @@
 // utils/cartUtils.ts
 
-import { Cart, CartItem, ShippingAddress } from '@/types/cart';
+import { Cart, CartItem } from '@/types/cart';
 import { CART_CONFIG, formatCartPrice } from '@/config';
 
 // Cart calculation utilities
@@ -21,7 +21,7 @@ export const calculateCartTax = (subtotal: number, taxRate: number = 0.08): numb
 export const calculateShippingCost = (
     subtotal: number,
     items: CartItem[],
-    address?: ShippingAddress
+    // address?: ShippingAddress
 ): number => {
     // Free shipping threshold (configurable)
     const freeShippingThreshold = 500;

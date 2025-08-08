@@ -1,14 +1,14 @@
 // apps/web/src/utils/checkoutUtils.ts
 // Checkout-specific utility functions
 
-import type { 
-    ShippingAddress, 
-    ShippingMethod, 
+import type {
+    ShippingAddress,
+    ShippingMethod,
     PaymentMethod,
     CheckoutFormData,
-    CheckoutStep 
+    CheckoutStep
 } from '@/types/cart';
-import { CART_CONFIG, formatCartPrice } from '@/config/cartConfig';
+import { formatCartPrice } from '@/config/cartConfig';
 
 // Address validation utilities
 export const validateShippingAddress = (address: ShippingAddress, isGuestCheckout: boolean = false): {
@@ -105,15 +105,15 @@ export const validatePaymentMethod = (paymentMethod: PaymentMethod): {
         if (!paymentMethod.last_four) {
             errors.card = 'Card information is incomplete';
         }
-        
+
         if (!paymentMethod.brand) {
             errors.card_brand = 'Card brand is required';
         }
-        
+
         if (!paymentMethod.exp_month || !paymentMethod.exp_year) {
             errors.card_expiry = 'Card expiry date is required';
         }
-        
+
         // Check if card is expired
         if (paymentMethod.exp_month && paymentMethod.exp_year) {
             const now = new Date();
@@ -147,7 +147,7 @@ export const validateCheckoutStep = (
                 const addressValidation = validateShippingAddress(formData.shipping_address, isGuestCheckout);
                 errors = { ...errors, ...addressValidation.errors };
             }
-            
+
             if (!selectedShippingMethod) {
                 errors.shipping_method = 'Please select a shipping method';
             }
@@ -166,11 +166,11 @@ export const validateCheckoutStep = (
             // Final validation - all previous steps should be complete
             const shippingValidation = validateCheckoutStep('shipping', formData, selectedShippingMethod, isGuestCheckout);
             const paymentValidation = validateCheckoutStep('payment', formData, selectedShippingMethod, isGuestCheckout);
-            
-            errors = { 
-                ...errors, 
-                ...shippingValidation.errors, 
-                ...paymentValidation.errors 
+
+            errors = {
+                ...errors,
+                ...shippingValidation.errors,
+                ...paymentValidation.errors
             };
             break;
     }
@@ -299,7 +299,7 @@ export const calculateEstimatedDelivery = (
     const addBusinessDays = (date: Date, days: number): Date => {
         const result = new Date(date);
         let addedDays = 0;
-        
+
         while (addedDays < days) {
             result.setDate(result.getDate() + 1);
             // Skip weekends
@@ -307,7 +307,7 @@ export const calculateEstimatedDelivery = (
                 addedDays++;
             }
         }
-        
+
         return result;
     };
 
@@ -343,11 +343,17 @@ export const serializeCheckoutData = (formData: Partial<CheckoutFormData>): stri
     }
 };
 
+// ✅ FIXED: Properly handle unused destructured variables
 export const deserializeCheckoutData = (data: string): Partial<CheckoutFormData> | null => {
     try {
         const parsed = JSON.parse(data);
-        // Remove timestamp and version before returning
-        const { timestamp, version, ...formData } = parsed;
+
+        // Remove metadata fields and return only form data
+        // Create a clean copy without timestamp and version
+        const formData = { ...parsed };
+        delete formData.timestamp;
+        delete formData.version;
+
         return formData;
     } catch (error) {
         console.error('Failed to deserialize checkout data:', error);
