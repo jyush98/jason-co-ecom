@@ -48,7 +48,7 @@ export default function ProductList({ initialCategory, initialSearch }: ProductL
         loading,
         error,
         totalCount,
-        hasMore,
+        // hasMore,
         refetch
     } = useProductSearch({
         search,
