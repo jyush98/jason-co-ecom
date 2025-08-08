@@ -270,7 +270,7 @@ export const useIntegrationStore = create<IntegrationState>()(
 
                         // ✅ Use adapter to convert Order[] to OrderResponse[]
                         // Note: rawOrderData should be Order[] from your API
-                        const orderData = adaptOrderArrayToOrderResponseArray(rawOrderData as any[], userId);
+                        const orderData = adaptOrderArrayToOrderResponseArray(rawOrderData as any[]);
 
                         set({ cachedOrderData: orderData });
                         get().setSyncStatus(syncKey, { status: 'success' });

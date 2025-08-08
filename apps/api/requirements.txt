@@ -34,7 +34,7 @@ stripe==7.8.0
 resend==0.7.1
 
 # Image processing and file handling
-pillow==10.1.0
+pillow==10.4.0
 python-magic==0.4.27
 
 # AWS S3 (for file storage)
