@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { useSearchParams } from "next/navigation";
 import { Check, Package, Truck, CreditCard, Calendar, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { formatCartPrice } from "@/config/cartConfig";
+// import { formatCartPrice } from "@/config/cartConfig";
 
 export default function OrderConfirmationPage() {
     const searchParams = useSearchParams();
@@ -124,7 +124,7 @@ export default function OrderConfirmationPage() {
                             </div>
                             <h3 className="font-medium mb-2">Shipping Soon</h3>
                             <p className="text-sm text-gray-600 dark:text-gray-400">
-                                You'll receive tracking info within 24 hours
+                                You&apos;ll receive tracking info within 24 hours
                             </p>
                         </div>
                     </motion.div>
@@ -142,7 +142,7 @@ export default function OrderConfirmationPage() {
                             <strong>3-5 business days</strong> for standard shipping
                         </p>
                         <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
-                            You'll receive tracking information via email once your order ships
+                            You&apos;ll receive tracking information via email once your order ships
                         </p>
                     </motion.div>
 

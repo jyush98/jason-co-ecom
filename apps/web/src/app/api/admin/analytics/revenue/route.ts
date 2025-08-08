@@ -101,7 +101,7 @@ export async function GET(request: NextRequest) {
     const period = searchParams.get('period') || '30d';
     const customStart = searchParams.get('start');
     const customEnd = searchParams.get('end');
-    const groupBy = searchParams.get('groupBy') || 'day'; // day, week, month
+    // const groupBy = searchParams.get('groupBy') || 'day'; // day, week, month
     const includeComparison = searchParams.get('comparison') === 'true';
 
     // Get date ranges

@@ -11,6 +11,10 @@ interface ProductPageProps {
   params: Promise<{ id: string }>;
 }
 
+interface ProductSummary {
+  id: number | string;
+}
+
 // ==========================================
 // UTILITY FUNCTIONS - ADDED
 // ==========================================
@@ -102,7 +106,7 @@ export async function generateStaticParams() {
     const data = await res.json();
     const products = Array.isArray(data) ? data : (data.products || data.items || []);
 
-    return products.map((product: any) => ({
+    return products.map((product: ProductSummary) => ({
       id: product.id.toString()
     }));
   } catch (error) {

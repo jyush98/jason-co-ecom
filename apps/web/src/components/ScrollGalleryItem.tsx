@@ -24,7 +24,7 @@ export default function ScrollGalleryItem({
   item,
   index,
   globalIndex,
-  totalItems,
+  // totalItems,
   extendedProgress,
   cycleIndex
 }: ScrollGalleryItemProps) {

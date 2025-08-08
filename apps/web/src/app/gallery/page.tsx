@@ -2,7 +2,7 @@
 "use client";
 
 import Gallery from "./Gallery";
-import { createMetadata } from '@/lib/seo/metadata';
+// import { createMetadata } from '@/lib/seo/metadata'; 
 import { BreadcrumbSchema } from '@/components/seo/SchemaMarkup';
 import { useEffect } from 'react';
 

@@ -240,7 +240,7 @@ export const useCartStore = create<CartStoreState>()(
         }
       },
 
-      addToCart: async (productId, quantity, token, customOptions) => {
+      addToCart: async (productId, quantity, token) => {
         set((state) => ({
           drawer: { ...state.drawer, isLoading: true, error: null }
         }));

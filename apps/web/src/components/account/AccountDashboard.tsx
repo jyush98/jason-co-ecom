@@ -8,11 +8,11 @@ import {
     Package,
     Heart,
     ShoppingBag,
-    TrendingUp,
-    Clock,
+    // TrendingUp,
+    // Clock,
     Star,
     ArrowRight,
-    Calendar,
+    // Calendar,
     DollarSign,
     User,
     MapPin
@@ -211,7 +211,7 @@ export default function AccountDashboard({ onTabChange }: AccountDashboardProps)
                     Welcome back, {user?.firstName || 'Valued Customer'}
                 </h2>
                 <p className="text-gray-600 dark:text-gray-400">
-                    Member since {stats.memberSince} • Here's your account overview
+                    Member since {stats.memberSince} • Here&apos;s your account overview
                 </p>
             </motion.div>
 

@@ -27,7 +27,7 @@ const itemVariants = {
 
 export default function AboutCTA() {
     const ref = useRef(null)
-    const isInView = useInView(ref, { once: true })
+    // const isInView = useInView(ref, { once: true })
 
     return (
         <motion.section
@@ -57,7 +57,7 @@ export default function AboutCTA() {
                     variants={itemVariants}
                     className="text-xl text-gray-600 dark:text-gray-400 mb-12 leading-relaxed"
                 >
-                    Whether you're chasing something never done before or refining a timeless piece—we got you.
+                    Whether you&apos;re chasing something never done before or refining a timeless piece—we got you.
                 </motion.p>
 
                 <motion.div
@@ -94,7 +94,7 @@ export default function AboutCTA() {
                     className="mt-12 pt-8 border-t border-[#D4AF37]/20"
                 >
                     <p className="text-sm text-gray-500 dark:text-gray-500 mb-3 uppercase tracking-widest">
-                        Questions? We're here to help.
+                        Questions? We&apos;re here to help.
                     </p>
                     <a
                         href="mailto:jonathan@jasonjewels.com"

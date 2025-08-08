@@ -40,7 +40,7 @@ export default function GalleryEndForm({ linearProgress, totalItems }: GalleryEn
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 }}
                 >
-                    Ready to create your own masterpiece? Let's bring your vision to life with our custom jewelry design service.
+                    Ready to create your own masterpiece? Let&apos;s bring your vision to life with our custom jewelry design service.
                 </motion.p>
 
                 <motion.div
@@ -71,7 +71,7 @@ export default function GalleryEndForm({ linearProgress, totalItems }: GalleryEn
                     transition={{ delay: 1 }}
                 >
                     <p className="text-xs md:text-sm text-gray-500 dark:text-gray-500 mb-2 md:mb-3">
-                        Questions? We're here to help.
+                        Questions? We&apos;re here to help.
                     </p>
                     <a
                         href="/contact"

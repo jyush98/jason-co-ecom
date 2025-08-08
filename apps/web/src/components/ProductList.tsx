@@ -20,7 +20,7 @@ interface ProductListProps {
 }
 
 export default function ProductList({ initialCategory, initialSearch }: ProductListProps) {
-    const { trackProductView } = useGA4Ecommerce();
+    // const { trackProductView } = useGA4Ecommerce();
     const searchParams = useSearchParams();
     const router = useRouter();
 

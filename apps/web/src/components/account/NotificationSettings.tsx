@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth, useUser } from "@clerk/nextjs";
 import {
     Bell,
-    Mail,
+    // Mail,
     MessageSquare,
     Package,
     Heart,
@@ -17,8 +17,8 @@ import {
     Check,
     Loader2,
     Phone,
-    Volume2,
-    VolumeX,
+    // Volume2,
+    // VolumeX,
     Info
 } from "lucide-react";
 
@@ -80,7 +80,7 @@ interface NotificationCategory {
 
 export default function NotificationSettings() {
     const { getToken } = useAuth();
-    const { user } = useUser();
+    // const { user } = useUser();
     const [preferences, setPreferences] = useState<NotificationPreferences>({
         email_notifications: {
             order_confirmations: true,

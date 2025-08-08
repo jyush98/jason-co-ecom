@@ -11,7 +11,7 @@ import {
     Package,
     Calendar,
     MapPin,
-    CreditCard,
+    // CreditCard,
     Truck,
     CheckCircle,
     Clock,
@@ -22,8 +22,8 @@ import {
     Phone,
     Mail,
     Gift,
-    FileText,
-    Star
+    // FileText,
+    // Star
 } from "lucide-react";
 import AccountLayout from "@/components/account/AccountLayout";
 
@@ -35,6 +35,15 @@ interface OrderItem {
     product_image_url?: string;
 }
 
+interface ShippingAddress {
+    address_line_1: string;
+    address_line_2?: string;
+    city: string;
+    state: string;
+    postal_code: string;
+    phone?: string;
+}
+
 interface OrderDetails {
     order: {
         order_number: string;
@@ -42,7 +51,7 @@ interface OrderDetails {
         total_price: number;
         created_at: string;
         customer_name: string;
-        shipping_address: any;
+        shipping_address: ShippingAddress;
         is_gift: boolean;
         gift_message?: string;
         tracking_number?: string;
@@ -324,7 +333,7 @@ export default function OrderDetailsPage() {
                                             </h3>
                                         </div>
                                         <p className="text-purple-700 dark:text-purple-300 italic">
-                                            "{orderDetails.order.gift_message}"
+                                            &ldquo;{orderDetails.order.gift_message}&rdquo;
                                         </p>
                                     </div>
                                 )}

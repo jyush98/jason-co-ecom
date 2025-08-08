@@ -31,6 +31,12 @@ interface ShopPageProps {
   }>;
 }
 
+interface ProductSummary {
+  name: string;
+  price: number;
+  image_url?: string;
+}
+
 // Dynamic metadata generation based on category and search
 export async function generateMetadata({ searchParams }: ShopPageProps) {
   const params = await searchParams;
@@ -189,7 +195,7 @@ async function CollectionSchemaWrapper({
       <CollectionSchema
         name={categoryName}
         description={collectionDescription}
-        products={products.map((product: any) => ({
+        products={products.map((product: ProductSummary) => ({
           name: product.name,
           price: product.price,
           image: product.image_url ? `${process.env.NEXT_PUBLIC_BASE_URL || 'https://jasonandco.shop'}${product.image_url}` : '/images/product-placeholder.jpg'

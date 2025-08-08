@@ -1,7 +1,7 @@
 // app/checkout/page.tsx - Fixed Router Import
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation"; // ✅ Add this import
@@ -11,13 +11,14 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 
 import { useCartData } from "@/app/store/cartStore";
-import { CART_CONFIG } from "@/config/cartConfig";
 import {
     CheckoutStep,
     CheckoutFormData,
     ShippingAddress,
     ShippingMethod,
-    PaymentMethod
+    PaymentMethod,
+    Cart,
+    CartItem
 } from "@/types/cart";
 import { formatCartPrice } from "@/config/cartConfig";
 import { useGA4Ecommerce } from '@/lib/hooks/useGA4';
@@ -27,6 +28,23 @@ import ShippingForm from "@/components/checkout/ShippingForm";
 import PaymentForm from "@/components/checkout/PaymentForm";
 import OrderReview from "@/components/checkout/OrderReview";
 import { JewelryImage } from "@/components/ui/OptimizedImage";
+
+// Define types for better type safety
+interface OrderData {
+    id: string;
+    order_number?: string;
+    total: number;
+    shipping?: number;
+    tax?: number;
+}
+
+interface CheckoutOrderSummaryProps {
+    cart: Cart;
+    subtotal: number;
+    shippingCost: number;
+    tax: number;
+    total: number;
+}
 
 // Initialize Stripe
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
@@ -61,78 +79,8 @@ export default function CheckoutPage() {
 
     const [tax, setTax] = useState(0);
 
-    // Fetch cart on mount
-    useEffect(() => {
-        const loadCart = async () => {
-            const token = await getToken();
-            if (token) {
-                await fetchCart(token);
-            }
-        };
-        loadCart();
-    }, [getToken, fetchCart]);
-
-    // Track checkout initiation when cart is loaded
-    useEffect(() => {
-        if (cart && cart.items.length > 0) {
-            // Calculate total for tracking
-            const subtotal = cart.subtotal || 0;
-            const shippingCost = selectedShippingMethod?.price || 0;
-            const total = subtotal + shippingCost + tax;
-
-            // Track checkout initiation
-            trackBeginCheckout(cart.items, total);
-        }
-    }, [cart, selectedShippingMethod?.price, tax, trackBeginCheckout]);
-
-    // Auto-populate shipping methods when address is complete
-    useEffect(() => {
-        const address = formData.shipping_address;
-        if (address?.address_line_1 && address?.city && address?.state && address?.postal_code) {
-            loadShippingMethods();
-        }
-    }, [formData.shipping_address]);
-
-    useEffect(() => {
-        const calculateTaxes = async () => {
-            const address = formData.shipping_address;
-            if (address?.state && cart) {
-                try {
-                    const token = await getToken();
-                    if (token) {
-                        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-                        const response = await fetch(`${API_BASE_URL}/cart/calculate-tax`, {
-                            method: 'POST',
-                            headers: {
-                                'Authorization': `Bearer ${token}`,
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                state: address.state,
-                                subtotal: cart.subtotal,
-                                shipping: selectedShippingMethod?.price || 0,
-                            }),
-                        });
-
-                        if (response.ok) {
-                            const taxData = await response.json();
-                            console.log('Tax calculated:', taxData); // Debug log
-                            setTax(taxData.tax_amount);
-                        }
-                    }
-                } catch (error) {
-                    console.error('Failed to calculate tax:', error);
-                }
-            } else {
-                setTax(0); // Reset tax if no state selected
-            }
-        };
-
-        calculateTaxes();
-    }, [formData.shipping_address?.state, cart?.subtotal, selectedShippingMethod?.price, getToken]);
-
-
-    const loadShippingMethods = async () => {
+    // Memoize loadShippingMethods to prevent unnecessary re-renders
+    const loadShippingMethods = useCallback(async () => {
         setIsLoading(true);
         try {
             // Mock shipping methods - replace with real API call
@@ -175,7 +123,77 @@ export default function CheckoutPage() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [cart, selectedShippingMethod]);
+
+    // Fetch cart on mount
+    useEffect(() => {
+        const loadCart = async () => {
+            const token = await getToken();
+            if (token) {
+                await fetchCart(token);
+            }
+        };
+        loadCart();
+    }, [getToken, fetchCart]);
+
+    // Track checkout initiation when cart is loaded
+    useEffect(() => {
+        if (cart && cart.items.length > 0) {
+            // Calculate total for tracking
+            const subtotal = cart.subtotal || 0;
+            const shippingCost = selectedShippingMethod?.price || 0;
+            const total = subtotal + shippingCost + tax;
+
+            // Track checkout initiation
+            trackBeginCheckout(cart.items, total);
+        }
+    }, [cart, selectedShippingMethod?.price, tax, trackBeginCheckout]);
+
+    // Auto-populate shipping methods when address is complete
+    useEffect(() => {
+        const address = formData.shipping_address;
+        if (address?.address_line_1 && address?.city && address?.state && address?.postal_code) {
+            loadShippingMethods();
+        }
+    }, [formData.shipping_address, loadShippingMethods]);
+
+    useEffect(() => {
+        const calculateTaxes = async () => {
+            const address = formData.shipping_address;
+            if (address?.state && cart) {
+                try {
+                    const token = await getToken();
+                    if (token) {
+                        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+                        const response = await fetch(`${API_BASE_URL}/cart/calculate-tax`, {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                state: address.state,
+                                subtotal: cart.subtotal,
+                                shipping: selectedShippingMethod?.price || 0,
+                            }),
+                        });
+
+                        if (response.ok) {
+                            const taxData = await response.json();
+                            console.log('Tax calculated:', taxData); // Debug log
+                            setTax(taxData.tax_amount);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Failed to calculate tax:', error);
+                }
+            } else {
+                setTax(0); // Reset tax if no state selected
+            }
+        };
+
+        calculateTaxes();
+    }, [cart, formData.shipping_address, selectedShippingMethod?.price, getToken]);
 
     // Step configuration
     const steps = [
@@ -300,7 +318,7 @@ export default function CheckoutPage() {
     const total = subtotal + shippingCost + tax;
 
     // Handle successful order completion
-    const handleOrderSuccess = (orderData: any) => {
+    const handleOrderSuccess = (orderData: OrderData) => {
         // Track successful purchase
         trackPurchase({
             id: orderData.id,
@@ -457,7 +475,6 @@ export default function CheckoutPage() {
                     <div className="lg:col-span-4">
                         <CheckoutOrderSummary
                             cart={cart}
-                            shippingMethod={selectedShippingMethod}
                             subtotal={subtotal}
                             shippingCost={shippingCost}
                             tax={tax}
@@ -471,18 +488,18 @@ export default function CheckoutPage() {
 }
 
 // Order Summary component
-function CheckoutOrderSummary({ cart, shippingMethod, subtotal, shippingCost, tax, total }: any) {
+function CheckoutOrderSummary({ cart, subtotal, shippingCost, tax, total }: CheckoutOrderSummaryProps) {
     return (
         <div className="sticky top-[calc(var(--navbar-height)+2rem)] bg-gray-50 dark:bg-gray-900 text-black dark:text-white rounded-lg p-6">
             <h3 className="text-xl font-serif mb-6">Order Summary</h3>
 
             {/* Items */}
             <div className="space-y-4 mb-6">
-                {cart.items.map((item: any) => (
+                {cart.items.map((item: CartItem) => (
                     <div key={item.product_id} className="flex gap-4">
                         <div className={`w-16 h-16 ${item.product.display_theme === "dark" ? "bg-black" : "bg-white"} rounded overflow-hidden`}>
                             <JewelryImage.Product
-                                src={item.product.image_url}
+                                src={item.product.image_url ? item.product.image_url : ""}
                                 alt={item.product.name}
                                 className="w-full h-full object-contain"
                             />

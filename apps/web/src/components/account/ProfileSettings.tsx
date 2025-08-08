@@ -29,7 +29,7 @@ interface ProfileSettingsProps {
 
 export default function ProfileSettings({ className = "" }: ProfileSettingsProps) {
     const { user, isLoaded } = useUser();
-    const { getToken } = useAuth();
+    // const { getToken } = useAuth();
 
     const [formData, setFormData] = useState<ProfileFormData>({
         firstName: "",

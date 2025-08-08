@@ -69,7 +69,7 @@ export default function Cart() {
         };
 
         fetchCart();
-    }, [guestCart, isSignedIn]);
+    }, [guestCart, isSignedIn, getToken, setCartCount]);
 
     const calculateTotal = (items: CartItem[]) => {
         const total = items.reduce(

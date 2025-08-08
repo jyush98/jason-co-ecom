@@ -177,55 +177,55 @@ export default function AddToCartButton({
     error: { rotate: 0, scale: 1 }
   };
 
-  const getButtonContent = () => {
-    switch (state) {
-      case 'adding':
-        return (
-          <>
-            {showIcon && (
-              <motion.div
-                className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"
-                variants={iconVariants}
-              />
-            )}
-            <span>Adding...</span>
-          </>
-        );
-      case 'success':
-        return (
-          <>
-            {showIcon && (
-              <motion.div variants={iconVariants}>
-                <Check size={16} />
-              </motion.div>
-            )}
-            <span>Added!</span>
-          </>
-        );
-      case 'error':
-        return (
-          <>
-            {showIcon && (
-              <motion.div variants={iconVariants}>
-                <AlertCircle size={16} />
-              </motion.div>
-            )}
-            <span>Try Again</span>
-          </>
-        );
-      default:
-        return (
-          <>
-            {showIcon && (
-              <motion.div variants={iconVariants}>
-                <ShoppingBag size={16} />
-              </motion.div>
-            )}
-            <span>Add to Cart</span>
-          </>
-        );
-    }
-  };
+  // const getButtonContent = () => {
+  //   switch (state) {
+  //     case 'adding':
+  //       return (
+  //         <>
+  //           {showIcon && (
+  //             <motion.div
+  //               className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"
+  //               variants={iconVariants}
+  //             />
+  //           )}
+  //           <span>Adding...</span>
+  //         </>
+  //       );
+  //     case 'success':
+  //       return (
+  //         <>
+  //           {showIcon && (
+  //             <motion.div variants={iconVariants}>
+  //               <Check size={16} />
+  //             </motion.div>
+  //           )}
+  //           <span>Added!</span>
+  //         </>
+  //       );
+  //     case 'error':
+  //       return (
+  //         <>
+  //           {showIcon && (
+  //             <motion.div variants={iconVariants}>
+  //               <AlertCircle size={16} />
+  //             </motion.div>
+  //           )}
+  //           <span>Try Again</span>
+  //         </>
+  //       );
+  //     default:
+  //       return (
+  //         <>
+  //           {showIcon && (
+  //             <motion.div variants={iconVariants}>
+  //               <ShoppingBag size={16} />
+  //             </motion.div>
+  //           )}
+  //           <span>Add to Cart</span>
+  //         </>
+  //       );
+  //   }
+  // };
 
   return (
     <div className="relative">

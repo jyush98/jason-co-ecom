@@ -27,7 +27,7 @@ const itemVariants = {
 
 export default function ServicesSection() {
     const ref = useRef(null)
-    const isInView = useInView(ref, { once: true })
+    // const isInView = useInView(ref, { once: true })
 
     const services = [
         {
@@ -64,12 +64,12 @@ export default function ServicesSection() {
                     </h2>
                     <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
                         Our process fuses street-born energy with red-carpet precision.
-                        We don't follow trends—we stone-set what's next.
+                        We don&apos;t follow trends—we stone-set what&apos;s next.
                     </p>
                 </motion.div>
 
                 <div className="flex flex-col lg:grid lg:grid-cols-3 gap-8">
-                    {services.map((service, index) => (
+                    {services.map((service) => (
                         <motion.div
                             key={service.title}
                             variants={itemVariants}

@@ -113,7 +113,7 @@ export default function Footer() {
             variants={itemVariants}
             className="flex justify-center space-x-8"
           >
-            {socialLinks.map((social, index) => (
+            {socialLinks.map((social) => (
               <motion.a
                 key={social.label}
                 href={social.href}

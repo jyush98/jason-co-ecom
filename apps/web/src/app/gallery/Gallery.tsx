@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { useScroll, useTransform } from "framer-motion";
 import { galleryItems } from "@/data/gallery";
 import ScrollGalleryItem from "@/components/ScrollGalleryItem";
 import GalleryTitle from "@/components/GalleryTitle";

@@ -8,7 +8,7 @@ import ThemeInitializer from '@/components/ThemeInitializer';
 import { PerformanceMonitoring } from '@/lib/performance/webVitals';
 import { OrganizationSchema, WebsiteSchema } from '@/components/seo/SchemaMarkup';
 import { createMetadata } from '@/lib/seo/metadata';
-import { inter, playfair, fontVariables, FontPreloads } from '@/lib/fonts/optimizedFonts';
+import { inter, fontVariables, FontPreloads } from '@/lib/fonts/optimizedFonts';
 import { GA4Provider } from '@/components/analytics/GA4Provider';
 import './globals.css';
 

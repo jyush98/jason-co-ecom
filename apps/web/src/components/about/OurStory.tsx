@@ -27,7 +27,7 @@ const itemVariants = {
 
 export default function OurStory() {
     const ref = useRef(null)
-    const isInView = useInView(ref, { once: true })
+    // const isInView = useInView(ref, { once: true })
 
     return (
         <motion.section
@@ -53,7 +53,7 @@ export default function OurStory() {
                             </p>
                             <p>
                                 Our NYC-based atelier specializes in custom luxury jewelry that refuses
-                                to follow conventions. We don't just create pieces—we engineer statements
+                                to follow conventions. We don&apos;t just create pieces—we engineer statements
                                 that reflect your journey, celebrate your achievements, and announce your arrival.
                             </p>
                             <p>

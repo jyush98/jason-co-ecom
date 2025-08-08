@@ -26,7 +26,7 @@ const itemVariants = {
 
 export default function ProcessSection() {
     const ref = useRef(null)
-    const isInView = useInView(ref, { once: true })
+    // const isInView = useInView(ref, { once: true })
 
     const steps = [
         {
@@ -72,7 +72,7 @@ export default function ProcessSection() {
                 </motion.div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                    {steps.map((step, index) => (
+                    {steps.map((step) => (
                         <motion.div
                             key={step.number}
                             variants={itemVariants}

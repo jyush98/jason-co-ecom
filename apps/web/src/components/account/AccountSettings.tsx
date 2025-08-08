@@ -7,18 +7,18 @@ import {
     Palette,
     Globe,
     Download,
-    Trash2,
+    // Trash2,
     Eye,
-    EyeOff,
-    Smartphone,
+    // EyeOff,
+    // Smartphone,
     Monitor,
     Moon,
     Sun,
-    Lock,
-    Link2,
+    // Lock,
+    // Link2,
     AlertTriangle,
     Check,
-    Settings,
+    // Settings,
     Loader2
 } from "lucide-react";
 import { useAuth, useUser } from "@clerk/nextjs";
@@ -53,7 +53,7 @@ interface ConnectedAccount {
 export default function AccountSettings({ className = "" }: AccountSettingsProps) {
     const { user } = useUser();
     const { getToken } = useAuth();
-    const { theme, setTheme, systemTheme } = useTheme();
+    const { theme, setTheme } = useTheme();
 
     // State for all settings
     const [securitySettings, setSecuritySettings] = useState<SecuritySettings>({
@@ -70,7 +70,7 @@ export default function AccountSettings({ className = "" }: AccountSettingsProps
         publicProfile: false
     });
 
-    const [connectedAccounts, setConnectedAccounts] = useState<ConnectedAccount[]>([]);
+    // const [connectedAccounts, setConnectedAccounts] = useState<ConnectedAccount[]>([]);
     const [language, setLanguage] = useState('en-US');
     const [currency, setCurrency] = useState('USD');
     const [timezone, setTimezone] = useState('America/New_York');
@@ -146,7 +146,7 @@ export default function AccountSettings({ className = "" }: AccountSettingsProps
             } else {
                 throw new Error('Failed to save settings');
             }
-        } catch (error) {
+        } catch {
             setError('Failed to save settings. Please try again.');
         } finally {
             setIsSaving(false);
@@ -179,7 +179,7 @@ export default function AccountSettings({ className = "" }: AccountSettingsProps
                 setSaveMessage('Data export downloaded successfully');
                 setTimeout(() => setSaveMessage(''), 3000);
             }
-        } catch (error) {
+        } catch {
             setError('Failed to export data. Please try again.');
         } finally {
             setDataExportLoading(false);
@@ -194,7 +194,7 @@ export default function AccountSettings({ className = "" }: AccountSettingsProps
                 // Redirect to home page or logout
                 window.location.href = '/';
             }
-        } catch (error) {
+        } catch {
             setError('Failed to delete account. Please contact support.');
         }
     };

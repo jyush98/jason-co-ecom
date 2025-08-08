@@ -26,7 +26,7 @@ const itemVariants = {
 
 export default function ValuesSection() {
     const ref = useRef(null)
-    const isInView = useInView(ref, { once: true })
+    // const isInView = useInView(ref, { once: true })
 
     const brandPillars = [
         { title: "Excellence", subtitle: "Uncompromising quality" },
@@ -59,7 +59,7 @@ export default function ValuesSection() {
                         finely set watches, every detail is engineered to stun.
                     </p>
                     <p>
-                        We believe luxury isn't about following traditions—it's about breaking them.
+                        We believe luxury isn&apos;t about following traditions—it&apos;s about breaking them.
                         Our workshop is where ambition takes physical form, where your success story
                         becomes wearable art.
                     </p>
@@ -70,7 +70,7 @@ export default function ValuesSection() {
                     variants={itemVariants}
                     className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16"
                 >
-                    {brandPillars.map((pillar, index) => (
+                    {brandPillars.map((pillar) => (
                         <motion.div
                             key={pillar.title}
                             className="text-center group"

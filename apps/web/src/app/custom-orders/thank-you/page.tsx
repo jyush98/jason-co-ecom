@@ -129,7 +129,7 @@ export default function CustomOrderThankYou() {
                                 Where Ambition Meets Artistry
                             </h3>
                             <p className="text-gray-600 dark:text-gray-300 text-lg">
-                                Your custom jewelry journey begins now. We'll contact you within 24 hours
+                                Your custom jewelry journey begins now. We&apos;ll contact you within 24 hours
                                 to discuss your vision and begin the creation process.
                             </p>
                         </motion.div>
@@ -156,7 +156,7 @@ export default function CustomOrderThankYou() {
                     </motion.div>
 
                     <div className="space-y-8">
-                        {timelineSteps.map((step, index) => (
+                        {timelineSteps.map((step) => (
                             <motion.div
                                 key={step.step}
                                 className="flex items-start gap-6 bg-white dark:bg-black rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-800"

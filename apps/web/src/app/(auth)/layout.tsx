@@ -1,5 +1,5 @@
 // File: app/(auth)/layout.tsx
-import { ClerkProvider } from '@clerk/nextjs';
+// import { ClerkProvider } from '@clerk/nextjs';
 
 export default function AuthLayout({
   children,

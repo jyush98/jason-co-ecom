@@ -5,12 +5,13 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useUser, useAuth } from "@clerk/nextjs";
+import type { UserResource } from "@clerk/types";
 import {
   LayoutDashboard,
   Package,
   Heart,
   MapPin,
-  User,
+  User as UserIcon,
   Settings,
   Bell,
   Menu,
@@ -116,12 +117,12 @@ export default function UnifiedAccountPage() {
       name: 'Addresses',
       icon: <MapPin size={20} />,
       description: 'Shipping addresses',
-      component: () => <AddressBook/>
+      component: () => <AddressBook />
     },
     {
       id: 'profile',
       name: 'Profile',
-      icon: <User size={20} />,
+      icon: <UserIcon size={20} />,
       description: 'Personal information',
       component: ProfileSettings
     },
@@ -285,7 +286,7 @@ function AccountSidebar({
   onClose,
   showCloseButton = false
 }: {
-  user: any;
+  user: UserResource;
   tabs: TabConfig[];
   activeTab: string;
   onTabChange: (tabId: string) => void;
@@ -320,7 +321,7 @@ function AccountSidebar({
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
-                <User size={24} className="text-gray-400" />
+                <UserIcon size={24} className="text-gray-400" />
               </div>
             )}
           </div>
@@ -343,8 +344,8 @@ function AccountSidebar({
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
             className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-300 text-left ${activeTab === tab.id
-                ? "bg-gold text-black shadow-md"
-                : "hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
+              ? "bg-gold text-black shadow-md"
+              : "hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
               }`}
           >
             <span className={`${activeTab === tab.id ? "text-black" : "text-gold"
@@ -362,8 +363,8 @@ function AccountSidebar({
                 )}
               </div>
               <p className={`text-xs mt-1 ${activeTab === tab.id
-                  ? "text-black/70"
-                  : "text-gray-500 dark:text-gray-400"
+                ? "text-black/70"
+                : "text-gray-500 dark:text-gray-400"
                 }`}>
                 {tab.description}
               </p>

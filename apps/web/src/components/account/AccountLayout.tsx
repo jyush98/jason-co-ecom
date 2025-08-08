@@ -4,7 +4,9 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { useUser, useAuth } from "@clerk/nextjs";
+import type { UserResource } from "@clerk/types";
 import Link from "next/link";
+import Image from "next/image";
 import {
   LayoutDashboard,
   Package,
@@ -209,7 +211,7 @@ function SidebarContent({
   onClose,
   showCloseButton = false
 }: {
-  user: any;
+  user: UserResource | null | undefined;
   navigationItems: NavItem[];
   isActive: (href: string) => boolean;
   onSignOut: () => void;
@@ -233,12 +235,14 @@ function SidebarContent({
       {/* User Profile Section */}
       <div className="mb-8">
         <div className="flex items-center gap-4 mb-4">
-          <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">
+          <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 relative">
             {user?.imageUrl ? (
-              <img
+              <Image
                 src={user.imageUrl}
                 alt="Profile"
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
+                sizes="48px"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
@@ -267,8 +271,8 @@ function SidebarContent({
             href={item.href}
             onClick={onClose}
             className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-300 group ${isActive(item.href)
-                ? "bg-gold text-black shadow-md"
-                : "hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
+              ? "bg-gold text-black shadow-md"
+              : "hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
               }`}
           >
             <span className={`${isActive(item.href) ? "text-black" : "text-gold"
@@ -287,8 +291,8 @@ function SidebarContent({
               </div>
               {item.description && (
                 <p className={`text-xs mt-1 ${isActive(item.href)
-                    ? "text-black/70"
-                    : "text-gray-500 dark:text-gray-400"
+                  ? "text-black/70"
+                  : "text-gray-500 dark:text-gray-400"
                   }`}>
                   {item.description}
                 </p>

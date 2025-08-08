@@ -27,7 +27,7 @@ const itemVariants = {
 
 export default function MediaGrid() {
     const ref = useRef(null)
-    const isInView = useInView(ref, { once: true })
+    // const isInView = useInView(ref, { once: true })
 
     return (
         <motion.section
