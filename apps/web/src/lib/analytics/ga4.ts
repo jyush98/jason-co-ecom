@@ -56,13 +56,21 @@ class GA4Analytics {
 
         // Initialize dataLayer and gtag
         window.dataLayer = window.dataLayer || [];
-        window.gtag = function (...args: any[]) {
-            window.dataLayer.push(arguments);
-        } as any;
 
-        // FIXED: Proper null check before calling gtag
+        // FIXED: Proper gtag function declaration with correct typing
+        window.gtag = function (...args: any[]) {
+            // FIXED: Use rest parameters and convert to proper DataLayerEvent format
+            const [command, ...params] = args;
+            const dataLayerEvent: any = {
+                event: command,
+                ...params
+            };
+            window.dataLayer.push(dataLayerEvent);
+        };
+
+        // FIXED: Proper null check and correct parameter types
         if (window.gtag) {
-            window.gtag('js', new Date());
+            window.gtag('js', new Date().toString()); // Convert Date to string
             window.gtag('config', this.measurementId, {
                 send_page_view: true,
                 custom_map: {
@@ -79,10 +87,11 @@ class GA4Analytics {
     }
 
     // FIXED: Enhanced safe gtag invocation with proper typing
-    private safeGtag(command: string, action: string, parameters?: Record<string, any>): void {
+    private safeGtag(command: 'event', action: string, parameters?: Record<string, any>): void {
         if (typeof window !== 'undefined' && window.gtag && typeof window.gtag === 'function') {
             try {
-                window.gtag(command, action, parameters);
+                // FIXED: Use proper event command typing
+                window.gtag('event', action, parameters);
             } catch (error) {
                 console.warn('GA4 tracking error:', error);
             }

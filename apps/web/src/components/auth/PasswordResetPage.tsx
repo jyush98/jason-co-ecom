@@ -214,7 +214,7 @@ export default function PasswordResetPage() {
                 identifier: emailAddress,
             });
             setErrors({});
-        } catch (err) {
+        } catch {
             setErrors({ general: "Failed to resend email. Please try again." });
         } finally {
             setIsLoading(false);

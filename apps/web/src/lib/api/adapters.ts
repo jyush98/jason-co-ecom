@@ -169,7 +169,7 @@ const mapOrderStatusFromApi = (status: ApiOrderStatus): OrderStatus => {
 /**
  * Convert Order to OrderResponse for API compatibility
  */
-export const adaptOrderToOrderResponse = (order: Order, userId?: string): OrderResponse => {
+export const adaptOrderToOrderResponse = (order: Order): OrderResponse => {
     return {
         id: order.id,
         order_number: order.order_number,
@@ -268,8 +268,8 @@ export const adaptOrderResponseToOrder = (orderResponse: OrderResponse): Order =
 /**
  * Convert array of Orders to OrderResponse array
  */
-export const adaptOrderArrayToOrderResponseArray = (orders: Order[], userId?: string): OrderResponse[] => {
-    return orders.map(order => adaptOrderToOrderResponse(order, userId));
+export const adaptOrderArrayToOrderResponseArray = (orders: Order[]): OrderResponse[] => {
+    return orders.map(order => adaptOrderToOrderResponse(order));
 };
 
 // =============================================================================
@@ -340,11 +340,11 @@ export const adaptToUser = (data: User | UserResponse): User => {
 /**
  * Smart adapter that handles multiple order formats
  */
-export const adaptToOrderResponse = (data: Order | OrderResponse, userId?: string): OrderResponse => {
+export const adaptToOrderResponse = (data: Order | OrderResponse): OrderResponse => {
     if (isOrderResponse(data)) {
         return data; // Already OrderResponse
     } else {
-        return adaptOrderToOrderResponse(data, userId);
+        return adaptOrderToOrderResponse(data);
     }
 };
 

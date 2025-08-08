@@ -53,7 +53,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [expandedSections, setExpandedSections] = useState<string[]>(['main']);
-    const [notifications, setNotifications] = useState(3); // Mock notification count
+    const [notifications, _setNotifications] = useState(3); // Mock notification count
 
     // Enhanced Navigation configuration with SEO & Analytics from Epic 9 Phase 3
     const navigationSections: NavigationSection[] = [

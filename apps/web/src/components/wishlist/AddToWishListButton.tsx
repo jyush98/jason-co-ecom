@@ -35,7 +35,7 @@ export default function AddToWishlistButton({
 }: AddToWishlistButtonProps) {
     const { getToken } = useAuth();
     const { addToWishlist, removeFromWishlist, checkProductInWishlist } = useWishlistActions();
-    const { isProductInWishlist, getWishlistItem } = useWishlistUtils();
+    const { isProductInWishlist } = useWishlistUtils();
 
     const [state, setState] = useState<WishlistState>('idle');
     const [isInWishlist, setIsInWishlist] = useState(false);

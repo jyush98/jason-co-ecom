@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { CheckCircle, Package, Truck, CreditCard, Calendar, MapPin, Mail, Download, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 // ✅ SIMPLIFIED - Use your actual types
 import type { Order } from "@/types/order";
@@ -20,7 +20,7 @@ export default function OrderConfirmation({
     orderNumber,
     className = ""
 }: OrderConfirmationProps) {
-    const router = useRouter();
+    // const router = useRouter();
     const searchParams = useSearchParams();
     const [isLoading, setIsLoading] = useState(true);
     const [order, setOrder] = useState<Order | null>(null);
@@ -84,9 +84,9 @@ export default function OrderConfirmation({
     }
 
     // ✅ SIMPLE calculations - no complex transformations
-    const customerName = order.customer_first_name && order.customer_last_name 
-        ? `${order.customer_first_name} ${order.customer_last_name}`
-        : 'Customer';
+    // const customerName = order.customer_first_name && order.customer_last_name 
+    //     ? `${order.customer_first_name} ${order.customer_last_name}`
+    //     : 'Customer';
 
     return (
         <div className={`min-h-screen bg-white dark:bg-black pt-[var(--navbar-height)] ${className}`}>

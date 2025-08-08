@@ -37,7 +37,7 @@ type FilterOption = 'all' | 'pending' | 'confirmed' | 'processing' | 'shipped' |
 
 export default function OrderHistory({
     limit = 50,
-    showPagination = true,
+    // showPagination = true,
     className = ""
 }: OrderHistoryProps) {
     const { getToken } = useAuth();

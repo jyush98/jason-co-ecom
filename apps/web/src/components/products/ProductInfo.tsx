@@ -11,7 +11,7 @@ interface ProductInfoProps {
     isDark?: boolean;
 }
 
-export default function ProductInfo({ product, isDark = false }: ProductInfoProps) {
+export default function ProductInfo({ product }: ProductInfoProps) {
     const formatPrice = (price: number) => {
         return new Intl.NumberFormat('en-US', {
             style: 'currency',

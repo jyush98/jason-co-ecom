@@ -154,13 +154,13 @@ export class AuthIntegration {
             const dbUser = await apiClient.getUser(clerkUser.id);
 
             // Check admin status
-            const isAdmin = this.isAdminUser(clerkUser, dbUser);
+            const isAdmin = this.isAdminUser(clerkUser);
 
             // Get user permissions
             const permissions = this.getUserPermissions(clerkUser, dbUser);
 
             // Get session data
-            const sessionData = await this.getSessionData(clerkUser.id);
+            const sessionData = await this.getSessionData();
 
             return {
                 clerk_id: clerkUser.id,
@@ -217,7 +217,7 @@ export class AuthIntegration {
     /**
      * Check if user has admin privileges
      */
-    private static isAdminUser(clerkUser: ClerkUser, dbUser: User | null): boolean {
+    private static isAdminUser(clerkUser: ClerkUser): boolean {
         // Check Clerk metadata for admin flag
         const clerkAdmin = clerkUser.publicMetadata?.admin === true ||
             clerkUser.privateMetadata?.admin === true;
@@ -241,7 +241,7 @@ export class AuthIntegration {
         permissions.push('read:profile', 'write:profile', 'read:orders', 'write:orders');
 
         // Check if admin via Clerk metadata
-        if (this.isAdminUser(clerkUser, dbUser)) {
+        if (this.isAdminUser(clerkUser)) {
             permissions.push(
                 'read:all', 'write:all', 'delete:all',
                 'manage:users', 'manage:products', 'manage:orders',
@@ -258,7 +258,7 @@ export class AuthIntegration {
     /**
      * Get additional session data
      */
-    private static async getSessionData(clerkId: string): Promise<SessionData | null> {
+    private static async getSessionData(): Promise<SessionData | null> {
         try {
             // Get session-specific data (cart, preferences, etc.)
             const integrationStore = useIntegrationStore.getState();

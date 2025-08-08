@@ -16,8 +16,8 @@ interface ProductTrackerProps {
 export function ProductTracker({
     product,
     viewType = 'detail',
-    listName,
-    position
+    // listName,
+    // position
 }: ProductTrackerProps) {
     const { trackProductView } = useGA4Ecommerce();
 

@@ -143,7 +143,7 @@ export function RevenueChart({
     const [chartType, setChartType] = useState<ChartType>('area');
     const [timeRange, setTimeRange] = useState<TimeRange>('30d');
     const [showComparison, setShowComparison] = useState(true);
-    const [activeView, setActiveView] = useState<'revenue' | 'orders' | 'aov'>('revenue');
+    // const [activeView, setActiveView] = useState<'revenue' | 'orders' | 'aov'>('revenue');
 
     // Process data based on selected time range
     const processedData = useMemo(() => {

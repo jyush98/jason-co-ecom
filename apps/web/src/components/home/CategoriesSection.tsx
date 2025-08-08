@@ -113,7 +113,7 @@ export default function CategoriesSection({
                         >
                             {/* Render categories in a loop - show all categories but shift position */}
                             {[...categories, ...categories].map((category, index) => {
-                                const actualIndex = index % categories.length;
+                                // const actualIndex = index % categories.length;
                                 const isVisible = index >= currentIndex && index < currentIndex + slidesToShow;
                                 const isPriority = isVisible && index < currentIndex + 2; // First 2 visible items get priority
 

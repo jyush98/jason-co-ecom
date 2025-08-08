@@ -270,8 +270,8 @@ const CustomerAnalytics: React.FC = () => {
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
                                     className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === tab.id
-                                            ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm'
-                                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                                        ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm'
+                                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                                         }`}
                                 >
                                     <Icon className="h-4 w-4" />
@@ -303,16 +303,16 @@ const CustomerAnalytics: React.FC = () => {
                                 <OverviewTab data={data} />
                             )}
                             {activeTab === 'acquisition' && data && (
-                                <AcquisitionTab data={data} />
+                                <AcquisitionTab />
                             )}
                             {activeTab === 'retention' && data && (
-                                <RetentionTab data={data} />
+                                <RetentionTab />
                             )}
                             {activeTab === 'segments' && data && (
                                 <SegmentsTab data={data} />
                             )}
                             {activeTab === 'lifecycle' && data && (
-                                <LifecycleTab data={data} />
+                                <LifecycleTab />
                             )}
                         </motion.div>
                     </AnimatePresence>
@@ -431,8 +431,8 @@ const OverviewTab: React.FC<{ data: CustomerAnalyticsData }> = ({ data }) => {
     );
 };
 
-// Acquisition Tab Component
-const AcquisitionTab: React.FC<{ data: CustomerAnalyticsData }> = ({ data }) => {
+// Acquisition Tab Component - No data parameter since it's not used yet
+const AcquisitionTab: React.FC = () => {
     return (
         <div className="space-y-8">
             <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
@@ -447,8 +447,8 @@ const AcquisitionTab: React.FC<{ data: CustomerAnalyticsData }> = ({ data }) => 
     );
 };
 
-// Retention Tab Component  
-const RetentionTab: React.FC<{ data: CustomerAnalyticsData }> = ({ data }) => {
+// Retention Tab Component - No data parameter since it's not used yet
+const RetentionTab: React.FC = () => {
     return (
         <div className="space-y-8">
             <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
@@ -545,8 +545,8 @@ const SegmentsTab: React.FC<{ data: CustomerAnalyticsData }> = ({ data }) => {
     );
 };
 
-// Lifecycle Tab Component
-const LifecycleTab: React.FC<{ data: CustomerAnalyticsData }> = ({ data }) => {
+// Lifecycle Tab Component - No data parameter since it's not used yet
+const LifecycleTab: React.FC = () => {
     return (
         <div className="space-y-8">
             <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">

@@ -32,7 +32,7 @@ export default function ShippingForm({
 }: ShippingFormProps) {
     const { user } = useUser();
     const [isValidatingAddress, setIsValidatingAddress] = useState(false);
-    const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
+    // const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
 
     const address = formData.shipping_address || {
         first_name: user?.firstName || '',
@@ -75,32 +75,32 @@ export default function ShippingForm({
             await new Promise(resolve => setTimeout(resolve, 1000));
 
             // Mock shipping methods - replace with real API call
-            const mockMethods: ShippingMethod[] = [
-                {
-                    id: 'standard',
-                    name: 'Standard Shipping',
-                    description: 'Free shipping on orders over $100',
-                    price: address.postal_code ? (calculateShippingPrice() > 0 ? 15 : 0) : 15,
-                    estimated_days: '5-7 business days',
-                    is_express: false
-                },
-                {
-                    id: 'express',
-                    name: 'Express Shipping',
-                    description: 'Faster delivery',
-                    price: 25,
-                    estimated_days: '2-3 business days',
-                    is_express: true
-                },
-                {
-                    id: 'overnight',
-                    name: 'Overnight Shipping',
-                    description: 'Next business day delivery',
-                    price: 45,
-                    estimated_days: '1 business day',
-                    is_express: true
-                }
-            ];
+            // const mockMethods: ShippingMethod[] = [
+            //     {
+            //         id: 'standard',
+            //         name: 'Standard Shipping',
+            //         description: 'Free shipping on orders over $100',
+            //         price: address.postal_code ? (calculateShippingPrice() > 0 ? 15 : 0) : 15,
+            //         estimated_days: '5-7 business days',
+            //         is_express: false
+            //     },
+            //     {
+            //         id: 'express',
+            //         name: 'Express Shipping',
+            //         description: 'Faster delivery',
+            //         price: 25,
+            //         estimated_days: '2-3 business days',
+            //         is_express: true
+            //     },
+            //     {
+            //         id: 'overnight',
+            //         name: 'Overnight Shipping',
+            //         description: 'Next business day delivery',
+            //         price: 45,
+            //         estimated_days: '1 business day',
+            //         is_express: true
+            //     }
+            // ];
 
             // You would replace this with actual API call to your shipping service
             // const methods = await fetchShippingMethods(address);
@@ -112,10 +112,10 @@ export default function ShippingForm({
         }
     };
 
-    const calculateShippingPrice = () => {
-        // Mock calculation - replace with real logic
-        return 15; // Base shipping cost
-    };
+    // const calculateShippingPrice = () => {
+    //     // Mock calculation - replace with real logic
+    //     return 15; // Base shipping cost
+    // };
 
     const handleInputChange = (field: keyof ShippingAddress, value: string) => {
         onUpdateAddress({ [field]: value });

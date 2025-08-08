@@ -269,29 +269,29 @@ function getMockSearchConsoleData(): SearchConsoleData {
 }
 
 // Helper function to generate trend data
-function generateTrendData(days: number) {
-    const data = [];
-    const today = new Date();
+// function generateTrendData(days: number) {
+//     const data = [];
+//     const today = new Date();
 
-    for (let i = days - 1; i >= 0; i--) {
-        const date = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
-        const dayOfWeek = date.getDay();
+//     for (let i = days - 1; i >= 0; i--) {
+//         const date = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
+//         const dayOfWeek = date.getDay();
 
-        // Simulate realistic luxury jewelry traffic patterns
-        const baseClicks = 85 + Math.random() * 30;
-        const weekendMultiplier = dayOfWeek === 0 || dayOfWeek === 6 ? 0.7 : 1;
-        const trendMultiplier = 1 + (days - i) / days * 0.2; // Growing trend
+//         // Simulate realistic luxury jewelry traffic patterns
+//         const baseClicks = 85 + Math.random() * 30;
+//         const weekendMultiplier = dayOfWeek === 0 || dayOfWeek === 6 ? 0.7 : 1;
+//         const trendMultiplier = 1 + (days - i) / days * 0.2; // Growing trend
 
-        data.push({
-            date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-            clicks: Math.round(baseClicks * weekendMultiplier * trendMultiplier),
-            impressions: Math.round(baseClicks * weekendMultiplier * trendMultiplier * 15), // Scaled for chart
-            ctr: (5.5 + Math.random() * 2).toFixed(1)
-        });
-    }
+//         data.push({
+//             date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+//             clicks: Math.round(baseClicks * weekendMultiplier * trendMultiplier),
+//             impressions: Math.round(baseClicks * weekendMultiplier * trendMultiplier * 15), // Scaled for chart
+//             ctr: (5.5 + Math.random() * 2).toFixed(1)
+//         });
+//     }
 
-    return data;
-}
+//     return data;
+// }
 
 // Main dashboard component
 interface SEODashboardProps {
@@ -299,7 +299,7 @@ interface SEODashboardProps {
     days?: number;
 }
 
-export function SEODashboard({ useMockData = true, days = 30 }: SEODashboardProps) {
+export function SEODashboard({ days = 30 }: SEODashboardProps) {
     const [selectedTimeRange, setSelectedTimeRange] = useState(days);
 
     // For now, always use mock data to avoid API issues

@@ -2,7 +2,7 @@
 // Multi-step checkout flow management hook
 
 import { useState, useCallback, useEffect } from 'react';
-import { useAuth, useUser } from '@clerk/nextjs';
+import { useUser } from '@clerk/nextjs';
 import type {
     CheckoutStep,
     CheckoutFormData,
@@ -47,7 +47,7 @@ export type { UseCheckoutFlowReturn };
 const STEPS: CheckoutStep[] = ['shipping', 'payment', 'review'];
 
 export function useCheckoutFlow(): UseCheckoutFlowReturn {
-    const { getToken } = useAuth();
+    // const { getToken } = useAuth();
     const { isSignedIn, user } = useUser();
 
     // State

@@ -129,7 +129,7 @@ export default function AdminDashboard() {
 
     const data = await response.json();
 
-    return data.orders.slice(0, 8).map((order: any, index: number) => {
+    return data.orders.slice(0, 8).map((order: any) => {
       const minutesAgo = Math.floor(Math.random() * 300) + 1;
       const timestamp = new Date(Date.now() - minutesAgo * 60 * 1000);
 

@@ -23,12 +23,12 @@ interface PaymentFormProps {
 
 export default function PaymentForm({
     formData,
-    validationErrors,
+    // validationErrors,
     onSelectPaymentMethod,
     onUpdateBillingAddress,
     onPrevious,
     onNext,
-    isLoading,
+    // isLoading,
     orderTotal
 }: PaymentFormProps) {
     const { getToken } = useAuth();

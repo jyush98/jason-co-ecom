@@ -3,7 +3,6 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { useRouter } from "next/navigation";
 import {
     Check,
     CreditCard,
@@ -38,7 +37,7 @@ export default function OrderReview({
     onPlaceOrder,
 }: OrderReviewProps) {
     const { getToken } = useAuth();
-    const router = useRouter();
+    // const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string>('');
 

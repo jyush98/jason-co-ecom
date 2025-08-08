@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
-
 import { toast } from 'react-hot-toast';
+import { Upload, Camera, X, Image as ImageIcon } from 'lucide-react';
 
 export interface UploadedImage {
     id: string;
@@ -139,7 +139,7 @@ export function ImageUpload({
             ));
 
             toast.success(`${image.fileName} uploaded successfully`);
-        } catch (error) {
+        } catch {
             // Handle upload error
             setImages(prev => prev.map(img =>
                 img.id === image.id
@@ -149,5 +149,195 @@ export function ImageUpload({
 
             toast.error(`Failed to upload ${image.fileName}`);
         }
-    }
+    };
+
+    // Handle drag events
+    const handleDrag = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.type === "dragenter" || e.type === "dragover") {
+            setDragActive(true);
+        } else if (e.type === "dragleave") {
+            setDragActive(false);
+        }
+    };
+
+    // Handle drop event
+    const handleDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragActive(false);
+
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            processFiles(e.dataTransfer.files);
+        }
+    };
+
+    // Handle file input change
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        e.preventDefault();
+        if (e.target.files && e.target.files[0]) {
+            processFiles(e.target.files);
+        }
+    };
+
+    // Remove image
+    const removeImage = (imageId: string) => {
+        const updatedImages = images.filter(img => img.id !== imageId);
+        updateImages(updatedImages);
+    };
+
+    // Update image type/category
+    const updateImageType = (imageId: string, type: UploadedImage['type']) => {
+        const updatedImages = images.map(img =>
+            img.id === imageId ? { ...img, type } : img
+        );
+        updateImages(updatedImages);
+    };
+
+    return (
+        <div className={`space-y-4 ${className}`}>
+            {/* Upload Area */}
+            <div
+                className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-colors ${dragActive
+                        ? 'border-gold bg-gold/5'
+                        : 'border-gray-300 dark:border-gray-600 hover:border-gold'
+                    }`}
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+            >
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    accept={acceptedTypes.join(',')}
+                    onChange={handleChange}
+                    className="hidden"
+                />
+
+                {showCamera && (
+                    <input
+                        ref={cameraInputRef}
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        onChange={handleChange}
+                        className="hidden"
+                    />
+                )}
+
+                <div className="space-y-4">
+                    <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
+
+                    <div>
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                            Drop images here, or click to select
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                            Up to {maxFiles} images, max {maxFileSize}MB each
+                        </p>
+                    </div>
+
+                    <div className="flex gap-2 justify-center">
+                        <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="inline-flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 hover:border-gold transition-colors"
+                        >
+                            <Upload size={16} />
+                            Choose Files
+                        </button>
+
+                        {showCamera && (
+                            <button
+                                type="button"
+                                onClick={() => cameraInputRef.current?.click()}
+                                className="inline-flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 hover:border-gold transition-colors"
+                            >
+                                <Camera size={16} />
+                                Take Photo
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* Image Grid */}
+            {images.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {images.map((image) => (
+                        <div key={image.id} className="relative group">
+                            <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
+                                <img
+                                    src={image.url}
+                                    alt={image.fileName}
+                                    className="w-full h-full object-cover"
+                                    onClick={() => setPreviewImage(image)}
+                                />
+
+                                {/* Upload Progress */}
+                                {image.isUploading && (
+                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                        <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center">
+                                            <div className="text-sm font-medium text-black">
+                                                {image.uploadProgress}%
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Error State */}
+                                {image.error && (
+                                    <div className="absolute inset-0 bg-red-500/20 flex items-center justify-center">
+                                        <div className="bg-red-500 text-white text-xs px-2 py-1 rounded">
+                                            Error
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Remove Button */}
+                                <button
+                                    onClick={() => removeImage(image.id)}
+                                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                    <X size={12} />
+                                </button>
+                            </div>
+
+                            {/* Image Category */}
+                            {showCategories && (
+                                <select
+                                    value={image.type}
+                                    onChange={(e) => updateImageType(image.id, e.target.value as UploadedImage['type'])}
+                                    className="mt-2 w-full text-xs bg-transparent border border-gray-300 dark:border-gray-600 rounded px-2 py-1"
+                                >
+                                    <option value="inspiration">Inspiration</option>
+                                    <option value="sketch">Sketch</option>
+                                    <option value="reference">Reference</option>
+                                </select>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* Preview Modal */}
+            {previewImage && (
+                <div
+                    className="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
+                    onClick={() => setPreviewImage(null)}
+                >
+                    <div className="max-w-4xl max-h-4xl p-4">
+                        <img
+                            src={previewImage.url}
+                            alt={previewImage.fileName}
+                            className="max-w-full max-h-full object-contain"
+                        />
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 }

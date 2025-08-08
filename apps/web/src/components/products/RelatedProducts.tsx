@@ -20,7 +20,7 @@ export default function RelatedProducts({
   products,
   isLoading = false,
   currentProductCategory,
-  isDark = false
+  // isDark = false
 }: RelatedProductsProps) {
   const sectionRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(sectionRef, { once: true, amount: 0.3 });

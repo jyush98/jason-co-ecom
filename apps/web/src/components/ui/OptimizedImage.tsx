@@ -39,28 +39,74 @@ function generateBlurDataURL(variant: string): string {
     return blurPatterns[variant as keyof typeof blurPatterns] || blurPatterns.product;
 }
 
-// Get optimal sizes based on variant and aspect ratio
+// IMPROVED: Get optimal sizes based on variant AND aspect ratio
 function getOptimalSizes(variant: string, aspectRatio?: string): string {
-    const sizeConfigs = {
-        hero: '(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw',
-        product: '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw',
-        gallery: '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw',
-        thumbnail: '(max-width: 768px) 25vw, 150px',
+    // Base configurations by variant
+    const baseConfigs = {
+        hero: {
+            square: '(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw',
+            '4/3': '(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw',
+            '16/9': '(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw',
+            portrait: '(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 80vw',
+            default: '(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw'
+        },
+        product: {
+            square: '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 40vw',
+            '4/3': '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 35vw',
+            '16/9': '(max-width: 768px) 100vw, (max-width: 1200px) 60vw, 50vw',
+            portrait: '(max-width: 768px) 80vw, (max-width: 1200px) 40vw, 30vw',
+            default: '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
+        },
+        gallery: {
+            square: '(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw',
+            '4/3': '(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw',
+            '16/9': '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 40vw',
+            portrait: '(max-width: 768px) 33vw, (max-width: 1200px) 25vw, 20vw',
+            default: '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
+        },
+        thumbnail: {
+            square: '(max-width: 768px) 25vw, 150px',
+            '4/3': '(max-width: 768px) 25vw, 150px',
+            '16/9': '(max-width: 768px) 33vw, 200px',
+            portrait: '(max-width: 768px) 20vw, 120px',
+            default: '(max-width: 768px) 25vw, 150px'
+        }
     };
 
-    return sizeConfigs[variant as keyof typeof sizeConfigs] || sizeConfigs.product;
+    const variantConfig = baseConfigs[variant as keyof typeof baseConfigs];
+    if (!variantConfig) return baseConfigs.product.default;
+
+    return variantConfig[aspectRatio as keyof typeof variantConfig] || variantConfig.default;
 }
 
-// Get default dimensions based on variant
-function getDefaultDimensions(variant: string): { width: number; height: number } {
-    const dimensionConfigs = {
+// IMPROVED: Get default dimensions based on variant AND aspect ratio
+function getDefaultDimensions(variant: string, aspectRatio?: string): { width: number; height: number } {
+    const baseDimensions = {
         hero: { width: 1920, height: 1080 },
         product: { width: 800, height: 800 },
         gallery: { width: 1200, height: 900 },
         thumbnail: { width: 400, height: 400 },
     };
 
-    return dimensionConfigs[variant as keyof typeof dimensionConfigs] || dimensionConfigs.product;
+    const base = baseDimensions[variant as keyof typeof baseDimensions] || baseDimensions.product;
+
+    // Adjust dimensions based on aspect ratio
+    if (aspectRatio) {
+        switch (aspectRatio) {
+            case 'square':
+                return { width: base.width, height: base.width };
+            case '4/3':
+                return { width: base.width, height: Math.round(base.width * 0.75) };
+            case '16/9':
+                return { width: base.width, height: Math.round(base.width * 0.5625) };
+            case 'portrait':
+                return { width: base.width, height: Math.round(base.width * 1.33) };
+            default:
+                return base;
+        }
+    }
+
+    return base;
 }
 
 // Get aspect ratio classes
@@ -97,15 +143,15 @@ export function OptimizedImage({
     const [imageError, setImageError] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
 
-    // Get default dimensions if not provided
-    const defaultDimensions = getDefaultDimensions(variant);
+    // IMPROVED: Get default dimensions considering aspect ratio
+    const defaultDimensions = getDefaultDimensions(variant, aspectRatio);
     const finalWidth = width || defaultDimensions.width;
     const finalHeight = height || defaultDimensions.height;
 
     // Auto-generate blur placeholder if not provided
     const autoBlurDataURL = blurDataURL || generateBlurDataURL(variant);
 
-    // Auto-generate sizes if not provided
+    // IMPROVED: Auto-generate sizes considering aspect ratio
     const autoSizes = sizes || getOptimalSizes(variant, aspectRatio);
 
     // Get aspect ratio class
@@ -172,15 +218,14 @@ export function OptimizedImage({
     );
 }
 
-// Preset configurations for common use cases
+// IMPROVED: Preset configurations with optimized aspect ratios
 export const JewelryImage = {
     Hero: (props: Omit<OptimizedImageProps, 'variant' | 'priority'>) => (
         <OptimizedImage
             {...props}
             variant="hero"
             priority={true}
-            width={props.width || 1920}
-            height={props.height || 1080}
+            aspectRatio={props.aspectRatio || '16/9'}
         />
     ),
 
@@ -188,9 +233,7 @@ export const JewelryImage = {
         <OptimizedImage
             {...props}
             variant="product"
-            aspectRatio="square"
-            width={props.width || 800}
-            height={props.height || 800}
+            aspectRatio={props.aspectRatio || 'square'}
         />
     ),
 
@@ -198,9 +241,7 @@ export const JewelryImage = {
         <OptimizedImage
             {...props}
             variant="gallery"
-            aspectRatio="4/3"
-            width={props.width || 1200}
-            height={props.height || 900}
+            aspectRatio={props.aspectRatio || '4/3'}
         />
     ),
 
@@ -208,9 +249,7 @@ export const JewelryImage = {
         <OptimizedImage
             {...props}
             variant="thumbnail"
-            aspectRatio="square"
-            width={props.width || 400}
-            height={props.height || 400}
+            aspectRatio={props.aspectRatio || 'square'}
         />
     ),
 };

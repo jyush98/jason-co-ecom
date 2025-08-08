@@ -1,6 +1,5 @@
 "use client";
 
-import { useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Check, Lock } from "lucide-react";
 import Link from "next/link";
@@ -25,7 +24,7 @@ export default function CheckoutFlow({
   className = ""
 }: CheckoutFlowProps) {
   const { cart, isLoading: cartLoading } = useCartData();
-  const flowRef = useRef<HTMLDivElement>(null);
+  // const flowRef = useRef<HTMLDivElement>(null);
 
   // ✅ Using our new useCheckoutFlow hook instead of manual state management
   const {
@@ -53,7 +52,7 @@ export default function CheckoutFlow({
     selectPaymentMethod,
 
     // Actions
-    fetchShippingMethods,
+    // fetchShippingMethods,
     submitOrder,
     clearErrors,
   } = useCheckoutFlow();

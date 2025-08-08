@@ -605,7 +605,7 @@ function DesignDetailsStep({ formData, updateFormData, errors }: {
     );
 }
 
-function ImagesReferencesStep({ formData, updateFormData, errors }: {
+function ImagesReferencesStep({ formData }: {
     formData: any;
     updateFormData: (updates: any) => void;
     errors: Record<string, string>;

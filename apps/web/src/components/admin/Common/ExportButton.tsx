@@ -142,7 +142,7 @@ export default function ExportButton({
     allowColumnSelection = true,
     allowRowLimit = true,
     allowFiltering = true,
-    filterLabel = "Current filters",
+    // filterLabel = "Current filters",
     activeFilters = {},
     columnOptions = [],
     showProgress = true,

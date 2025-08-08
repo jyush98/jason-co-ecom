@@ -325,7 +325,7 @@ export default function DateRangePicker({
         const year = currentMonth.getFullYear();
         const month = currentMonth.getMonth();
         const firstDay = new Date(year, month, 1);
-        const lastDay = new Date(year, month + 1, 0);
+        // const lastDay = new Date(year, month + 1, 0);
 
         // Adjust first day based on week start preference
         const startDate = new Date(firstDay);

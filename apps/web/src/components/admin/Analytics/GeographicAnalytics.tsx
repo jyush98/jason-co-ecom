@@ -181,11 +181,10 @@ export default function GeographicAnalytics() {
                             <div className="flex items-center space-x-2">
                                 <button
                                     onClick={() => setShowFilters(!showFilters)}
-                                    className={`p-2 rounded-lg border transition-colors ${
-                                        showFilters
+                                    className={`p-2 rounded-lg border transition-colors ${showFilters
                                             ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-600'
                                             : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                                    }`}
+                                        }`}
                                 >
                                     <Filter className="w-4 h-4" />
                                 </button>
@@ -199,15 +198,15 @@ export default function GeographicAnalytics() {
                                 </button>
 
                                 <ExportButton
-                                    onExport={async (options) => {
+                                    onExport={async () => {
                                         // Export geographic analytics data
                                         const csvData = [
                                             'Region,Customers,Revenue,Market Share',
-                                            ...(geographicData || []).map((region: any) => 
+                                            ...(geographicData || []).map((region: any) =>
                                                 `${region.region},${region.customers},${region.revenue},${region.percentage}%`
                                             )
                                         ].join('\n');
-                                        
+
                                         const blob = new Blob([csvData], { type: 'text/csv' });
                                         const url = URL.createObjectURL(blob);
                                         const a = document.createElement('a');
@@ -581,7 +580,7 @@ export default function GeographicAnalytics() {
                                 {geographicData.slice(0, 4).map((region: any, index: number) => {
                                     const growthPotential = 100 - region.percentage; // Simplified calculation
                                     const revenuePerCustomer = region.customers > 0 ? region.revenue / region.customers : 0;
-                                    
+
                                     return (
                                         <motion.div
                                             key={region.region}

@@ -73,7 +73,7 @@ function extractMetalType(name: string): string {
 // ✅ SIMPLE: Extract collection from category
 function extractCollection(category?: string): string {
     if (!category) return 'main';
-    
+
     const lowerCategory = category.toLowerCase();
     if (lowerCategory.includes('ring')) return 'rings';
     if (lowerCategory.includes('necklace')) return 'necklaces';
@@ -289,7 +289,7 @@ export function useGA4LuxuryEvents() {
 
 // Error tracking hook
 export function useGA4ErrorTracking() {
-    const trackError = useCallback((error: Error, errorInfo?: any) => {
+    const trackError = useCallback((error: Error) => {
         if (typeof window !== 'undefined' && window.gtag) {
             try {
                 window.gtag('event', 'exception', {

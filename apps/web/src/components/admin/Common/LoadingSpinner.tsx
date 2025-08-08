@@ -81,11 +81,11 @@ const colorClasses = {
     gray: 'text-gray-400'
 };
 
-const speedClasses = {
-    slow: 'animate-spin duration-2000',
-    normal: 'animate-spin duration-1000',
-    fast: 'animate-spin duration-500'
-};
+// const speedClasses = {
+//     slow: 'animate-spin duration-2000',
+//     normal: 'animate-spin duration-1000',
+//     fast: 'animate-spin duration-500'
+// };
 
 export default function LoadingSpinner({
     isLoading = true,

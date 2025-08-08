@@ -47,7 +47,7 @@ export default function WishlistCard({
     onSelect,
     onRemove,
     variants,
-    index = 0
+    // index = 0
 }: WishlistCardProps) {
     const { getToken } = useAuth();
     const collections = useWishlistCollections();
@@ -57,7 +57,7 @@ export default function WishlistCard({
     // UI State
     const [isEditing, setIsEditing] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [showMenu, setShowMenu] = useState(false);
+    // const [showMenu, setShowMenu] = useState(false);
     const [error, setError] = useState<string>('');
 
     // Edit State

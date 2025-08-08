@@ -207,7 +207,7 @@ export default function RevenueAnalytics() {
                                 </button>
 
                                 <ExportButton
-                                    onExport={async (options) => {
+                                    onExport={async () => {
                                         // Export revenue analytics data
                                         const csvData = [
                                             'Date,Revenue,Orders,Average Order Value',

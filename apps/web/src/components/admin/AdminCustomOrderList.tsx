@@ -198,7 +198,7 @@ export default function AdminCustomOrderList() {
         if (token) {
           headers['Authorization'] = `Bearer ${token}`;
         }
-      } catch (authError) {
+      } catch {
         console.log('No auth token available, proceeding without authentication');
       }
 

@@ -23,9 +23,9 @@ interface ProductReviewsProps {
 }
 
 export default function ProductReviews({
-    productId,
-    productName,
-    isDark = false
+    // productId,
+    // productName,
+    // isDark = false
 }: ProductReviewsProps) {
     const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
     const sectionRef = useRef<HTMLDivElement>(null);

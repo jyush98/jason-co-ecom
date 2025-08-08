@@ -43,9 +43,9 @@ export default function IntegratedProductChart({
   timeRange,
   chartType,
   sortBy,
-  onTimeRangeChange,
-  onChartTypeChange,
-  onSortChange
+  // onTimeRangeChange,
+  // onChartTypeChange,
+  // onSortChange
 }: IntegratedProductChartProps) {
   const { data: productData, isLoading, refetch } = useProductAnalytics(timeRange, sortBy);
 

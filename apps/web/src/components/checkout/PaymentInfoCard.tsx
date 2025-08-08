@@ -11,7 +11,7 @@ interface PaymentInfoCardProps {
 }
 
 export function PaymentInfoCard({
-    paymentMethod,
+    // paymentMethod,
     status,
     lastFour,
     brand

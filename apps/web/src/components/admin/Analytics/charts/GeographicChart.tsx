@@ -121,7 +121,7 @@ export default function GeographicChart() {
     }, [timeRange]);
 
     // Custom tooltip component
-    const CustomTooltip = ({ active, payload, label }: any) => {
+    const CustomTooltip = ({ active, payload }: any) => {
         if (!active || !payload || !payload.length) return null;
 
         const data = payload[0]?.payload;
@@ -295,7 +295,7 @@ export default function GeographicChart() {
                             // ratio={4 / 3}
                             stroke="#374151"
                             fill="#FFD700"
-                            content={({ root, depth, x, y, width, height, index, payload, colors, name }) => {
+                            content={({ depth, x, y, width, height, payload }) => {
                                 if (depth === 1) {
                                     return (
                                         <g>

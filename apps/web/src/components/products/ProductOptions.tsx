@@ -18,7 +18,8 @@ interface ProductOption {
   required?: boolean;
 }
 
-export default function ProductOptions({ product, isDark = false }: ProductOptionsProps) {
+// Fixed: Added underscore prefix to unused parameters
+export default function ProductOptions({ product: _product, isDark: _isDark = false }: ProductOptionsProps) {
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
 
   // Default options for jewelry (can be expanded with real product options)
@@ -99,11 +100,10 @@ export default function ProductOptions({ product, isDark = false }: ProductOptio
                 <button
                   key={value}
                   onClick={() => handleOptionChange(option.id, value)}
-                  className={`aspect-square flex items-center justify-center text-sm font-medium transition-all duration-300 border ${
-                    selectedOptions[option.id] === value
-                      ? "border-gold bg-gold text-black"
-                      : "border-gray-300 dark:border-gray-600 hover:border-gold hover:text-gold"
-                  }`}
+                  className={`aspect-square flex items-center justify-center text-sm font-medium transition-all duration-300 border ${selectedOptions[option.id] === value
+                    ? "border-gold bg-gold text-black"
+                    : "border-gray-300 dark:border-gray-600 hover:border-gold hover:text-gold"
+                    }`}
                 >
                   {value}
                 </button>
@@ -171,7 +171,8 @@ export default function ProductOptions({ product, isDark = false }: ProductOptio
       >
         <div className="text-center space-y-3">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Don't see exactly what you're looking for?
+            {/* Fixed: Escaped apostrophes */}
+            Don&apos;t see exactly what you&apos;re looking for?
           </p>
           <a
             href="/custom-orders"

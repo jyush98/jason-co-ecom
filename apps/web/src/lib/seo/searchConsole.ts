@@ -185,6 +185,7 @@ class SearchConsoleAPI {
         const impressionScore = Math.min(impressions / 1000, 10); // Max 10 points for impressions
         const positionPenalty = Math.max(0, position - 10) * 0.5; // Penalty for positions beyond 10
         const ctrBonus = ctr > 0.05 ? 5 : 0; // Bonus for good CTR
+        const _clicks = clicks;
 
         return Math.max(0, impressionScore - positionPenalty + ctrBonus);
     }
@@ -303,7 +304,7 @@ export class SEOMonitor {
     }
 
     // Generate actionable recommendations
-    private generateRecommendations(keywords: KeywordPerformance[], pages: PagePerformance[]) {
+    private generateRecommendations(keywords: KeywordPerformance[], _pages: PagePerformance[]) {
         const recommendations = [];
 
         // CTR optimization opportunities

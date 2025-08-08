@@ -25,25 +25,40 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
     const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
     const [isLoadingRelated, setIsLoadingRelated] = useState(false);
     const sectionRef = useRef<HTMLDivElement>(null);
-    const isInView = useInView(sectionRef, { once: true, amount: 0.1 });
+    const _isInView = useInView(sectionRef, { once: true, amount: 0.1 }); // Fixed: Added underscore prefix
 
-    const images = product.image_urls?.length ? product.image_urls : [product.image_url];
+    // Fixed: Properly handle image URLs with type safety
+    const images: string[] = product.image_urls?.filter((url): url is string => url != null) ||
+        (product.image_url ? [product.image_url] : []);
+
     const isDark = product.display_theme === "dark";
+
+    // Fixed: Handle category type properly
+    const getCategoryString = (category: Product['category']): string | undefined => {
+        if (typeof category === 'string') {
+            return category;
+        }
+        if (category && typeof category === 'object' && 'name' in category) {
+            return category.name;
+        }
+        return undefined;
+    };
 
     // Load related products
     useEffect(() => {
         const loadRelatedProducts = async () => {
-            if (!product.category) return;
+            const categoryString = getCategoryString(product.category);
+            if (!categoryString) return;
 
             try {
                 setIsLoadingRelated(true);
                 const response = await fetchProducts({
-                    category: product.category,
+                    category: categoryString, // Fixed: Use string category
                     pageSize: 8
                 });
 
-                // Filter out current product
-                const filtered = response.products?.filter((product: Product) => product.id !== product.id) || [];
+                // Fixed: Proper filter logic - compare with current product ID
+                const filtered = response.products?.filter((relatedProduct: Product) => relatedProduct.id !== product.id) || [];
                 setRelatedProducts(filtered.slice(0, 6));
             } catch (error) {
                 console.error('Failed to load related products:', error);
@@ -86,8 +101,7 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
             variants={pageVariants}
             initial="hidden"
             animate="visible"
-            className="min-h-screen transition-colors duration-500 bg-gradient-to-br from-white to-gray-50 text-black  dark:bg-gradient-to-br dark:from-gray-900 dark:to-black dark:text-white selection"
-
+            className="min-h-screen transition-colors duration-500 bg-gradient-to-br from-white to-gray-50 text-black dark:bg-gradient-to-br dark:from-gray-900 dark:to-black dark:text-white selection"
         >
             {/* Navigation */}
             <motion.div
@@ -113,7 +127,7 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
                     {/* Product Images */}
                     <motion.div variants={sectionVariants}>
                         <ProductImageGallery
-                            images={images}
+                            images={images} // Fixed: Now properly typed as string[]
                             productName={product.name}
                             isDark={isDark}
                         />
@@ -161,7 +175,7 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
                         <RelatedProducts
                             products={relatedProducts}
                             isLoading={isLoadingRelated}
-                            currentProductCategory={product.category}
+                            currentProductCategory={getCategoryString(product.category)} // Fixed: Convert to string
                             isDark={isDark}
                         />
                     </motion.div>

@@ -69,7 +69,7 @@ export interface FilterBarProps {
 export default function FilterBar({
     configs,
     searchPlaceholder = "Search...",
-    searchKeys = [],
+    // searchKeys = [],
     className = "",
     onFiltersChange,
     onExport,

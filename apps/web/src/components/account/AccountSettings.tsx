@@ -42,13 +42,13 @@ interface PrivacySettings {
     publicProfile: boolean;
 }
 
-interface ConnectedAccount {
-    id: string;
-    provider: string;
-    email: string;
-    connectedAt: string;
-    isDefault: boolean;
-}
+// interface ConnectedAccount {
+//     id: string;
+//     provider: string;
+//     email: string;
+//     connectedAt: string;
+//     isDefault: boolean;
+// }
 
 export default function AccountSettings({ className = "" }: AccountSettingsProps) {
     const { user } = useUser();

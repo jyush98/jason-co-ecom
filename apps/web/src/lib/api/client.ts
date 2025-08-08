@@ -282,12 +282,23 @@ export class ApiClient {
 
     async addToCart(productId: number, quantity: number): Promise<CartActionResult> {
         try {
-            const response = await this.post<any>('/cart/add', {
+            // Fixed: Check if response contains updated cart to avoid second API call
+            const addResponse = await this.post<any>('/cart/add', {
                 product_id: productId,
                 quantity,
             });
 
-            const cart = await this.getCart(); // Get updated cart
+            // If backend returns updated cart in response, use it
+            if (addResponse.cart) {
+                return {
+                    success: true,
+                    cart: addResponse.cart,
+                    message: addResponse.message || 'Item added to cart successfully',
+                };
+            }
+
+            // Fallback: fetch cart if not included in add response
+            const cart = await this.getCart();
 
             return {
                 success: true,

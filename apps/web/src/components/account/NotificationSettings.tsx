@@ -428,7 +428,7 @@ export default function NotificationSettings() {
             </AnimatePresence>
 
             {/* Notification Categories */}
-            {notificationCategories.map((category, categoryIndex) => (
+            {notificationCategories.map((category) => (
                 <motion.div
                     key={category.id}
                     variants={itemVariants}

@@ -54,7 +54,7 @@ export default function WishlistPage({ className = "" }: WishlistPageProps) {
         fetchStats,
         bulkAddToCart,
         bulkRemoveFromWishlist,
-        createCollection,
+        // createCollection,
         clearError
     } = useWishlistActions();
 
@@ -66,7 +66,7 @@ export default function WishlistPage({ className = "" }: WishlistPageProps) {
     const [filterBy, setFilterBy] = useState<FilterOption>('all');
     const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
     const [showFilters, setShowFilters] = useState(false);
-    const [showNewCollectionModal, setShowNewCollectionModal] = useState(false);
+    // const [showNewCollectionModal, setShowNewCollectionModal] = useState(false);
     const [bulkLoading, setBulkLoading] = useState(false);
 
     const sectionRef = useRef<HTMLDivElement>(null);

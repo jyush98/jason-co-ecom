@@ -28,7 +28,7 @@ export default function CustomSignInPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
-    const [attemptCount, setAttemptCount] = useState(0);
+    const [_attemptCount, setAttemptCount] = useState(0);
 
     // Redirect if already signed in
     if (isSignedIn) {

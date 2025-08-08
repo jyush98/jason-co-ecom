@@ -1,7 +1,7 @@
 // lib/middleware/monitoring.ts
 // Optional enhancement for request monitoring
 
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export interface RequestMetrics {
     userId?: string;
@@ -24,11 +24,15 @@ export function logRequestMetrics(metrics: RequestMetrics): void {
     });
 }
 
+// Define proper types for the handler function
+type AuthFunction = () => { userId?: string | null };
+type MiddlewareHandler = (auth: AuthFunction, req: NextRequest) => Promise<NextResponse> | NextResponse;
+
 /**
  * Enhanced middleware with monitoring (optional)
  */
-export function withMonitoring(handler: Function) {
-    return async (auth: any, req: NextRequest) => {
+export function withMonitoring(handler: MiddlewareHandler): MiddlewareHandler {
+    return async (auth: AuthFunction, req: NextRequest) => {
         const startTime = Date.now();
 
         const metrics: RequestMetrics = {

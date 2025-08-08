@@ -126,7 +126,7 @@ const AdvancedAnalytics: React.FC = () => {
 
                             {/* Export Button */}
                             <ExportButton
-                                onExport={async (options) => {
+                                onExport={async () => {
                                     // Export overview data
                                     const data = {
                                         timeRange,

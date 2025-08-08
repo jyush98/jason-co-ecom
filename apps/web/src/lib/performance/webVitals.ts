@@ -66,15 +66,21 @@ function sendToAnalytics(metric: any) {
         });
     }
 
-    // Send to Vercel Analytics (if available)
+    // Send to Vercel Analytics (if available) - Fixed data structure
     if (typeof window !== 'undefined' && window.va) {
         window.va('event', {
             name: 'Web Vitals',
             data: {
-                metric: metric.name,
+                // Use correct VAEventData properties from types/analytics.d.ts
+                category: 'Performance',
+                action: metric.name,
+                label: webVitalMetric.rating,
                 value: webVitalMetric.value,
-                rating: webVitalMetric.rating,
-                page: window.location.pathname,
+                custom_properties: {
+                    metric_name: metric.name,
+                    page_path: window.location.pathname,
+                    navigation_type: webVitalMetric.navigationType,
+                }
             }
         });
     }
@@ -90,8 +96,9 @@ function sendToAnalytics(metric: any) {
                 userAgent: navigator.userAgent,
                 timestamp: Date.now(),
             }),
-        }).catch(() => {
+        }).catch((_error) => {
             // Fail silently to not affect user experience
+            // Fixed: Added underscore prefix to unused parameter
         });
     }
 }
@@ -107,7 +114,8 @@ export async function initWebVitals() {
         onFCP(sendToAnalytics);
         onLCP(sendToAnalytics);
         onTTFB(sendToAnalytics);
-    } catch (error) {
+    } catch {
+        // Fixed: Added underscore prefix to unused parameter
         console.warn('Web Vitals library not found. Install with: npm install web-vitals');
         console.warn('Performance monitoring will continue without Core Web Vitals tracking.');
     }
@@ -138,7 +146,7 @@ export function initPerformanceObserver() {
 
         try {
             longTaskObserver.observe({ entryTypes: ['longtask'] });
-        } catch (e) {
+        } catch {
             // Fail silently if longtask is not supported
         }
     }
@@ -186,5 +194,3 @@ export function PerformanceMonitoring() {
 
     return null;
 }
-
-// No global declarations needed - using types/analytics.d.ts

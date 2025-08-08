@@ -41,8 +41,8 @@ interface IntegratedCustomerChartProps {
 export default function IntegratedCustomerChart({
     timeRange,
     chartType,
-    onTimeRangeChange,
-    onChartTypeChange
+    // onTimeRangeChange,
+    // onChartTypeChange
 }: IntegratedCustomerChartProps) {
     const { data: customerData, isLoading: customerLoading, refetch: refetchCustomers } = useCustomerAnalytics(timeRange);
     const { data: geoData, isLoading: geoLoading } = useGeographicAnalytics(timeRange);

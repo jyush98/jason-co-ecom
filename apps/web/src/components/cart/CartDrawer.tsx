@@ -282,7 +282,6 @@ function CartDrawerItem({
     onRemoveItem,
     onSaveForLater,
     variants,
-    index
 }: {
     item: CartItem;
     onUpdateQuantity: (product_id: number, quantity: number) => Promise<void>;

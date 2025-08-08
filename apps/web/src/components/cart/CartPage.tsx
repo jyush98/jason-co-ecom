@@ -236,7 +236,7 @@ function CartPageSummary({
                     setPromoError(result.error || "Invalid promo code");
                 }
             }
-        } catch (error) {
+        } catch {
             setPromoError("Failed to apply promo code");
         } finally {
             setPromoLoading(false);
@@ -370,7 +370,7 @@ function RecentlyViewedItem({ product }: { product: Product }) {
         <Link href={`/product/${product.id}`} className="group">
             <div className="relative aspect-square bg-gray-100 dark:bg-gray-800 rounded overflow-hidden mb-3">
                 <Image
-                    src={product.image_url}
+                    src={product.image_url? product.image_url : ''}
                     alt={product.name}
                     fill
                     className="object-contain p-3 group-hover:scale-110 transition-transform duration-300"

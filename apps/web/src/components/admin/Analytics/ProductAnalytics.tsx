@@ -212,7 +212,7 @@ export default function ProductAnalytics() {
                                 </button>
 
                                 <ExportButton
-                                    onExport={async (options) => {
+                                    onExport={async () => {
                                         // Export product analytics data
                                         const csvData = [
                                             'Product,Category,Revenue,Units,Rating,Stock,Growth',

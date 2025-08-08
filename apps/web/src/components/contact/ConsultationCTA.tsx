@@ -18,7 +18,7 @@ interface ConsultationFormData {
 
 const ConsultationCTA = () => {
     const [showBookingModal, setShowBookingModal] = useState(false)
-    const [selectedConsultationType, setSelectedConsultationType] = useState('')
+    const [_selectedConsultationType, setSelectedConsultationType] = useState('')
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
     const [formData, setFormData] = useState<ConsultationFormData>({
