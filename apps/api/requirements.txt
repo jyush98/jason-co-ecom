@@ -100,7 +100,7 @@ click==8.1.7
 rich==13.7.0
 
 # Database connection pooling
-sqlalchemy-pool==0.7.0
+# sqlalchemy-pool==0.7.0
 
 # Background job monitoring
 flower==2.0.1
