@@ -23,19 +23,19 @@ pydantic-settings==2.1.0
 pydantic[email]
 
 # HTTP requests and API clients
-requests==2.31.0
-httpx==0.25.2
-aiofiles==23.2.1
+requests
+httpx
+aiofiles
 
 # Payments
-stripe==7.8.0
+stripe
 
 # Email service
-resend==0.7.1
+resend
 
 # Image processing and file handling
 pillow==10.4.0
-python-magic==0.4.27
+python-magic
 
 # AWS S3 (for file storage)
 boto3==1.34.0

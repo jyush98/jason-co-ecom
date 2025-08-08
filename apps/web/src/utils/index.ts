@@ -113,19 +113,19 @@ export {
     convertCartToOrderItems,
     searchOrders,
     calculateOrderMetrics,
-    calculateDeliveryDate,
+    // calculateDeliveryDate,
     validateOrderData,
     exportOrdersToCSV
 } from './orderUtils';
 
 // Export utility types
-export type {
-    OrderStatus,
-    OrderSummary,
-    OrderDetails,
-    OrderItemDetails,
-    OrderStatusUpdate
-} from './orderUtils';
+// export type {
+//     OrderStatus,
+//     OrderSummary,
+//     OrderDetails,
+//     OrderItemDetails,
+//     OrderStatusUpdate
+// } from './orderUtils';
 
 // Re-export commonly used types for convenience
 export type {
