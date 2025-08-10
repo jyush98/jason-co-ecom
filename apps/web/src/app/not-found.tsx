@@ -1,5 +1,11 @@
+// apps/web/src/app/not-found.tsx
+
 import Link from 'next/link';
 import { Metadata } from 'next';
+
+// I'm forcing dynamic rendering to avoid any static generation issues
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 export const metadata: Metadata = {
     title: '404 - Page Not Found | Jason & Co.',
