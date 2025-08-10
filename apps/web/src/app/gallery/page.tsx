@@ -2,9 +2,8 @@
 "use client";
 
 import Gallery from "./Gallery";
-// import { createMetadata } from '@/lib/seo/metadata'; 
 import { BreadcrumbSchema } from '@/components/seo/SchemaMarkup';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 /**
  * SEO-Optimized Gallery Page for Jason & Co. Luxury Jewelry
@@ -22,8 +21,10 @@ import { useEffect } from 'react';
  * - Visual search optimization
  */
 
-// Static metadata for the gallery page (since it's "use client")
-// Note: For client components, metadata should be set in layout or parent server component
+// Force dynamic rendering to avoid window is not defined errors
+export const dynamic = 'force-dynamic';
+
+// Static metadata for the gallery page
 const galleryMetadata = {
     title: 'Jewelry Gallery - Artistic Luxury Collection | Jason & Co.',
     description: 'Explore our curated gallery of luxury jewelry pieces. Each piece showcases exceptional craftsmanship and artistic vision. Where ambition meets artistry in wearable art.',
@@ -45,14 +46,25 @@ const galleryMetadata = {
 };
 
 export default function GalleryPage() {
+    // I'm using state to track when we're on the client
+    const [isClient, setIsClient] = useState(false);
+    const [origin, setOrigin] = useState('https://jasonjewels.com'); // Default to production origin
+
     // Generate breadcrumb items for SEO
     const breadcrumbItems = [
         { name: 'Home', url: '/' },
         { name: 'Gallery', url: '/gallery' }
     ];
 
-    // Set document metadata for client component
     useEffect(() => {
+        // Mark that we're on the client
+        setIsClient(true);
+
+        // Get the actual origin only on the client
+        if (typeof window !== 'undefined') {
+            setOrigin(window.location.origin);
+        }
+
         // Update document title
         document.title = galleryMetadata.title;
 
@@ -124,68 +136,93 @@ export default function GalleryPage() {
             {/* Breadcrumb Schema for Navigation */}
             <BreadcrumbSchema items={breadcrumbItems} />
 
-            {/* Gallery Collection Schema */}
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{
-                    __html: JSON.stringify({
-                        '@context': 'https://schema.org',
-                        '@type': 'ImageGallery',
-                        '@id': `${window.location.origin}/gallery#gallery`,
-                        name: 'Jason & Co. Luxury Jewelry Gallery',
-                        description: 'Curated collection showcasing exceptional craftsmanship and artistic vision in luxury jewelry design.',
-                        about: {
-                            '@type': 'Thing',
-                            name: 'Luxury Jewelry',
-                            description: 'Handcrafted fine jewelry and custom pieces'
-                        },
-                        creator: {
-                            '@type': 'Organization',
-                            name: 'Jason & Co.',
-                            url: window.location.origin
-                        },
-                        isPartOf: {
-                            '@type': 'WebSite',
-                            name: 'Jason & Co. Luxury Jewelry',
-                            url: window.location.origin
-                        }
-                    }, null, 0)
-                }}
-            />
+            {/* I'm only rendering structured data on the client to avoid window errors */}
+            {isClient && (
+                <>
+                    {/* Gallery Collection Schema */}
+                    <script
+                        type="application/ld+json"
+                        dangerouslySetInnerHTML={{
+                            __html: JSON.stringify({
+                                '@context': 'https://schema.org',
+                                '@type': 'ImageGallery',
+                                '@id': `${origin}/gallery#gallery`,
+                                name: 'Jason & Co. Luxury Jewelry Gallery',
+                                description: 'Curated collection showcasing exceptional craftsmanship and artistic vision in luxury jewelry design.',
+                                about: {
+                                    '@type': 'Thing',
+                                    name: 'Luxury Jewelry',
+                                    description: 'Handcrafted fine jewelry and custom pieces'
+                                },
+                                creator: {
+                                    '@type': 'Organization',
+                                    name: 'Jason & Co.',
+                                    url: origin
+                                },
+                                isPartOf: {
+                                    '@type': 'WebSite',
+                                    name: 'Jason & Co. Luxury Jewelry',
+                                    url: origin
+                                }
+                            })
+                        }}
+                    />
 
-            {/* Visual Artwork Schema for Gallery Images */}
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{
-                    __html: JSON.stringify({
-                        '@context': 'https://schema.org',
-                        '@type': 'CreativeWork',
-                        '@id': `${window.location.origin}/gallery#artwork`,
-                        name: 'Jason & Co. Jewelry Artistry',
-                        description: 'Collection of luxury jewelry pieces showcasing artistic craftsmanship and innovative design.',
-                        creator: {
-                            '@type': 'Organization',
-                            name: 'Jason & Co.',
-                            description: 'Luxury jewelry artisans specializing in custom and designer pieces'
-                        },
-                        about: [
-                            {
-                                '@type': 'Thing',
-                                name: 'Luxury Jewelry Design'
-                            },
-                            {
-                                '@type': 'Thing',
-                                name: 'Handcrafted Jewelry'
-                            },
-                            {
-                                '@type': 'Thing',
-                                name: 'Custom Jewelry Creation'
-                            }
-                        ],
-                        keywords: galleryMetadata.keywords.join(', ')
-                    }, null, 0)
-                }}
-            />
+                    {/* Visual Artwork Schema for Gallery Images */}
+                    <script
+                        type="application/ld+json"
+                        dangerouslySetInnerHTML={{
+                            __html: JSON.stringify({
+                                '@context': 'https://schema.org',
+                                '@type': 'CreativeWork',
+                                '@id': `${origin}/gallery#artwork`,
+                                name: 'Jason & Co. Jewelry Artistry',
+                                description: 'Collection of luxury jewelry pieces showcasing artistic craftsmanship and innovative design.',
+                                creator: {
+                                    '@type': 'Organization',
+                                    name: 'Jason & Co.',
+                                    description: 'Luxury jewelry artisans specializing in custom and designer pieces'
+                                },
+                                about: [
+                                    {
+                                        '@type': 'Thing',
+                                        name: 'Luxury Jewelry Design'
+                                    },
+                                    {
+                                        '@type': 'Thing',
+                                        name: 'Handcrafted Jewelry'
+                                    },
+                                    {
+                                        '@type': 'Thing',
+                                        name: 'Custom Jewelry Creation'
+                                    }
+                                ],
+                                keywords: galleryMetadata.keywords.join(', ')
+                            })
+                        }}
+                    />
+
+                    {/* JSON-LD for Gallery Navigation */}
+                    <script
+                        type="application/ld+json"
+                        dangerouslySetInnerHTML={{
+                            __html: JSON.stringify({
+                                '@context': 'https://schema.org',
+                                '@type': 'SiteNavigationElement',
+                                '@id': `${origin}/gallery#navigation`,
+                                name: 'Gallery Navigation',
+                                description: 'Navigate through our luxury jewelry gallery collection',
+                                url: `${origin}/gallery`,
+                                inLanguage: 'en-US',
+                                isPartOf: {
+                                    '@type': 'WebSite',
+                                    name: 'Jason & Co. Luxury Jewelry'
+                                }
+                            })
+                        }}
+                    />
+                </>
+            )}
 
             {/* ===== MAIN GALLERY CONTENT ===== */}
             <main
@@ -194,7 +231,6 @@ export default function GalleryPage() {
                     scrollSnapType: "y mandatory",
                     overscrollBehavior: "none"
                 }}
-                // SEO enhancement: Add semantic structure
                 role="main"
                 aria-label="Jewelry Gallery - Luxury Collection Showcase"
             >
@@ -213,70 +249,63 @@ export default function GalleryPage() {
 
                 {/* Enhanced scroll styling with SEO considerations */}
                 <style jsx global>{`
-          /* Slower, more elegant scroll snapping */
-          html {
-            scroll-snap-type: y mandatory;
-            scroll-behavior: smooth;
-            /* Custom scroll timing - slower and more elegant */
-            scroll-padding-top: var(--navbar-height);
-          }
-          
-          /* Enhanced smooth scrolling with custom timing */
-          * {
-            scroll-behavior: smooth;
-          }
-          
-          /* Slower scroll transitions */
-          @media (prefers-reduced-motion: no-preference) {
-            html {
-              scroll-snap-type: y mandatory;
-              /* Smoother, slower transitions */
-              scroll-behavior: smooth;
-            }
-            
-            /* Add custom scroll timing via CSS animation */
-            body {
-              animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            }
-          }
-          
-          /* Make scroll snapping more deliberate and slower */
-          body {
-            -webkit-overflow-scrolling: touch;
-            scroll-snap-type: y mandatory;
-            /* Slower scroll momentum */
-            scroll-behavior: smooth;
-          }
-          
-          /* Custom scroll timing for webkit browsers */
-          @supports (-webkit-scroll-snap-type: y mandatory) {
-            html {
-              -webkit-scroll-snap-type: y mandatory;
-              -webkit-scroll-behavior: smooth;
-            }
-          }
+                    /* Slower, more elegant scroll snapping */
+                    html {
+                        scroll-snap-type: y mandatory;
+                        scroll-behavior: smooth;
+                        scroll-padding-top: var(--navbar-height);
+                    }
+                    
+                    /* Enhanced smooth scrolling with custom timing */
+                    * {
+                        scroll-behavior: smooth;
+                    }
+                    
+                    /* Slower scroll transitions */
+                    @media (prefers-reduced-motion: no-preference) {
+                        html {
+                            scroll-snap-type: y mandatory;
+                            scroll-behavior: smooth;
+                        }
+                        
+                        /* Add custom scroll timing via CSS animation */
+                        body {
+                            animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                        }
+                    }
+                    
+                    /* Make scroll snapping more deliberate and slower */
+                    body {
+                        -webkit-overflow-scrolling: touch;
+                        scroll-snap-type: y mandatory;
+                        scroll-behavior: smooth;
+                    }
+                    
+                    /* Custom scroll timing for webkit browsers */
+                    @supports (-webkit-scroll-snap-type: y mandatory) {
+                        html {
+                            -webkit-scroll-snap-type: y mandatory;
+                            -webkit-scroll-behavior: smooth;
+                        }
+                    }
 
-          /* SEO Enhancement: Ensure images are crawlable */
-          img {
-            /* Prevent layout shift */
-            height: auto;
-            /* Ensure images are discoverable by search engines */
-            max-width: 100%;
-          }
+                    /* SEO Enhancement: Ensure images are crawlable */
+                    img {
+                        height: auto;
+                        max-width: 100%;
+                    }
 
-          /* Accessibility enhancement for gallery navigation */
-          [role="main"] {
-            /* Ensure proper focus handling for keyboard navigation */
-            outline: none;
-          }
+                    /* Accessibility enhancement for gallery navigation */
+                    [role="main"] {
+                        outline: none;
+                    }
 
-          /* Performance optimization for gallery images */
-          .gallery-image {
-            /* Optimize for Core Web Vitals */
-            content-visibility: auto;
-            contain-intrinsic-size: 800px 600px;
-          }
-        `}</style>
+                    /* Performance optimization for gallery images */
+                    .gallery-image {
+                        content-visibility: auto;
+                        contain-intrinsic-size: 800px 600px;
+                    }
+                `}</style>
             </main>
 
             {/* Additional SEO Enhancements */}
@@ -288,63 +317,6 @@ export default function GalleryPage() {
                 href="/images/gallery-hero.jpg"
                 fetchPriority="high"
             />
-
-            {/* JSON-LD for Gallery Navigation */}
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{
-                    __html: JSON.stringify({
-                        '@context': 'https://schema.org',
-                        '@type': 'SiteNavigationElement',
-                        '@id': `${window.location.origin}/gallery#navigation`,
-                        name: 'Gallery Navigation',
-                        description: 'Navigate through our luxury jewelry gallery collection',
-                        url: `${window.location.origin}/gallery`,
-                        inLanguage: 'en-US',
-                        isPartOf: {
-                            '@type': 'WebSite',
-                            name: 'Jason & Co. Luxury Jewelry'
-                        }
-                    }, null, 0)
-                }}
-            />
         </>
     );
 }
-
-/**
- * Gallery SEO Implementation Notes:
- * 
- * ===== CLIENT COMPONENT SEO CHALLENGES SOLVED =====
- * ✅ Dynamic metadata updates via useEffect
- * ✅ Structured data injection for gallery content
- * ✅ Hidden semantic content for search engines
- * ✅ Proper accessibility and SEO markup
- * 
- * ===== VISUAL SEO OPTIMIZATION =====
- * ✅ ImageGallery schema for Google Images ranking
- * ✅ CreativeWork schema for artistic content
- * ✅ Visual search optimization ready
- * ✅ Social media sharing optimization
- * 
- * ===== PERFORMANCE + SEO =====
- * ✅ Image preloading for Core Web Vitals
- * ✅ Content-visibility for gallery performance
- * ✅ Scroll behavior optimization
- * ✅ Layout shift prevention
- * 
- * ===== EXPECTED RESULTS =====
- * 🎯 Top rankings for "luxury jewelry gallery" keywords
- * 📸 Enhanced Google Images visibility
- * 📱 Perfect social media sharing for gallery pieces
- * 🎨 Brand authority through visual storytelling SEO
- * 
- * ===== FUTURE ENHANCEMENTS =====
- * 1. Add individual image schemas for each gallery piece
- * 2. Implement lazy loading with intersection observer
- * 3. Add image captions for better accessibility and SEO
- * 4. Consider implementing image sitemap for Google Images
- * 
- * Note: For optimal SEO, consider converting to server component
- * or moving metadata to layout.tsx for better search engine processing.
- */
