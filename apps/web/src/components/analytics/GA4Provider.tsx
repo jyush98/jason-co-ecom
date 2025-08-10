@@ -1,37 +1,42 @@
-// components/analytics/GA4Provider.tsx
-// Context provider for GA4 analytics
-
 'use client';
 
-import React, { createContext, useContext, useEffect } from 'react';
-import { ga4 } from '@/lib/analytics/ga4';
-import { useGA4PageTracking } from '@/lib/hooks/useGA4';
-
-interface GA4ContextType {
-  isInitialized: boolean;
-}
-
-const GA4Context = createContext<GA4ContextType>({ isInitialized: false });
+import { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
+import Script from 'next/script';
 
 export function GA4Provider({ children }: { children: React.ReactNode }) {
-  const [isInitialized, setIsInitialized] = React.useState(false);
-
-  // Auto-track page views
-  useGA4PageTracking();
+  const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID;
+  const pathname = usePathname();
 
   useEffect(() => {
-    // Initialize GA4 if not already done
-    if (process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID) {
-      ga4.init();
-      setIsInitialized(true);
+    if (typeof window !== 'undefined' && window.gtag && GA_MEASUREMENT_ID) {
+      window.gtag('config', GA_MEASUREMENT_ID, {
+        page_path: pathname,
+      });
     }
-  }, []);
+  }, [pathname, GA_MEASUREMENT_ID]);
+
+  if (!GA_MEASUREMENT_ID) {
+    // If no GA4 ID, just render children without analytics
+    return <>{children}</>;
+  }
 
   return (
-    <GA4Context.Provider value={{ isInitialized }}>
+    <>
+      <Script
+        src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+        strategy="afterInteractive"
+      />
+      <Script id="google-analytics" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', '${GA_MEASUREMENT_ID}');
+        `}
+      </Script>
+
       {children}
-    </GA4Context.Provider>
+    </>
   );
 }
-
-export const useGA4Context = () => useContext(GA4Context);
