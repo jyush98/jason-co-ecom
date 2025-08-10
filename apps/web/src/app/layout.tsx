@@ -1,4 +1,8 @@
+// apps/web/src/app/layout.tsx
+// I'm adding a global Suspense wrapper to catch all useSearchParams usage
+
 import type { Metadata, Viewport } from 'next';
+import { Suspense } from 'react';
 import { ClerkProvider } from '@clerk/nextjs';
 import { ThemeProvider } from 'next-themes';
 import { Toaster } from 'react-hot-toast';
@@ -12,7 +16,6 @@ import { inter, fontVariables, FontPreloads } from '@/lib/fonts/optimizedFonts';
 import { GA4Provider } from '@/components/analytics/GA4Provider';
 import './globals.css';
 
-// Enhanced metadata for SEO
 export const metadata: Metadata = createMetadata({
   title: 'Jason & Co. | Where Ambition Meets Artistry | Luxury Custom Jewelry',
   description: 'Discover handcrafted luxury jewelry designed without limits. Custom engagement rings, bespoke necklaces, and artisanal pieces that embody where ambition meets artistry.',
@@ -32,7 +35,6 @@ export const metadata: Metadata = createMetadata({
   ],
 });
 
-// Viewport optimization for mobile performance
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
@@ -45,55 +47,69 @@ export const viewport: Viewport = {
   colorScheme: 'light dark',
 };
 
-// Checking if Clerk key exists to prevent build failures
 const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
+// I'm creating a wrapper component for all the providers
+function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+      <ThemeInitializer />
+      <Toaster position="top-center" />
+
+      {/* Global Suspense boundary to catch all useSearchParams */}
+      <Suspense fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-white"></div>
+        </div>
+      }>
+        {/* Header */}
+        <header>
+          <Navbar />
+        </header>
+
+        {/* Main content */}
+        <main className="flex-grow">
+          {children}
+        </main>
+
+        {/* Footer */}
+        <footer>
+          <Footer />
+        </footer>
+      </Suspense>
+    </ThemeProvider>
+  );
+}
 
 function RootLayoutContent({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={fontVariables} suppressHydrationWarning>
       <head>
-        {/* CRITICAL PERFORMANCE OPTIMIZATIONS */}
-
-        {/* Font preloading - FIXES 830ms delay */}
         <FontPreloads />
-
-        {/* DNS prefetch for performance */}
         <link rel="dns-prefetch" href="//fonts.googleapis.com" />
         <link rel="dns-prefetch" href="//fonts.gstatic.com" />
 
-        {/* Critical CSS to prevent layout shift */}
         <style dangerouslySetInnerHTML={{
           __html: `
-            /* Font fallback to prevent layout shift */
             body {
               font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
             }
-            
             h1, h2, h3, h4, h5, h6 {
               font-family: var(--font-playfair), Georgia, serif;
             }
-            
-            /* Prevent cumulative layout shift */
             img, video {
               height: auto;
               max-width: 100%;
             }
-            
-            /* Critical above-fold styles */
             .hero-section {
               min-height: 100vh;
             }
-            
-            /* Font display optimization */
             .font-serif {
               font-family: var(--font-playfair), Georgia, serif;
             }
-            
             .font-sans {
               font-family: var(--font-inter), system-ui, sans-serif;
             }
-            
-            /* Dark mode optimizations */
             @media (prefers-color-scheme: dark) {
               :root {
                 color-scheme: dark;
@@ -102,85 +118,41 @@ function RootLayoutContent({ children }: { children: React.ReactNode }) {
           `
         }} />
 
-        {/* Favicon and icons */}
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/manifest.json" />
 
-        {/* SEO enhancements */}
         <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
         <meta name="googlebot" content="index, follow" />
         <link rel="canonical" href="https://jasonandco.shop" />
 
-        {/* Structured Data for SEO */}
         <OrganizationSchema />
         <WebsiteSchema />
       </head>
 
       <body className={`${inter.className} antialiased min-h-screen flex flex-col text-black dark:text-white`}>
-        {/* Performance monitoring */}
         <PerformanceMonitoring />
 
-        {/* GA4 Enhanced E-commerce Analytics Provider */}
         <GA4Provider>
-          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-            <ThemeInitializer />
-
-            {/* Toast notifications */}
-            <Toaster position="top-center" />
-
-            {/* Header */}
-            <header>
-              <Navbar />
-            </header>
-
-            {/* Main content */}
-            <main className="flex-grow">
-              {children}
-            </main>
-
-            {/* Footer */}
-            <footer>
-              <Footer />
-            </footer>
-          </ThemeProvider>
+          <Providers>{children}</Providers>
         </GA4Provider>
 
-        {/* Service Worker for PWA (production only) */}
         {process.env.NODE_ENV === 'production' && (
           <script
             dangerouslySetInnerHTML={{
               __html: `
                 if ('serviceWorker' in navigator) {
                   window.addEventListener('load', function() {
-                    navigator.serviceWorker.register('/sw.js')
-                      .then(function(registration) {
-                        console.log('SW registered: ', registration);
-                      })
-                      .catch(function(registrationError) {
-                        console.log('SW registration failed: ', registrationError);
-                      });
+                    navigator.serviceWorker.register('/sw.js').catch(function(e) {
+                      console.log('SW registration failed:', e);
+                    });
                   });
                 }
               `,
             }}
           />
         )}
-
-        {/* Non-critical third-party scripts */}
-        <script
-          defer
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.addEventListener('load', function() {
-                // Load customer support widgets here
-                // Load social media pixels here
-                // Load other non-critical analytics here
-              });
-            `,
-          }}
-        />
       </body>
     </html>
   );
@@ -191,8 +163,6 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Conditionally wrapping with ClerkProvider only if the key exists
-  // This prevents build failures when the env var is missing
   if (clerkPublishableKey) {
     return (
       <ClerkProvider
@@ -207,7 +177,6 @@ export default function RootLayout({
     );
   }
 
-  // Fallback without Clerk if no key is provided
   console.warn('NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is not set. Running without authentication.');
   return <RootLayoutContent>{children}</RootLayoutContent>;
 }
