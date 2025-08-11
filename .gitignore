@@ -1,46 +1,171 @@
+# Jason & Co E-commerce Monorepo - Combined .gitignore
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# Dependencies
-node_modules
+# ===================================
+# DEPENDENCIES & PACKAGE MANAGERS
+# ===================================
+node_modules/
 .pnp
-.pnp.js
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
 
-# Local env files
+# ===================================
+# ENVIRONMENT FILES
+# ===================================
 .env
+.env.*
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-# Testing
-coverage
+# ===================================
+# BUILD OUTPUTS & CACHE
+# ===================================
+# Next.js
+.next/
+/.next/
+out/
+/out/
 
-# Turbo
-.turbo
+# General builds
+build/
+/build/
+dist/
+/dist/
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# ===================================
+# TESTING & COVERAGE
+# ===================================
+coverage/
+/coverage/
+
+# ===================================
+# DEVELOPMENT TOOLS
+# ===================================
+# Turbo (monorepo)
+.turbo/
 
 # Vercel
-.vercel
+.vercel/
 
-# Build Outputs
-.next/
-out/
-build
-dist
+# Clerk configuration (can include secrets)
+/.clerk/
 
+# ===================================
+# SYSTEM FILES (macOS, Windows, Linux)
+# ===================================
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
-# Debug
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# ===================================
+# LOG FILES & DEBUG
+# ===================================
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.pnpm-debug.log*
+*.log
 
-# Misc
-.DS_Store
+# ===================================
+# CERTIFICATES & SECURITY
+# ===================================
 *.pem
+*.key
+*.crt
 
+# ===================================
+# PYTHON (API Backend)
+# ===================================
 __pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
 env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+instance/
 *.pyc
 *.pyo
-venv/
-instance/
+
+# ===================================
+# GENERATED & TEMPORARY FILES
+# ===================================
+# Generated CSS (Tailwind output)
+output.css
+**/output.css
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+.temp/
+
+# ===================================
+# MEDIA & LARGE FILES
+# ===================================
+# Specific large video files
 apps/web/public/videos/chrome.mov
+
+# General large file patterns (uncomment if needed)
+# *.mov
+# *.mp4
+# *.avi
+# *.mkv
+
+# ===================================
+# IDE & EDITOR FILES
+# ===================================
+# VSCode
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# JetBrains
+.idea/
+*.swp
+*.swo
+
+# Sublime Text
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+
+# ===================================
+# DEPLOYMENT & PRODUCTION
+# ===================================
+# Docker
+Dockerfile.prod
+docker-compose.prod.yml
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
