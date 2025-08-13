@@ -402,7 +402,7 @@ const AdvancedAnalytics: React.FC = () => {
                                 timeRange={timeRange}
                                 data={data}
                                 loading={loading}
-                                error={error}
+                                _error={error}
                                 onRefresh={refetch}
                             />
                         )}
@@ -454,9 +454,9 @@ const OverviewTab: React.FC<{
     timeRange: string;
     data: any;
     loading: boolean;
-    error: string | null;
+    _error: string | null;
     onRefresh: () => void;
-}> = ({ timeRange, data, loading, error, onRefresh }) => {
+}> = ({ timeRange, data, loading, _error, onRefresh }) => {
 
     // Create overview metrics from real data or show empty states
     const overviewMetrics = [
