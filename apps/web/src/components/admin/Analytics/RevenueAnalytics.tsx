@@ -349,8 +349,10 @@ export default function RevenueAnalytics() {
                     className="mb-8"
                 >
                     <RevenueChart
-                        data={revenueData?.data}
-                        metrics={revenueData?.metrics}
+                        dateRange={{                // ✅ Correct prop that RevenueChart expects
+                            startDate: new Date(Date.now() - (30 * 24 * 60 * 60 * 1000)).toISOString().split('T')[0],
+                            endDate: new Date().toISOString().split('T')[0]
+                        }}
                         isLoading={isLoading}
                         error={error}
                         onRefresh={refetch}

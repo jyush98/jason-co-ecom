@@ -29,5 +29,9 @@ export default function AdminPage() {
 
   if (!authorized) return null;
 
-  return <AdminDashboard />;
+  return (
+    <div className="pt-[var(--navbar-height)] bg-white dark:bg-gray-800">
+      <AdminDashboard />
+    </div>
+  );
 }

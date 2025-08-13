@@ -3,8 +3,8 @@ import { SEODashboard } from '@/components/seo/SEODashboard';
 
 export default function SEOAnalyticsPage() {
   return (
-    <div className="container mx-auto py-8">
-      <SEODashboard useMockData={false} days={30} />
+    <div className="container mx-auto pt-[var(--navbar-height)]">
+      <SEODashboard days={30} />
     </div>
   );
 }

@@ -1,11 +1,11 @@
-// middleware.ts
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from 'next/server';
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 
-// Define route matchers for different access levels
+// Define route matchers
 const isPublicRoute = createRouteMatcher([
   '/',
+  '/shop(.*)',
+  '/gallery(.*)',
   '/sign-in(.*)',
   '/sign-up(.*)',
   '/products(.*)',
@@ -82,20 +82,80 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
 
 /**
  * Trigger background user synchronization
- * This runs asynchronously and doesn't block the middleware
+ * FIXED: Proper dynamic import and error handling
  */
 async function triggerBackgroundSync(userId: string): Promise<void> {
   try {
-    // Import dynamically to avoid edge runtime issues
-    const { AuthIntegration } = await import('./lib/auth/integration');
+    // Check if we're in development and skip sync if needed
+    if (process.env.NODE_ENV === 'development' && process.env.SKIP_AUTH_SYNC === 'true') {
+      console.log(`Skipping auth sync for user: ${userId} (development mode)`);
+      return;
+    }
 
-    // Trigger user sync in background
-    await AuthIntegration.syncUserWithDatabase();
+    // FIXED: Use a more robust import strategy
+    let AuthIntegration;
 
-    console.log(`Background sync triggered for user: ${userId}`);
+    try {
+      // Try to import the AuthIntegration class
+      const authModule = await import('./lib/auth/integration');
+      AuthIntegration = authModule.AuthIntegration;
+
+      // Verify the method exists before calling
+      if (!AuthIntegration || typeof AuthIntegration.syncUserWithDatabase !== 'function') {
+        console.warn('AuthIntegration.syncUserWithDatabase method not available, skipping sync');
+        return;
+      }
+    } catch (importError) {
+      console.warn('Could not import AuthIntegration, skipping sync:', importError);
+      return;
+    }
+
+    // Trigger user sync in background with timeout
+    const syncPromise = AuthIntegration.syncUserWithDatabase();
+
+    // Add timeout to prevent hanging
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Sync timeout')), 10000); // 10 second timeout
+    });
+
+    await Promise.race([syncPromise, timeoutPromise]);
+
+    console.log(`Background sync completed for user: ${userId}`);
   } catch (error) {
     // Log error but don't throw - we don't want to block the request
     console.error('Background sync error:', error);
+
+    // Optional: Send error to monitoring service
+    if (process.env.NODE_ENV === 'production') {
+      // You could send this to your error tracking service
+      // await errorTracker.capture(error, { userId, context: 'middleware_sync' });
+    }
+  }
+}
+
+/**
+ * Alternative: Simple user sync without full AuthIntegration
+ * Use this if AuthIntegration continues to have issues
+ */
+async function simpleUserSync(userId: string): Promise<void> {
+  try {
+    // Simple API call to ensure user exists
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/${userId}/sync`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      // Add timeout
+      signal: AbortSignal.timeout(5000)
+    });
+
+    if (!response.ok) {
+      throw new Error(`Sync API error: ${response.status}`);
+    }
+
+    console.log(`Simple sync completed for user: ${userId}`);
+  } catch (error) {
+    console.error('Simple sync failed:', error);
   }
 }
 

@@ -21,8 +21,8 @@ from app.routes.account import router as account_router
 from app.routes.account_settings import router as account_settings_router
 from app.routes.notification_preferences import router as notification_preferences_router
 from app.routes.contact import router as contact_router
+from app.routes.admin_analytics import router as admin_analytics_router
 
-# Then add these two lines where you include your other routers
 app = FastAPI()
 
 # CORS settings to allow frontend to communicate with backend
@@ -38,6 +38,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+API_V1 = "/api/v1"
 
 app.include_router(clerk_webhook_router, tags=["Clerk Webhooks"])
 app.include_router(stripe_webhook_router, tags=["Stripe Webhooks"])
@@ -54,6 +55,10 @@ app.include_router(account_router, prefix="/account", tags=["Account"])
 app.include_router(account_settings_router, prefix="/account", tags=["Account Settings"])
 app.include_router(notification_preferences_router, prefix="/account", tags=["Notification Preferences"])
 app.include_router(contact_router, tags=["Contact"])
+
+app.include_router(admin_analytics_router, prefix=f"{API_V1}/admin/analytics", tags=["Admin Analytics"])
+
+
 
 @app.get("/")
 def root():
