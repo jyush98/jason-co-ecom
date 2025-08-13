@@ -31,7 +31,7 @@ import {
 } from 'lucide-react';
 
 // Real API Integration - No Mock Data
-import { AnalyticsService, type RevenueData, type AnalyticsDateRange } from '@/lib/services/analyticsService';
+import { AnalyticsService, type AnalyticsDateRange } from '@/lib/services/analyticsService';
 
 // Types for revenue data (updated for real API integration)
 interface RevenueDataPoint {

@@ -1,6 +1,7 @@
 // components/admin/Analytics/AdvancedAnalytics.tsx
 // ✅ RESTORED: Original layout preserved + Fixed API endpoints
 // ✅ FIXED: Mock data eliminated without breaking your layout
+// ✅ FIXED: ESLint unused variable errors
 
 'use client';
 
@@ -11,15 +12,12 @@ import {
     Users,
     ShoppingBag,
     TrendingUp,
-    UserPlus,
     Repeat,
     DollarSign,
-    Target,
     Award,
     Globe,
     RefreshCw,
     AlertTriangle,
-    Package,
     Database
 } from 'lucide-react';
 
@@ -347,8 +345,8 @@ const AdvancedAnalytics: React.FC = () => {
                                             key={tab.id}
                                             onClick={() => setActiveTab(tab.id)}
                                             className={`group relative min-w-0 overflow-hidden py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-all ${isActive
-                                                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                                                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
                                                 }`}
                                         >
                                             <div className="flex items-center gap-2">
@@ -412,7 +410,7 @@ const AdvancedAnalytics: React.FC = () => {
                             <RevenueIntelligenceTab
                                 data={data.revenue}
                                 isLoading={loading}
-                                error={error}
+                                _error={error}
                                 timeRange={timeRange}
                                 onRefresh={refetch}
                             />
@@ -421,27 +419,27 @@ const AdvancedAnalytics: React.FC = () => {
                             <CustomerIntelligenceTab
                                 data={data.customer}
                                 isLoading={loading}
-                                error={error}
+                                _error={error}
                                 timeRange={timeRange}
                                 onRefresh={refetch}
                             />
                         )}
                         {activeTab === 'products' && (
                             <ProductAnalyticsTab
-                                data={data.product}
-                                isLoading={loading}
-                                error={error}
-                                timeRange={timeRange}
-                                onRefresh={refetch}
+                                _data={data.product}
+                                _isLoading={loading}
+                                _error={error}
+                                _timeRange={timeRange}
+                                _onRefresh={refetch}
                             />
                         )}
                         {activeTab === 'geographic' && (
                             <GeographicAnalysisTab
-                                data={data.geographic}
-                                isLoading={loading}
-                                error={error}
-                                timeRange={timeRange}
-                                onRefresh={refetch}
+                                _data={data.geographic}
+                                _isLoading={loading}
+                                _error={error}
+                                _timeRange={timeRange}
+                                _onRefresh={refetch}
                             />
                         )}
                     </motion.div>
@@ -643,14 +641,14 @@ const OverviewTab: React.FC<{
     );
 };
 
-// ✅ PRESERVED: All your other tab components remain exactly the same
+// ✅ PRESERVED: All your other tab components with fixed unused parameters
 const RevenueIntelligenceTab: React.FC<{
     data: any;
     isLoading: boolean;
-    error: string | null;
+    _error: string | null;
     timeRange: string;
     onRefresh: () => void;
-}> = ({ data, isLoading, error, timeRange, onRefresh }) => {
+}> = ({ data, isLoading, _error, timeRange, onRefresh }) => {
     const revenueMetrics = data ? [
         {
             id: 'total-revenue',
@@ -701,7 +699,7 @@ const RevenueIntelligenceTab: React.FC<{
                         endDate: new Date().toISOString().split('T')[0]
                     }}
                     isLoading={isLoading}
-                    error={error}
+                    error={_error}
                     onRefresh={onRefresh}
                     className="shadow-lg"
                 />
@@ -713,10 +711,10 @@ const RevenueIntelligenceTab: React.FC<{
 const CustomerIntelligenceTab: React.FC<{
     data: any;
     isLoading: boolean;
-    error: string | null;
+    _error: string | null;
     timeRange: string;
     onRefresh: () => void;
-}> = ({ data, isLoading, error, timeRange, onRefresh }) => {
+}> = ({ data, isLoading, _error, timeRange, onRefresh }) => {
     if (!data) {
         return (
             <div className="text-center py-12">
@@ -774,12 +772,12 @@ const CustomerIntelligenceTab: React.FC<{
 };
 
 const ProductAnalyticsTab: React.FC<{
-    data: any;
-    isLoading: boolean;
-    error: string | null;
-    timeRange: string;
-    onRefresh: () => void;
-}> = ({ data, isLoading, error, timeRange, onRefresh }) => {
+    _data: any;
+    _isLoading: boolean;
+    _error: string | null;
+    _timeRange: string;
+    _onRefresh: () => void;
+}> = ({ _data, _isLoading, _error, _timeRange, _onRefresh }) => {
     return (
         <div className="space-y-8">
             <motion.div
@@ -788,7 +786,7 @@ const ProductAnalyticsTab: React.FC<{
                 transition={{ delay: 0.3, duration: 0.6 }}
             >
                 <ProductPerformaceChart
-                    timeRange={timeRange}
+                    timeRange={_timeRange}
                     chartType="performance"
                     sortBy="revenue"
                     onTimeRangeChange={() => { }}
@@ -801,12 +799,12 @@ const ProductAnalyticsTab: React.FC<{
 };
 
 const GeographicAnalysisTab: React.FC<{
-    data: any;
-    isLoading: boolean;
-    error: string | null;
-    timeRange: string;
-    onRefresh: () => void;
-}> = ({ data, isLoading, error, timeRange, onRefresh }) => {
+    _data: any;
+    _isLoading: boolean;
+    _error: string | null;
+    _timeRange: string;
+    _onRefresh: () => void;
+}> = ({ _data, _isLoading, _error, _timeRange, _onRefresh }) => {
     return (
         <div className="space-y-8">
             <motion.div

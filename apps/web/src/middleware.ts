@@ -137,27 +137,27 @@ async function triggerBackgroundSync(userId: string): Promise<void> {
  * Alternative: Simple user sync without full AuthIntegration
  * Use this if AuthIntegration continues to have issues
  */
-async function simpleUserSync(userId: string): Promise<void> {
-  try {
-    // Simple API call to ensure user exists
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/${userId}/sync`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      // Add timeout
-      signal: AbortSignal.timeout(5000)
-    });
+// async function simpleUserSync(userId: string): Promise<void> {
+//   try {
+//     // Simple API call to ensure user exists
+//     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/${userId}/sync`, {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//       },
+//       // Add timeout
+//       signal: AbortSignal.timeout(5000)
+//     });
 
-    if (!response.ok) {
-      throw new Error(`Sync API error: ${response.status}`);
-    }
+//     if (!response.ok) {
+//       throw new Error(`Sync API error: ${response.status}`);
+//     }
 
-    console.log(`Simple sync completed for user: ${userId}`);
-  } catch (error) {
-    console.error('Simple sync failed:', error);
-  }
-}
+//     console.log(`Simple sync completed for user: ${userId}`);
+//   } catch (error) {
+//     console.error('Simple sync failed:', error);
+//   }
+// }
 
 export const config = {
   matcher: [
