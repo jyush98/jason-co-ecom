@@ -1,4 +1,4 @@
-import HomePage from "../components/HomePage";
+import HomePage from '@/components/home/HomePage';
 import { createMetadata } from '@/lib/seo/metadata';
 import { OrganizationSchema, WebsiteSchema } from '@/components/seo/SchemaMarkup';
 
