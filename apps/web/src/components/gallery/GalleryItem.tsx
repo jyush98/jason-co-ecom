@@ -1,5 +1,5 @@
 import { GalleryItemType } from "@/types/gallery";
-import { JewelryImage } from "./ui/OptimizedImage";
+import { JewelryImage } from "../ui/OptimizedImage";
 
 interface Props {
   item: GalleryItemType;

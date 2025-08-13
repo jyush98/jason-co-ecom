@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
-import { getCart, removeFromCart, addToCart } from "../utils/cart";
+import { getCart, removeFromCart, addToCart } from "../../utils/cart";
 import { useCartStore } from "@/app/store/cartStore";
 import { useGuestCartStore } from "@/app/store/guestCartStore";
 import { motion, AnimatePresence } from "framer-motion";
-import { JewelryImage } from "./ui/OptimizedImage";
+import { JewelryImage } from "../ui/OptimizedImage";
 
 interface CartItem {
     product_id: number;

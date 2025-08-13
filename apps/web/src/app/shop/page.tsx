@@ -1,7 +1,7 @@
 // app/shop/page.tsx
 export const dynamic = "force-dynamic";
 
-import ProductList from '@/components/ProductList';
+import ProductList from '@/components/products/ProductList';
 import { createCategoryMetadata } from '@/lib/seo/metadata';
 import { BreadcrumbSchema, CollectionSchema } from '@/components/seo/SchemaMarkup';
 import { Suspense } from 'react';

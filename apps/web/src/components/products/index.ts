@@ -8,6 +8,7 @@ export { default as ProductOptions } from './ProductOptions';
 export { default as RelatedProducts } from './RelatedProducts';
 export { default as ProductReviews } from './ProductReviews';
 export { default as SocialShare } from './SocialShare';
+export { default as ProductList } from './ProductList';
 
 // Type exports for external use
 export interface ProductImageGalleryProps {

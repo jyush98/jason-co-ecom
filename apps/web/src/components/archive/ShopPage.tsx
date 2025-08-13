@@ -1,6 +1,6 @@
 "use client";
 
-import ProductList from "./ProductList";
+import ProductList from "../products/ProductList";
 import { useSearchParams } from "next/navigation";
 
 

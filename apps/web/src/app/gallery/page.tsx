@@ -1,7 +1,7 @@
 // app/gallery/page.tsx
 "use client";
 
-import Gallery from "./Gallery";
+import Gallery from "../../components/gallery/Gallery";
 import { BreadcrumbSchema } from '@/components/seo/SchemaMarkup';
 import { useEffect, useState } from 'react';
 

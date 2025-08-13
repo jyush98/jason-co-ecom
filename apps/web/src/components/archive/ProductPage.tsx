@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { fetchProduct } from "../utils/api";
-import { Product } from "../types/product";
+import { fetchProduct } from "../../utils/api";
+import { Product } from "../../types/product";
 
 export default function ProductPage() {
     const router = useRouter();

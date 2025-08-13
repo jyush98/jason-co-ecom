@@ -3,7 +3,7 @@
 
 import { motion } from "framer-motion";
 import { Product } from "@/types/product";
-import AddToCartButton from "@/components/AddToCartButton";
+import AddToCartButton from "@/components/cart/AddToCartButton";
 import { PRODUCT_CONFIG } from "@/config/productConfig";
 
 interface ProductInfoProps {

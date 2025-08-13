@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { JewelryImage } from "@/components/ui/OptimizedImage";
 import { Product } from "@/types/product";
-import AddToCartButton from "@/components/AddToCartButton";
+import AddToCartButton from "@/components/cart/AddToCartButton";
 import { SHOP_CONFIG } from "@/config/shopConfig";
 
 interface ProductCardProps {
