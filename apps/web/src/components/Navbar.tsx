@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Menu, X, ShoppingCart, Sun, Moon, User, ChevronDown } from "lucide-react";
-import { SignedIn, SignedOut, UserButton, useAuth } from "@clerk/nextjs";
+import { SignedIn, SignedOut, useAuth } from "@clerk/nextjs";
 import { useCartStore } from "@/app/store/cartStore";
 import { getCart } from "@/utils/cart";
 import { motion, AnimatePresence } from "framer-motion";
@@ -44,7 +44,7 @@ export default function Navbar() {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { getToken } = useAuth();
-  const { user } = useUser(); // Get user for AccountDropdown
+  // const { user } = useUser(); // Get user for AccountDropdown
   const cartCount = useCartStore((state) => state.cartCount);
   const setCartCount = useCartStore((state) => state.setCartCount);
 

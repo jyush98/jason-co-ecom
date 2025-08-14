@@ -6,7 +6,7 @@ import { useUser, useClerk } from '@clerk/nextjs';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     User,
-    ShoppingBag,
+    // ShoppingBag,
     Heart,
     Settings,
     LogOut,
