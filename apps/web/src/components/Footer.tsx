@@ -12,13 +12,13 @@ export default function Footer() {
   const socialLinks = [
     {
       icon: FaInstagram,
-      href: "https://www.instagram.com/jasonjeweler/",
+      href: "https://www.instagram.com/jasonjeweler",
       label: "Instagram",
       username: "@jasonjeweler"
     },
     {
       icon: FaTiktok,
-      href: "https://www.tiktok.com/@jasonjeweler?_t=ZP-8x4FKyhxJKZ&_r=1",
+      href: "https://www.tiktok.com/@jasonjeweler",
       label: "TikTok",
       username: "@jasonjeweler"
     },

@@ -14,33 +14,118 @@ const nextConfig: NextConfig = {
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
 
-    // Your existing domains + optimization
-    domains: [
-      // Your current domains
-      'media.istockphoto.com',
-      'www.nathanalanjewelers.com',
-      'www.longsjewelers.com',
-      'img.goodfon.com',
-      'hannahnaomi.com',
-      'shrinejewelry.com',
-      'media.gettyimages.com',
-      'royalparadisejewelry.com',
-      'cdn11.bigcommerce.com',
-      'faithheart-jewelry.com',
-      'www.shutterstock.com',
-      'johnnysaintstudio.com',
-      // Additional domains for optimization
-      'jasonjewels.com',
-      'www.jasonjewels.com',
-      'jasonandco.shop',
-      'www.jasonandco.shop',
-    ],
-
-    // Your existing remote patterns
+    // FIXED: Migrated all domains to remotePatterns (no more deprecated domains)
     remotePatterns: [
+      // AWS S3 bucket for inspiration images
       {
         protocol: 'https',
         hostname: 'jasonco-inspiration-images.s3.us-east-2.amazonaws.com',
+        pathname: '/**',
+      },
+      // Clerk authentication images
+      {
+        protocol: 'https',
+        hostname: 'img.clerk.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.clerk.dev',
+        port: '',
+        pathname: '/**',
+      },
+      // Stock photo and jewelry websites
+      {
+        protocol: 'https',
+        hostname: 'media.istockphoto.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.nathanalanjewelers.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.longsjewelers.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'img.goodfon.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'hannahnaomi.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'shrinejewelry.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'media.gettyimages.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'royalparadisejewelry.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn11.bigcommerce.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'faithheart-jewelry.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.shutterstock.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'johnnysaintstudio.com',
+        pathname: '/**',
+      },
+      // Jason & Co. domain variants
+      {
+        protocol: 'https',
+        hostname: 'jasonjewels.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.jasonjewels.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'jasonandco.shop',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.jasonandco.shop',
+        pathname: '/**',
+      },
+      // Common CDNs and image services
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'via.placeholder.com',
         pathname: '/**',
       },
     ],

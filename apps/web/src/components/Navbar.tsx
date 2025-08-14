@@ -10,6 +10,8 @@ import { getCart } from "@/utils/cart";
 import { motion, AnimatePresence } from "framer-motion";
 import FullScreenMenu from "@/components/FullScreenMenu";
 import { useTheme } from "next-themes";
+import { AccountDropdown } from "./navigation";
+import { useUser } from "@clerk/nextjs";
 
 const categories = [
   { name: "All Jewelry", path: "/shop" },
@@ -42,6 +44,7 @@ export default function Navbar() {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { getToken } = useAuth();
+  const { user } = useUser(); // Get user for AccountDropdown
   const cartCount = useCartStore((state) => state.cartCount);
   const setCartCount = useCartStore((state) => state.setCartCount);
 
@@ -233,7 +236,7 @@ export default function Navbar() {
                 </Link>
               </motion.div>
 
-              {/* Auth */}
+              {/* Enhanced Auth Section with AccountDropdown */}
               <SignedOut>
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Link
@@ -247,15 +250,8 @@ export default function Navbar() {
               </SignedOut>
 
               <SignedIn>
-                <div className="scale-110">
-                  <UserButton
-                    appearance={{
-                      elements: {
-                        avatarBox: "w-10 h-10 border-2 border-gold/30 hover:border-gold transition-colors duration-200"
-                      }
-                    }}
-                  />
-                </div>
+                {/* Account Dropdown - Complete account management */}
+                <AccountDropdown />
               </SignedIn>
             </div>
           </div>
