@@ -1,5 +1,4 @@
 // lib/api/client.ts - Updated for /api/v1 standardization
-import { auth } from '@clerk/nextjs/server';
 
 // API Configuration with versioning
 const API_VERSION = 'v1';
@@ -690,16 +689,7 @@ export class ApiClient {
             if (this.tokenProvider) {
                 return await this.tokenProvider.getToken();
             }
-
-            // For server-side usage (App Router)
-            if (typeof window === 'undefined') {
-                const authResult = await auth();
-                if (authResult.getToken) {
-                    return await authResult.getToken();
-                }
-                return null;
-            }
-
+    
             // For client-side usage, check if we're in a Clerk context
             if (typeof window !== 'undefined' && (window as any).__clerk) {
                 const clerk = (window as any).__clerk;
@@ -707,13 +697,16 @@ export class ApiClient {
                     return await clerk.session.getToken();
                 }
             }
-
+    
+            // Remove server-side auth() call for client compatibility
+            console.warn('No token provider available and not in browser context');
             return null;
         } catch (error) {
-            console.error('❌ Error getting auth token:', error);
+            console.error('Error getting auth token:', error);
             return null;
         }
     }
+    
 
     /**
      * Set a custom token provider for client-side usage
