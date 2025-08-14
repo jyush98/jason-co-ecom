@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import FullScreenMenu from "@/components/FullScreenMenu";
 import { useTheme } from "next-themes";
 import { AccountDropdown } from "./navigation";
-import { useUser } from "@clerk/nextjs";
+// import { useUser } from "@clerk/nextjs";
 
 const categories = [
   { name: "All Jewelry", path: "/shop" },
