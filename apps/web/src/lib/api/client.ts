@@ -1,5 +1,139 @@
-// lib/api/client.ts
+// lib/api/client.ts - Updated for /api/v1 standardization
 import { auth } from '@clerk/nextjs/server';
+
+// API Configuration with versioning
+const API_VERSION = 'v1';
+const API_PREFIX = `/api/${API_VERSION}`;
+
+// Centralized endpoint configuration
+export const ENDPOINTS = {
+    // Health endpoints
+    HEALTH: {
+        ROOT: '/',
+        BASIC: '/health',
+        V1: `${API_PREFIX}/health`,
+    },
+
+    // User endpoints
+    USERS: {
+        BASE: `${API_PREFIX}/users`,
+        PROFILE: (userId: string) => `${API_PREFIX}/users/${userId}`,
+        BY_CLERK_ID: (clerkId: string) => `${API_PREFIX}/users/${clerkId}`,
+        SYNC: `${API_PREFIX}/users/sync`,
+    },
+
+    // Product endpoints
+    PRODUCTS: {
+        BASE: `${API_PREFIX}/products`,
+        BY_ID: (productId: number) => `${API_PREFIX}/products/${productId}`,
+        SEARCH: `${API_PREFIX}/products/search`,
+        CATEGORIES: `${API_PREFIX}/products/categories`,
+    },
+
+    // Cart endpoints
+    CART: {
+        BASE: `${API_PREFIX}/cart`,
+        ADD: `${API_PREFIX}/cart/add`,
+        REMOVE: (productId: number) => `${API_PREFIX}/cart/remove/${productId}`,
+        UPDATE: (itemId: string) => `${API_PREFIX}/cart/items/${itemId}`,
+        CLEAR: `${API_PREFIX}/cart/clear`,
+    },
+
+    // Checkout endpoints
+    CHECKOUT: {
+        BASE: `${API_PREFIX}/checkout`,
+        CREATE_SESSION: `${API_PREFIX}/checkout/session`,
+        PROCESS: `${API_PREFIX}/checkout/process`,
+        CONFIRM: `${API_PREFIX}/checkout/confirm`,
+    },
+
+    // Order endpoints
+    ORDERS: {
+        BASE: `${API_PREFIX}/orders`,
+        BY_ID: (orderId: number) => `${API_PREFIX}/orders/${orderId}`,
+        BY_USER: (clerkId: string) => `${API_PREFIX}/orders/${clerkId}`,
+        STATUS: (orderId: number) => `${API_PREFIX}/orders/${orderId}/status`,
+    },
+
+    // Custom order endpoints
+    CUSTOM_ORDERS: {
+        BASE: `${API_PREFIX}/custom-orders`,
+        CREATE: `${API_PREFIX}/custom-orders`,
+        BY_ID: (orderId: string) => `${API_PREFIX}/custom-orders/${orderId}`,
+        SUBMIT: (orderId: string) => `${API_PREFIX}/custom-orders/${orderId}/submit`,
+    },
+
+    // Account endpoints
+    ACCOUNT: {
+        BASE: `${API_PREFIX}/account`,
+        PROFILE: `${API_PREFIX}/account/profile`,
+        SETTINGS: `${API_PREFIX}/account/settings`,
+        PASSWORD: `${API_PREFIX}/account/password`,
+    },
+
+    // Wishlist endpoints
+    WISHLIST: {
+        BASE: `${API_PREFIX}/wishlist`,
+        ADD_ITEM: `${API_PREFIX}/wishlist/add`,
+        REMOVE_ITEM: (productId: number) => `${API_PREFIX}/wishlist/remove/${productId}`,
+        UPDATE_ITEM: (itemId: number) => `${API_PREFIX}/wishlist/items/${itemId}`,
+        CHECK: (productId: number) => `${API_PREFIX}/wishlist/check/${productId}`,
+        COLLECTIONS: `${API_PREFIX}/wishlist/collections`,
+        STATS: `${API_PREFIX}/wishlist/stats`,
+        BULK_ADD_TO_CART: `${API_PREFIX}/wishlist/bulk/add-to-cart`,
+        BULK_REMOVE: `${API_PREFIX}/wishlist/bulk/remove`,
+    },
+
+    // Payment endpoints
+    PAYMENT: {
+        BASE: `${API_PREFIX}/payment`,
+        CREATE_INTENT: `${API_PREFIX}/payment/create-intent`,
+        CONFIRM: `${API_PREFIX}/payment/confirm`,
+        SUBMIT_ORDER: `${API_PREFIX}/payment/submit-order`,
+    },
+
+    // Contact endpoints
+    CONTACT: {
+        BASE: `${API_PREFIX}/contact`,
+        INQUIRY: `${API_PREFIX}/contact/inquiry`,
+        SUBMIT: `${API_PREFIX}/contact/submit`,
+    },
+
+    // Notification endpoints
+    NOTIFICATIONS: {
+        BASE: `${API_PREFIX}/notifications`,
+        PREFERENCES: `${API_PREFIX}/notifications/preferences`,
+    },
+
+    // Admin endpoints
+    ADMIN: {
+        BASE: `${API_PREFIX}/admin`,
+        DASHBOARD: `${API_PREFIX}/admin/dashboard`,
+        ANALYTICS: {
+            BASE: `${API_PREFIX}/admin/analytics`,
+            REVENUE: `${API_PREFIX}/admin/analytics/revenue`,
+            CUSTOMERS: `${API_PREFIX}/admin/analytics/customers`,
+            PRODUCTS: `${API_PREFIX}/admin/analytics/products`,
+            GEOGRAPHIC: `${API_PREFIX}/admin/analytics/geographic`,
+        },
+    },
+
+    // Legacy endpoints (for backward compatibility during transition)
+    LEGACY: {
+        CART: '/cart',
+        CART_ADD: '/cart/add',
+        CART_REMOVE: (productId: number) => `/cart/remove/${productId}`,
+        CHECKOUT: '/checkout',
+        PRODUCTS: '/products',
+        PRODUCTS_BY_ID: (productId: number) => `/products/${productId}`,
+        USER_BY_ID: (clerkId: string) => `/api/user/${clerkId}`,
+        USER_SYNC: '/api/user/sync',
+        ORDERS_BY_USER: (clerkId: string) => `/api/orders/${clerkId}`,
+        ORDERS_BY_ID: (orderId: number) => `/api/orders/${orderId}`,
+        ORDERS_CREATE: '/api/orders',
+        CONTACT_INQUIRY: '/api/contact/inquiry',
+    }
+};
 
 // Client-side token provider interface
 interface TokenProvider {
@@ -15,6 +149,7 @@ interface ApiClientConfig {
     enableCache: boolean;
     cacheTimeout: number;
     tokenProvider?: TokenProvider;
+    useLegacyEndpoints?: boolean; // For transition period
 }
 
 // Request context interface
@@ -41,6 +176,7 @@ export class ApiClient {
             retryDelay: 1000,
             enableCache: true,
             cacheTimeout: 300000, // 5 minutes
+            useLegacyEndpoints: process.env.NEXT_PUBLIC_USE_LEGACY_API === 'true',
             ...config,
         };
 
@@ -50,6 +186,21 @@ export class ApiClient {
 
         this.requestCache = new Map();
         this.tokenProvider = config?.tokenProvider;
+
+        console.log('🚀 Jason & Co. API Client initialized');
+        console.log(`📡 Base URL: ${this.config.baseURL}`);
+        console.log(`📋 API Version: ${API_VERSION}`);
+        console.log(`🔄 Legacy Mode: ${this.config.useLegacyEndpoints ? 'ON' : 'OFF'}`);
+    }
+
+    // ✅ NEW: Utility method to choose between v1 and legacy endpoints
+    private getEndpoint(v1Endpoint: string, legacyEndpoint?: string): string {
+        if (this.config.useLegacyEndpoints && legacyEndpoint) {
+            console.log(`📍 Using legacy endpoint: ${legacyEndpoint}`);
+            return legacyEndpoint;
+        }
+        console.log(`📍 Using v1 endpoint: ${v1Endpoint}`);
+        return v1Endpoint;
     }
 
     /**
@@ -73,7 +224,7 @@ export class ApiClient {
             if (method === 'GET' && this.config.enableCache) {
                 const cached = this.getCachedResponse(endpoint);
                 if (cached) {
-                    console.log(`Cache hit for ${endpoint}`);
+                    console.log(`💾 Cache hit for ${endpoint}`);
                     return cached;
                 }
             }
@@ -83,7 +234,7 @@ export class ApiClient {
                 ? `${this.config.baseURL}${endpoint}?${new URLSearchParams(data).toString()}`
                 : `${this.config.baseURL}${endpoint}`;
 
-            console.log(`API Request: ${method} ${url}`);
+            console.log(`🔍 API Request: ${method} ${url}`);
 
             // Create abort controller for timeout
             const controller = new AbortController();
@@ -118,15 +269,15 @@ export class ApiClient {
                 this.setCachedResponse(endpoint, responseData);
             }
 
-            console.log(`API Response: Success for ${endpoint}`);
+            console.log(`✅ API Response: Success for ${endpoint}`);
             return responseData;
 
         } catch (error) {
-            console.error(`API Request Failed: ${method} ${endpoint}`, error);
+            console.error(`❌ API Request Failed: ${method} ${endpoint}`, error);
 
             // Handle network/timeout errors with retry
             if (retryCount < this.config.retryAttempts && this.shouldRetry(error)) {
-                console.log(`Retrying request (attempt ${retryCount + 1}/${this.config.retryAttempts})`);
+                console.log(`🔄 Retrying request (attempt ${retryCount + 1}/${this.config.retryAttempts})`);
                 await this.delay(this.config.retryDelay * Math.pow(2, retryCount)); // Exponential backoff
 
                 return this.request({
@@ -183,31 +334,40 @@ export class ApiClient {
     }
 
     /**
-     * Domain-specific API methods
+     * ✅ UPDATED: Domain-specific API methods using standardized endpoints
      */
 
     // Product API methods
     async getProducts(filters: ProductFilters): Promise<ProductListResponse> {
         try {
-            const response = await this.get<any>('/products', filters);
+            // ✅ Use standardized endpoint with legacy fallback
+            const endpoint = this.getEndpoint(ENDPOINTS.PRODUCTS.BASE, ENDPOINTS.LEGACY.PRODUCTS);
+            const response = await this.get<any>(endpoint, filters);
 
             // Normalize response to consistent format
-            return {
+            const result = {
                 products: Array.isArray(response) ? response : (response.products || response.items || []),
                 total: response.total || response.count || (Array.isArray(response) ? response.length : 0),
                 page: response.page || filters.page || 1,
                 page_size: response.page_size || response.pageSize || filters.pageSize || 10,
                 total_pages: Math.ceil((response.total || 0) / (filters.pageSize || 10)),
+                has_next: response.has_next || false,
+                has_prev: response.has_prev || false,
                 filters_applied: filters,
             };
+
+            console.log('📦 Products loaded:', result.products.length, 'of', result.total);
+            return result;
         } catch (error) {
-            console.error('Error fetching products:', error);
+            console.error('❌ Error fetching products:', error);
             return {
                 products: [],
                 total: 0,
                 page: 1,
                 page_size: 10,
                 total_pages: 0,
+                has_next: false,
+                has_prev: false,
                 filters_applied: filters,
             };
         }
@@ -215,9 +375,16 @@ export class ApiClient {
 
     async getProduct(id: number): Promise<Product | null> {
         try {
-            return await this.get<Product>(`/products/${id}`);
+            // ✅ Use standardized endpoint with legacy fallback
+            const endpoint = this.getEndpoint(
+                ENDPOINTS.PRODUCTS.BY_ID(id),
+                ENDPOINTS.LEGACY.PRODUCTS_BY_ID(id)
+            );
+            const product = await this.get<Product>(endpoint);
+            console.log('📦 Product loaded:', product.name);
+            return product;
         } catch (error) {
-            console.error(`Error fetching product ${id}:`, error);
+            console.error(`❌ Error fetching product ${id}:`, error);
             return null;
         }
     }
@@ -225,23 +392,40 @@ export class ApiClient {
     // Order API methods
     async getOrders(userId?: string): Promise<Order[]> {
         try {
-            const endpoint = userId ? `/api/orders/${userId}` : '/api/orders';
-            return await this.get<Order[]>(endpoint);
+            // ✅ Use standardized endpoint with legacy fallback
+            const endpoint = userId
+                ? this.getEndpoint(ENDPOINTS.ORDERS.BY_USER(userId), ENDPOINTS.LEGACY.ORDERS_BY_USER(userId))
+                : this.getEndpoint(ENDPOINTS.ORDERS.BASE, ENDPOINTS.LEGACY.ORDERS_BY_USER(''));
+
+            const orders = await this.get<Order[]>(endpoint);
+            console.log('📄 Orders loaded:', orders.length, 'orders');
+            return orders;
         } catch (error) {
-            console.error('Error fetching orders:', error);
+            console.error('❌ Error fetching orders:', error);
             return [];
         }
     }
 
     async createOrder(data: OrderCreateRequest): Promise<Order> {
-        return this.post<Order>('/api/orders', data);
+        // ✅ Use standardized endpoint with legacy fallback
+        const endpoint = this.getEndpoint(ENDPOINTS.ORDERS.BASE, ENDPOINTS.LEGACY.ORDERS_CREATE);
+        const order = await this.post<Order>(endpoint, data);
+        console.log('📄 Order created:', order.id);
+        return order;
     }
 
     async getOrder(orderId: number): Promise<Order | null> {
         try {
-            return await this.get<Order>(`/api/orders/${orderId}`);
+            // ✅ Use standardized endpoint with legacy fallback
+            const endpoint = this.getEndpoint(
+                ENDPOINTS.ORDERS.BY_ID(orderId),
+                ENDPOINTS.LEGACY.ORDERS_BY_ID(orderId)
+            );
+            const order = await this.get<Order>(endpoint);
+            console.log('📄 Order loaded:', order.id, order.status);
+            return order;
         } catch (error) {
-            console.error(`Error fetching order ${orderId}:`, error);
+            console.error(`❌ Error fetching order ${orderId}:`, error);
             return null;
         }
     }
@@ -249,7 +433,9 @@ export class ApiClient {
     // Cart API methods
     async getCart(): Promise<Cart> {
         try {
-            const cartData = await this.get<CartItem[]>('/cart');
+            // ✅ Use standardized endpoint with legacy fallback
+            const endpoint = this.getEndpoint(ENDPOINTS.CART.BASE, ENDPOINTS.LEGACY.CART);
+            const cartData = await this.get<CartItem[]>(endpoint);
 
             // Transform array response to Cart object
             const subtotal = cartData.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
@@ -264,9 +450,10 @@ export class ApiClient {
                 last_updated: new Date().toISOString(),
             };
 
+            console.log('🛒 Cart loaded:', cart.item_count, 'items');
             return cart;
         } catch (error) {
-            console.error('Error fetching cart:', error);
+            console.error('❌ Error fetching cart:', error);
             return {
                 items: [],
                 subtotal: 0,
@@ -282,14 +469,18 @@ export class ApiClient {
 
     async addToCart(productId: number, quantity: number): Promise<CartActionResult> {
         try {
+            // ✅ Use standardized endpoint with legacy fallback
+            const endpoint = this.getEndpoint(ENDPOINTS.CART.ADD, ENDPOINTS.LEGACY.CART_ADD);
+
             // Fixed: Check if response contains updated cart to avoid second API call
-            const addResponse = await this.post<any>('/cart/add', {
+            const addResponse = await this.post<any>(endpoint, {
                 product_id: productId,
                 quantity,
             });
 
             // If backend returns updated cart in response, use it
             if (addResponse.cart) {
+                console.log('🛒 Item added to cart:', productId, 'x', quantity);
                 return {
                     success: true,
                     cart: addResponse.cart,
@@ -300,13 +491,14 @@ export class ApiClient {
             // Fallback: fetch cart if not included in add response
             const cart = await this.getCart();
 
+            console.log('🛒 Item added to cart:', productId, 'x', quantity);
             return {
                 success: true,
                 cart,
                 message: 'Item added to cart successfully',
             };
         } catch (error) {
-            console.error('Error adding to cart:', error);
+            console.error('❌ Error adding to cart:', error);
             return {
                 success: false,
                 error: error instanceof ApiError ? error.message : 'Failed to add item to cart',
@@ -316,16 +508,23 @@ export class ApiClient {
 
     async removeFromCart(productId: number): Promise<CartActionResult> {
         try {
-            await this.delete(`/cart/remove/${productId}`);
+            // ✅ Use standardized endpoint with legacy fallback
+            const endpoint = this.getEndpoint(
+                ENDPOINTS.CART.REMOVE(productId),
+                ENDPOINTS.LEGACY.CART_REMOVE(productId)
+            );
+
+            await this.delete(endpoint);
             const cart = await this.getCart(); // Get updated cart
 
+            console.log('🛒 Item removed from cart:', productId);
             return {
                 success: true,
                 cart,
                 message: 'Item removed from cart',
             };
         } catch (error) {
-            console.error('Error removing from cart:', error);
+            console.error('❌ Error removing from cart:', error);
             return {
                 success: false,
                 error: error instanceof ApiError ? error.message : 'Failed to remove item from cart',
@@ -333,28 +532,149 @@ export class ApiClient {
         }
     }
 
+    // ✅ NEW: Additional cart methods for v1 API
+    async updateCartItem(itemId: string, quantity: number): Promise<CartActionResult> {
+        try {
+            const endpoint = ENDPOINTS.CART.UPDATE(itemId);
+            await this.put(endpoint, { quantity });
+            const cart = await this.getCart();
+
+            console.log('🛒 Cart item updated:', itemId, 'quantity:', quantity);
+            return {
+                success: true,
+                cart,
+                message: 'Cart item updated successfully',
+            };
+        } catch (error) {
+            console.error('❌ Error updating cart item:', error);
+            return {
+                success: false,
+                error: error instanceof ApiError ? error.message : 'Failed to update cart item',
+            };
+        }
+    }
+
+    async clearCart(): Promise<CartActionResult> {
+        try {
+            const endpoint = ENDPOINTS.CART.CLEAR;
+            await this.delete(endpoint);
+
+            console.log('🛒 Cart cleared');
+            return {
+                success: true,
+                cart: {
+                    items: [],
+                    subtotal: 0,
+                    tax: 0,
+                    shipping: 0,
+                    total: 0,
+                    item_count: 0,
+                    currency: 'USD',
+                    last_updated: new Date().toISOString(),
+                },
+                message: 'Cart cleared successfully',
+            };
+        } catch (error) {
+            console.error('❌ Error clearing cart:', error);
+            return {
+                success: false,
+                error: error instanceof ApiError ? error.message : 'Failed to clear cart',
+            };
+        }
+    }
+
     // User API methods
     async syncUserWithClerk(clerkData: any): Promise<User | null> {
         try {
-            return await this.post<User>('/api/user/sync', {
+            // ✅ Use standardized endpoint with legacy fallback
+            const endpoint = this.getEndpoint(ENDPOINTS.USERS.SYNC, ENDPOINTS.LEGACY.USER_SYNC);
+
+            const user = await this.post<User>(endpoint, {
                 clerk_id: clerkData.id,
                 email: clerkData.emailAddresses?.[0]?.emailAddress || clerkData.email,
                 first_name: clerkData.firstName,
                 last_name: clerkData.lastName,
                 image_url: clerkData.imageUrl,
             });
+
+            console.log('👤 User synced with Clerk:', user.email);
+            return user;
         } catch (error) {
-            console.error('Error syncing user with Clerk:', error);
+            console.error('❌ Error syncing user with Clerk:', error);
             return null;
         }
     }
 
     async getUser(clerkId: string): Promise<User | null> {
         try {
-            return await this.get<User>(`/api/user/${clerkId}`);
+            // ✅ Use standardized endpoint with legacy fallback
+            const endpoint = this.getEndpoint(
+                ENDPOINTS.USERS.BY_CLERK_ID(clerkId),
+                ENDPOINTS.LEGACY.USER_BY_ID(clerkId)
+            );
+
+            const user = await this.get<User>(endpoint);
+            console.log('👤 User loaded:', user.email);
+            return user;
         } catch (error) {
-            console.error(`Error fetching user ${clerkId}:`, error);
+            console.error(`❌ Error fetching user ${clerkId}:`, error);
             return null;
+        }
+    }
+
+    // ✅ NEW: Admin Analytics methods
+    async getAdminAnalytics(type: 'revenue' | 'customers' | 'products' | 'geographic'): Promise<any> {
+        try {
+            let endpoint: string;
+            switch (type) {
+                case 'revenue':
+                    endpoint = ENDPOINTS.ADMIN.ANALYTICS.REVENUE;
+                    break;
+                case 'customers':
+                    endpoint = ENDPOINTS.ADMIN.ANALYTICS.CUSTOMERS;
+                    break;
+                case 'products':
+                    endpoint = ENDPOINTS.ADMIN.ANALYTICS.PRODUCTS;
+                    break;
+                case 'geographic':
+                    endpoint = ENDPOINTS.ADMIN.ANALYTICS.GEOGRAPHIC;
+                    break;
+                default:
+                    throw new Error(`Unknown analytics type: ${type}`);
+            }
+
+            const analytics = await this.get(endpoint);
+            console.log(`📊 ${type} analytics loaded`);
+            return analytics;
+        } catch (error) {
+            console.error(`❌ Error fetching ${type} analytics:`, error);
+            throw error;
+        }
+    }
+
+    // ✅ NEW: Contact methods
+    async submitContactInquiry(data: any): Promise<any> {
+        try {
+            const endpoint = this.getEndpoint(ENDPOINTS.CONTACT.INQUIRY, ENDPOINTS.LEGACY.CONTACT_INQUIRY);
+            const response = await this.post(endpoint, data);
+            console.log('📧 Contact inquiry submitted');
+            return response;
+        } catch (error) {
+            console.error('❌ Error submitting contact inquiry:', error);
+            throw error;
+        }
+    }
+
+    // ✅ NEW: Health check method
+    async checkHealth(): Promise<{ status: string;[key: string]: any }> {
+        try {
+            const endpoint = ENDPOINTS.HEALTH.V1;
+            const health = await this.get<{ status: string;[key: string]: any }>(endpoint);
+            console.log('💚 API health check:', health.status);
+            return health;
+        } catch (error) {
+            console.error('❌ API health check failed:', error);
+            throw error;
         }
     }
 
@@ -390,7 +710,7 @@ export class ApiClient {
 
             return null;
         } catch (error) {
-            console.error('Error getting auth token:', error);
+            console.error('❌ Error getting auth token:', error);
             return null;
         }
     }
@@ -400,6 +720,14 @@ export class ApiClient {
      */
     setTokenProvider(provider: TokenProvider): void {
         this.tokenProvider = provider;
+    }
+
+    /**
+     * Enable or disable legacy endpoint usage
+     */
+    setLegacyMode(enabled: boolean): void {
+        this.config.useLegacyEndpoints = enabled;
+        console.log(`🔄 Legacy mode ${enabled ? 'enabled' : 'disabled'}`);
     }
 
     private delay(ms: number): Promise<void> {
@@ -518,6 +846,8 @@ interface ProductListResponse {
     page: number;
     page_size: number;
     total_pages: number;
+    has_next: boolean;
+    has_prev: boolean;
     filters_applied: ProductFilters;
 }
 
@@ -583,3 +913,5 @@ export const useApiClient = () => {
     // return createClientApiClient({ getToken });
     return apiClient;
 };
+
+console.log('🎯 Updated Jason & Co. API Client with /api/v1 standardization and legacy fallback');

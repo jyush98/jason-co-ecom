@@ -16,6 +16,7 @@ import { useAuth } from "@clerk/nextjs";
 import { formatCartPrice } from "@/config/cartConfig";
 import { Cart, CheckoutFormData, ShippingMethod } from "@/types/cart";
 import { JewelryImage } from "../ui/OptimizedImage";
+import { apiClient, ENDPOINTS } from '@/lib/api/client';
 
 interface OrderReviewProps {
     cart: Cart;
@@ -48,42 +49,35 @@ export default function OrderReview({
         try {
             const token = await getToken();
 
-            // Submit the order to your backend
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/payment/submit-order`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    shipping_address: formData.shipping_address,
-                    billing_address: formData.billing_address || formData.shipping_address,
-                    shipping_method: shippingMethod,
-                    payment_method: formData.payment_method,
-                    gift_options: formData.gift_options,
-                    order_notes: formData.order_notes,
-                    payment_intent_id: formData.payment_method?.id // From successful payment
-                }),
+            // ✅ FIXED: Use the standardized API client instead of direct fetch
+            const clientWithAuth = apiClient;
+            clientWithAuth.setTokenProvider({ getToken: async () => token });
+
+            const response = await clientWithAuth.post(ENDPOINTS.PAYMENT.SUBMIT_ORDER || '/payment/submit-order', {
+                shipping_address: formData.shipping_address,
+                billing_address: formData.billing_address || formData.shipping_address,
+                shipping_method: shippingMethod,
+                payment_method: formData.payment_method,
+                gift_options: formData.gift_options,
+                order_notes: formData.order_notes,
+                payment_intent_id: formData.payment_method?.id // From successful payment
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || 'Order submission failed');
-            }
-
-            const result = await response.json();
-            console.log('Order submitted successfully:', result);
+            console.log('Order submitted successfully:', response);
 
             // Call onPlaceOrder with the order data for analytics tracking
-            onPlaceOrder(result);
+            onPlaceOrder(response);
 
         } catch (error) {
-            console.error('Order submission error:', error);
+            if (process.env.NODE_ENV === 'development') {
+                console.error('Order submission error:', error);
+            }
             setSubmitError(error instanceof Error ? error.message : 'Failed to place order. Please try again.');
         } finally {
             setIsSubmitting(false);
         }
     };
+
 
     const containerVariants = {
         hidden: { opacity: 0, y: 20 },

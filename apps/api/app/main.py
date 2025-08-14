@@ -1,11 +1,5 @@
-from fastapi import FastAPI, Depends, Query, Request
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import Depends
-from sqlalchemy import asc, desc
-from sqlalchemy.orm import Session
-from app.core.db import get_db
-from app.models.product import Product
-from typing import Optional
 from app.routes.clerk_webhooks import router as clerk_webhook_router
 from app.routes.stripe_webhooks import router as stripe_webhook_router
 from app.routes.user import router as user_router
@@ -38,26 +32,29 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# In your main.py file, you already have:
 API_V1 = "/api/v1"
 
-app.include_router(clerk_webhook_router, tags=["Clerk Webhooks"])
-app.include_router(stripe_webhook_router, tags=["Stripe Webhooks"])
-app.include_router(user_router, prefix="/api", tags=["User"])
-app.include_router(cart_router, prefix="/cart", tags=["Cart"])
-app.include_router(checkout_router, prefix="/checkout", tags=["Checkout"])
-app.include_router(products_router, prefix="/api", tags=["Products"])
-app.include_router(order_router, prefix="/api", tags=["Orders"])
-app.include_router(custom_order_router)
-app.include_router(admin_router, prefix="/api/admin", tags=["Admin"])
-app.include_router(payment_router, prefix="/payment", tags=["Payment"])
-app.include_router(wishlist_router, prefix="/wishlist", tags=["Wishlist"])
-app.include_router(account_router, prefix="/account", tags=["Account"])
-app.include_router(account_settings_router, prefix="/account", tags=["Account Settings"])
-app.include_router(notification_preferences_router, prefix="/account", tags=["Notification Preferences"])
-app.include_router(contact_router, tags=["Contact"])
-
+app.include_router(user_router, prefix=f"{API_V1}/users", tags=["Users"])
+app.include_router(cart_router, prefix=f"{API_V1}/cart", tags=["Cart"])
+app.include_router(checkout_router, prefix=f"{API_V1}/checkout", tags=["Checkout"])
+app.include_router(products_router, prefix=f"{API_V1}/products", tags=["Products"])
+app.include_router(order_router, prefix=f"{API_V1}/orders", tags=["Orders"])
+app.include_router(custom_order_router, prefix=f"{API_V1}/custom-orders", tags=["Custom Orders"])
+app.include_router(payment_router, prefix=f"{API_V1}/payment", tags=["Payment"])
+app.include_router(wishlist_router, prefix=f"{API_V1}/wishlist", tags=["Wishlist"])
+app.include_router(account_router, prefix=f"{API_V1}/account", tags=["Account"])
+app.include_router(account_settings_router, prefix=f"{API_V1}/account/settings", tags=["Account Settings"])
+app.include_router(notification_preferences_router, prefix=f"{API_V1}/notifications", tags=["Notifications"])
+app.include_router(contact_router, prefix=f"{API_V1}/contact", tags=["Contact"])
+app.include_router(admin_router, prefix=f"{API_V1}/admin", tags=["Admin"])
 app.include_router(admin_analytics_router, prefix=f"{API_V1}/admin/analytics", tags=["Admin Analytics"])
 
+# Legacy routes for backward compatibility:
+app.include_router(cart_router, prefix="/cart", tags=["Cart (Legacy)"])
+app.include_router(checkout_router, prefix="/checkout", tags=["Checkout (Legacy)"])
+app.include_router(products_router, prefix="/api", tags=["Products (Legacy)"])
+# app.include_router(wishlist_router, prefix="/wishlist", tags=["Wishlist (Legacy)"])
 
 
 @app.get("/")

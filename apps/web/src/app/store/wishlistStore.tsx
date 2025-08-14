@@ -1,7 +1,8 @@
-// app/store/wishlistStore.ts - Wishlist State Management for Jason & Co.
+// app/store/wishlistStore.ts - Updated to use standardized API client
 
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
+import { apiClient, ENDPOINTS } from '@/lib/api/client';
 
 // Types
 export interface WishlistItem {
@@ -86,7 +87,12 @@ interface WishlistState {
     reset: () => void;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+// Helper function to get authenticated API client
+const getAuthenticatedClient = (token: string) => {
+    const client = apiClient;
+    client.setTokenProvider({ getToken: async () => token });
+    return client;
+};
 
 export const useWishlistStore = create<WishlistState>()(
     devtools(
@@ -107,18 +113,12 @@ export const useWishlistStore = create<WishlistState>()(
                     if (collection) params.append('collection', collection);
                     params.append('limit', '100'); // Get more items for better UX
 
-                    const response = await fetch(`${API_BASE_URL}/wishlist?${params}`, {
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json',
-                        },
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`Failed to fetch wishlist: ${response.statusText}`);
-                    }
-
-                    const items: WishlistItem[] = await response.json();
+                    // ✅ UPDATED: Use standardized API client
+                    const endpoint = params.toString() 
+                        ? `${ENDPOINTS.WISHLIST.BASE}?${params.toString()}`
+                        : ENDPOINTS.WISHLIST.BASE;
+                    
+                    const items: WishlistItem[] = await getAuthenticatedClient(token).get(endpoint);
                     set({ items, isLoading: false });
 
                 } catch (error) {
@@ -131,18 +131,10 @@ export const useWishlistStore = create<WishlistState>()(
             // Fetch collections
             fetchCollections: async (token: string) => {
                 try {
-                    const response = await fetch(`${API_BASE_URL}/wishlist/collections`, {
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json',
-                        },
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`Failed to fetch collections: ${response.statusText}`);
-                    }
-
-                    const collections: WishlistCollection[] = await response.json();
+                    // ✅ UPDATED: Use standardized API client
+                    const collections: WishlistCollection[] = await getAuthenticatedClient(token).get(
+                        `${ENDPOINTS.WISHLIST.BASE}/collections`
+                    );
                     set({ collections });
 
                 } catch (error) {
@@ -154,18 +146,10 @@ export const useWishlistStore = create<WishlistState>()(
             // Fetch stats
             fetchStats: async (token: string) => {
                 try {
-                    const response = await fetch(`${API_BASE_URL}/wishlist/stats`, {
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json',
-                        },
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`Failed to fetch wishlist stats: ${response.statusText}`);
-                    }
-
-                    const stats: WishlistStats = await response.json();
+                    // ✅ UPDATED: Use standardized API client
+                    const stats: WishlistStats = await getAuthenticatedClient(token).get(
+                        `${ENDPOINTS.WISHLIST.BASE}/stats`
+                    );
                     set({ stats });
 
                 } catch (error) {
@@ -197,25 +181,16 @@ export const useWishlistStore = create<WishlistState>()(
                 set({ items: [tempItem, ...items] });
 
                 try {
-                    const response = await fetch(`${API_BASE_URL}/wishlist/add`, {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
+                    // ✅ UPDATED: Use standardized API client
+                    const result = await getAuthenticatedClient(token).post(
+                        ENDPOINTS.WISHLIST.ADD_ITEM,
+                        {
                             product_id: productId,
                             notes: options.notes,
                             collection_name: options.collection_name,
                             priority: options.priority || 3,
-                        }),
-                    });
-
-                    const result = await response.json();
-
-                    if (!response.ok) {
-                        throw new Error(result.detail || 'Failed to add to wishlist');
-                    }
+                        }
+                    );
 
                     // Refresh wishlist to get accurate data
                     await get().fetchWishlist(token);
@@ -225,7 +200,7 @@ export const useWishlistStore = create<WishlistState>()(
 
                     return {
                         success: true,
-                        message: result.message || 'Added to wishlist!'
+                        message: (result as { message?: string }) || 'Added to wishlist!'
                     };
 
                 } catch (error) {
@@ -251,18 +226,10 @@ export const useWishlistStore = create<WishlistState>()(
                 set({ items: items.filter(item => item.product_id !== productId) });
 
                 try {
-                    const response = await fetch(`${API_BASE_URL}/wishlist/remove/${productId}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                        },
-                    });
-
-                    const result = await response.json();
-
-                    if (!response.ok) {
-                        throw new Error(result.detail || 'Failed to remove from wishlist');
-                    }
+                    // ✅ UPDATED: Use standardized API client
+                    await getAuthenticatedClient(token).delete(
+                        ENDPOINTS.WISHLIST.REMOVE_ITEM(productId)
+                    );
 
                     // Update stats
                     await get().fetchStats(token);
@@ -297,20 +264,11 @@ export const useWishlistStore = create<WishlistState>()(
                 set({ items: updatedItems });
 
                 try {
-                    const response = await fetch(`${API_BASE_URL}/wishlist/items/${itemId}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(updates),
-                    });
-
-                    const result = await response.json();
-
-                    if (!response.ok) {
-                        throw new Error(result.detail || 'Failed to update wishlist item');
-                    }
+                    // ✅ UPDATED: Use standardized API client
+                    await getAuthenticatedClient(token).put(
+                        `${ENDPOINTS.WISHLIST.BASE}/items/${itemId}`,
+                        updates
+                    );
 
                     return { success: true };
 
@@ -331,29 +289,11 @@ export const useWishlistStore = create<WishlistState>()(
             // Check if product is in wishlist
             checkProductInWishlist: async (token: string, productId: number) => {
                 try {
-                    const response = await fetch(`${API_BASE_URL}/wishlist/check/${productId}`, {
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json',
-                        },
-                    });
-
-                    if (!response.ok) {
-                        // Handle different error cases gracefully
-                        if (response.status === 401) {
-                            console.warn('User not authenticated for wishlist check');
-                            return { in_wishlist: false };
-                        }
-                        if (response.status === 404) {
-                            // Either user or product not found - treat as not in wishlist
-                            return { in_wishlist: false };
-                        }
-                        // For other errors, log but don't throw
-                        console.warn(`Wishlist check failed with status ${response.status}`);
-                        return { in_wishlist: false };
-                    }
-
-                    return await response.json();
+                    // ✅ UPDATED: Use standardized API client
+                    const result = await getAuthenticatedClient(token).get(
+                        `${ENDPOINTS.WISHLIST.BASE}/check/${productId}`
+                    );
+                    return result;
 
                 } catch (error) {
                     // Network errors, CORS, etc. - fail silently
@@ -365,20 +305,11 @@ export const useWishlistStore = create<WishlistState>()(
             // Create collection
             createCollection: async (token: string, data) => {
                 try {
-                    const response = await fetch(`${API_BASE_URL}/wishlist/collections`, {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(data),
-                    });
-
-                    const result = await response.json();
-
-                    if (!response.ok) {
-                        throw new Error(result.detail || 'Failed to create collection');
-                    }
+                    // ✅ UPDATED: Use standardized API client
+                    await getAuthenticatedClient(token).post(
+                        `${ENDPOINTS.WISHLIST.BASE}/collections`,
+                        data
+                    );
 
                     // Refresh collections
                     await get().fetchCollections(token);
@@ -397,18 +328,10 @@ export const useWishlistStore = create<WishlistState>()(
             // Delete collection
             deleteCollection: async (token: string, collectionId: number) => {
                 try {
-                    const response = await fetch(`${API_BASE_URL}/wishlist/collections/${collectionId}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                        },
-                    });
-
-                    const result = await response.json();
-
-                    if (!response.ok) {
-                        throw new Error(result.detail || 'Failed to delete collection');
-                    }
+                    // ✅ UPDATED: Use standardized API client
+                    await getAuthenticatedClient(token).delete(
+                        `${ENDPOINTS.WISHLIST.BASE}/collections/${collectionId}`
+                    );
 
                     // Refresh collections and wishlist
                     await Promise.all([
@@ -430,20 +353,11 @@ export const useWishlistStore = create<WishlistState>()(
             // Bulk add to cart
             bulkAddToCart: async (token: string, productIds: number[]) => {
                 try {
-                    const response = await fetch(`${API_BASE_URL}/wishlist/bulk/add-to-cart`, {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(productIds),
-                    });
-
-                    const result = await response.json();
-
-                    if (!response.ok) {
-                        throw new Error(result.detail || 'Failed to add items to cart');
-                    }
+                    // ✅ UPDATED: Use standardized API client
+                    await getAuthenticatedClient(token).post(
+                        `${ENDPOINTS.WISHLIST.BASE}/bulk/add-to-cart`,
+                        productIds
+                    );
 
                     return { success: true };
 
@@ -467,20 +381,12 @@ export const useWishlistStore = create<WishlistState>()(
                 });
 
                 try {
-                    const response = await fetch(`${API_BASE_URL}/wishlist/bulk/remove`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(productIds),
-                    });
-
-                    const result = await response.json();
-
-                    if (!response.ok) {
-                        throw new Error(result.detail || 'Failed to remove items from wishlist');
-                    }
+                    // ✅ UPDATED: Use standardized API client
+                    await getAuthenticatedClient(token).post(
+                        `${ENDPOINTS.WISHLIST.BASE}/bulk/remove`,
+                        productIds
+                    );
+                    
 
                     // Update stats
                     await get().fetchStats(token);

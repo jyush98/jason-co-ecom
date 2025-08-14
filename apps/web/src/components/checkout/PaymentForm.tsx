@@ -9,6 +9,7 @@ import { useAuth, useUser } from "@clerk/nextjs";
 import { CART_CONFIG } from "@/config/cartConfig";
 import { PaymentMethod, CheckoutFormData, ShippingAddress } from "@/types/cart";
 import { useTheme } from "next-themes";
+import { apiClient, ENDPOINTS } from '@/lib/api/client';
 
 interface PaymentFormProps {
     formData: Partial<CheckoutFormData>;
@@ -56,28 +57,20 @@ export default function PaymentForm({
     const createPaymentIntent = async () => {
         try {
             const token = await getToken();
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/payment/create-intent`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    amount: Math.round(orderTotal), // Convert to cents
-                    currency: 'usd',
-                    shipping_address: formData.shipping_address,
-                }),
+
+            // ✅ FIXED: Use the standardized API client instead of direct fetch
+            const clientWithAuth = apiClient;
+            clientWithAuth.setTokenProvider({ getToken: async () => token });
+
+            const response = await clientWithAuth.post(ENDPOINTS.PAYMENT.CREATE_INTENT, {
+                amount: Math.round(orderTotal), // Convert to cents
+                currency: 'usd',
+                shipping_address: formData.shipping_address,
             });
 
-            if (!response.ok) {
-                const errorData = await response.text();
-                console.error('Payment intent error:', response.status, errorData);
-                throw new Error(`Failed to create payment intent: ${response.status}`);
-            }
-
-            const { client_secret, payment_intent_id } = await response.json();
-            setPaymentIntentClientSecret(client_secret);
-            console.log('PaymentIntent created:', payment_intent_id);
+            const typedResponse = response as { client_secret: string; payment_intent_id: string };
+            setPaymentIntentClientSecret(typedResponse.client_secret);
+            console.log('PaymentIntent created:', typedResponse.payment_intent_id);
         } catch (error) {
             console.error('Failed to create payment intent:', error);
             setCardErrors({ general: 'Failed to initialize payment. Please try again.' });

@@ -7,7 +7,7 @@ from app.core.db import get_db
 from app.models.user import User
 from app.models.product import Product
 from app.models.wishlist import (
-    WishlistItem, 
+    WishlistItem,
     WishlistCollection,
     add_to_wishlist,
     remove_from_wishlist,
@@ -136,7 +136,7 @@ def remove_product_from_wishlist(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to remove from wishlist: {str(e)}")
 
-@router.get("/", response_model=List[WishlistItemResponse])
+@router.get("", response_model=List[WishlistItemResponse])
 def get_wishlist(
     collection: Optional[str] = Query(None, description="Filter by collection name"),
     limit: int = Query(50, ge=1, le=100, description="Number of items to return"),
@@ -157,32 +157,45 @@ def get_wishlist(
             limit=limit,
             offset=offset
         )
-        
+
         # Format response with product details
         response_items = []
         for item in wishlist_items:
-            product_data = {
-                "id": item.product.id,
-                "name": item.product.name,
-                "description": item.product.description,
-                "price": item.product.price,
-                "image_url": item.product.image_url,
-                "image_urls": item.product.image_urls,
-                "category": item.product.category,
-                "featured": item.product.featured
-            }
             
-            response_items.append(WishlistItemResponse(
-                id=item.id,
-                product_id=item.product_id,
-                notes=item.notes,
-                collection_name=item.collection_name,
-                priority=item.priority,
-                created_at=item.created_at.isoformat(),
-                price_when_added=item.price_when_added / 100 if item.price_when_added else None,
-                product=product_data
-            ))
+            print(f"🔍 Processing item: {item.id}, product_id: {item.product_id}")
+            
+            try:
+                product_data = {
+                    "id": item.product.id,
+                    "name": item.product.name,
+                    "description": item.product.description,
+                    "price": item.product.price_in_dollars,
+                    "image_url": item.product.image_url,
+                    "image_urls": item.product.image_urls,
+                    "category": item.product.category_string,
+                    "featured": item.product.featured
+                }
+                # print(f"🔍 Product data created for: {item.product.name}")
+                
+                response_item = WishlistItemResponse(
+                    id=item.id,
+                    product_id=item.product_id,
+                    notes=item.notes,
+                    collection_name=item.collection_name,
+                    priority=item.priority,
+                    created_at=item.created_at.isoformat(),
+                    price_when_added=item.price_when_added / 100 if item.price_when_added else None,
+                    product=product_data
+                )
+                # print(f"🔍 Response item created for: {item.id}")
+                
+                response_items.append(response_item)
+                
+            except Exception as e:
+                print(f"❌ Error processing item {item.id}: {str(e)}")
+                raise
         
+        print(f"🔍 Returning {len(response_items)} items")
         return response_items
         
     except HTTPException:
