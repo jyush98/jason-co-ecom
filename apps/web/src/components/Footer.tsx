@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { FaInstagram, FaTiktok, FaEnvelope } from "react-icons/fa";
 import { useTheme } from "next-themes";
 
-import { businessInfo, EMAIL_ADDRESSES, SOCIAL_LINKS } from "@/config/businessInfo";
+import { EMAIL_ADDRESSES, SOCIAL_LINKS } from "@/config/businessInfo";
 
 export default function Footer() {
   const { resolvedTheme } = useTheme();

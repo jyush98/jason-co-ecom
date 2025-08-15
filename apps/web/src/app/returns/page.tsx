@@ -1,4 +1,4 @@
-import { businessInfo, EMAIL_ADDRESSES, formatPhoneNumber } from '@/config/businessInfo';
+import { businessInfo, EMAIL_ADDRESSES } from '@/config/businessInfo';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
