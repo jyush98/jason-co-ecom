@@ -155,7 +155,7 @@ function RootLayoutInner({ children }: { children: React.ReactNode }) {
           </ThemeProvider>
         </GA4Provider>
 
-        {/* Service Worker for PWA (production only) */}
+        {/* Service Worker for PWA (production only)
         {process.env.NODE_ENV === 'production' && (
           <script
             dangerouslySetInnerHTML={{
@@ -174,7 +174,7 @@ function RootLayoutInner({ children }: { children: React.ReactNode }) {
               `,
             }}
           />
-        )}
+        )} */}
 
         {/* Non-critical third-party scripts */}
         <script
