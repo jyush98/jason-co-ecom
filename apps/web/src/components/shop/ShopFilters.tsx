@@ -74,10 +74,10 @@ export default function ShopFilters({
     };
 
     // FIXED: Convert URL category values back to display format
-    const getCategoryDisplayName = (urlCategory: string): string => {
-        if (urlCategory === "All" || urlCategory === "all") return "All";
-        return urlCategory.charAt(0).toUpperCase() + urlCategory.slice(1).toLowerCase();
-    };
+    // const getCategoryDisplayName = (urlCategory: string): string => {
+    //     if (urlCategory === "All" || urlCategory === "all") return "All";
+    //     return urlCategory.charAt(0).toUpperCase() + urlCategory.slice(1).toLowerCase();
+    // };
 
     // FIXED: Handle category change with proper lowercase conversion
     const handleCategoryChange = (displayCategory: string) => {
