@@ -20,9 +20,6 @@ import { getBusinessHours } from '@/utils/api'
 import {
     businessInfo,
     EMAIL_ADDRESSES,
-    formatPhoneNumber,
-    formatAddress,
-    isBusinessOpen
 } from '@/config/businessInfo'
 
 interface BusinessHours {

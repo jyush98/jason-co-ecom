@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion'
 import { Phone, Mail, MessageCircle, Calendar, Clock, Copy, ExternalLink } from 'lucide-react'
 import { useState } from 'react'
-import { businessInfo, EMAIL_ADDRESSES, formatPhoneNumber } from '@/config/businessInfo'
+import { businessInfo, EMAIL_ADDRESSES } from '@/config/businessInfo'
 
 const ContactMethods = () => {
     const [copiedText, setCopiedText] = useState<string | null>(null)
