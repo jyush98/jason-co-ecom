@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, X, ShoppingCart, Sun, Moon, User, ChevronDown } from "lucide-react";
+import { Menu, X, ShoppingCart, Sun, Moon, User, ChevronDown, Search } from "lucide-react";
 import { SignedIn, SignedOut, useAuth } from "@clerk/nextjs";
 import { useCartStore } from "@/app/store/cartStore";
 import { getCart } from "@/utils/cart";
@@ -11,7 +11,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import FullScreenMenu from "@/components/FullScreenMenu";
 import { useTheme } from "next-themes";
 import { AccountDropdown } from "./navigation";
-// import { useUser } from "@clerk/nextjs";
 
 const categories = [
   { name: "All Jewelry", path: "/shop" },
@@ -41,25 +40,37 @@ export default function Navbar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { getToken } = useAuth();
-  // const { user } = useUser(); // Get user for AccountDropdown
   const cartCount = useCartStore((state) => state.cartCount);
   const setCartCount = useCartStore((state) => state.setCartCount);
 
   const { resolvedTheme, setTheme } = useTheme();
 
-  // Enhanced scroll detection with premium effects
+  // Enhanced mobile detection
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Enhanced scroll detection with mobile optimization
   useEffect(() => {
     const handleScroll = () => {
-      const isScrolled = window.scrollY > 20;
+      const scrollTop = window.scrollY;
+      const isScrolled = scrollTop > (isMobile ? 10 : 20);
       setScrolled(isScrolled);
     };
 
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [isMobile]);
 
   useEffect(() => {
     const fetchCart = async () => {
@@ -73,24 +84,43 @@ export default function Navbar() {
     fetchCart();
   }, [getToken, setCartCount]);
 
+  // Mobile-friendly dropdown handlers
   const handleMouseEnter = () => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    setIsDropdownOpen(true);
+    if (!isMobile) {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      setIsDropdownOpen(true);
+    }
   };
 
   const handleMouseLeave = () => {
-    timeoutRef.current = setTimeout(() => {
-      setIsDropdownOpen(false);
-    }, 200);
+    if (!isMobile) {
+      timeoutRef.current = setTimeout(() => {
+        setIsDropdownOpen(false);
+      }, 200);
+    }
+  };
+
+  const handleDropdownToggle = () => {
+    if (isMobile) {
+      setIsDropdownOpen(!isDropdownOpen);
+    }
   };
 
   const handleOtherNavHover = () => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    setIsDropdownOpen(false);
+    if (!isMobile) {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      setIsDropdownOpen(false);
+    }
   };
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
+    // Prevent body scroll when menu is open on mobile
+    if (!menuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
   };
 
   const toggleTheme = () => {
@@ -98,53 +128,76 @@ export default function Navbar() {
   };
 
   const handleDropdownLinkClick = () => {
-    if (window.innerWidth < 768) {
-      setIsDropdownOpen(false);
-    }
+    setIsDropdownOpen(false);
   };
+
+  // Close dropdown when clicking outside on mobile
+  useEffect(() => {
+    if (isMobile && isDropdownOpen) {
+      const handleClickOutside = (event: MouseEvent) => {
+        const target = event.target as Element;
+        if (!target.closest('.shop-dropdown')) {
+          setIsDropdownOpen(false);
+        }
+      };
+
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [isMobile, isDropdownOpen]);
+
+  // Cleanup body scroll on unmount
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
 
   return (
     <>
       <motion.header
-        className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${scrolled
-          ? 'bg-white/95 dark:bg-black/95 backdrop-blur-md shadow-2xl border-b border-gold/20'
-          : 'bg-white dark:bg-black'
+        className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${scrolled
+            ? 'bg-white/95 dark:bg-black/95 backdrop-blur-md shadow-2xl border-b border-gold/20'
+            : 'bg-white dark:bg-black'
           } text-black dark:text-white`}
         initial={{ y: -100 }}
         animate={{
           y: menuOpen ? -100 : 0,
           opacity: 1
         }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
       >
-        {/* Premium Brand Bar */}
+        {/* Premium Brand Bar - Hidden on small mobile */}
         <div className="hidden bg-gradient-to-r from-gold/10 via-gold/5 to-gold/10 border-b border-gold/20">
           <div className="max-w-7xl mx-auto px-4 py-2">
             <div className="flex justify-between items-center text-xs tracking-wider font-medium">
-              <span className="text-gold">WHERE AMBITION MEETS ARTISTRY</span>
-              <div className="hidden md:flex space-x-6 text-gray-600 dark:text-gray-400">
-                <span>Free Shipping on Orders $500+</span>
-                <span>|</span>
-                <span>Lifetime Warranty</span>
-                <span>|</span>
-                <span>Custom Designs Available</span>
+              <span className="text-gold hidden lg:block">WHERE AMBITION MEETS ARTISTRY</span>
+              <div className="hidden md:flex space-x-4 lg:space-x-6 text-gray-600 dark:text-gray-400 text-xs">
+                <span>Free Shipping $500+</span>
+                <span className="hidden lg:inline">|</span>
+                <span className="hidden lg:inline">Lifetime Warranty</span>
+                <span className="hidden lg:inline">|</span>
+                <span>Custom Designs</span>
               </div>
-              <span className="text-gold">DESIGNED WITHOUT LIMITS</span>
+              <span className="text-gold hidden lg:block">DESIGNED WITHOUT LIMITS</span>
             </div>
           </div>
         </div>
 
         {/* Main Navigation */}
         <div className="max-w-7xl mx-auto">
-          {/* Top Row */}
-          <div className="flex justify-between items-center px-6 py-4 h-[90px]">
-            {/* Left Actions */}
-            <div className="flex items-center space-x-4">
+          {/* Mobile-First Top Row */}
+          <div className={`flex justify-between items-center px-4 sm:px-6 ${isMobile ? 'py-3 h-[70px]' : 'py-4 h-[90px]'
+            }`}>
+
+            {/* Left Actions - Mobile Optimized */}
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <motion.button
                 onClick={toggleMenu}
-                className="p-2 rounded-full hover:bg-gold/10 transition-colors duration-200"
+                className="p-2 rounded-full hover:bg-gold/10 transition-colors duration-200 touch-manipulation"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
+                aria-label="Toggle menu"
               >
                 <AnimatePresence mode="wait">
                   {menuOpen ? (
@@ -155,7 +208,7 @@ export default function Navbar() {
                       exit={{ rotate: 90, opacity: 0 }}
                       transition={{ duration: 0.2 }}
                     >
-                      <X className="w-6 h-6" />
+                      <X className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'}`} />
                     </motion.div>
                   ) : (
                     <motion.div
@@ -165,16 +218,17 @@ export default function Navbar() {
                       exit={{ rotate: -90, opacity: 0 }}
                       transition={{ duration: 0.2 }}
                     >
-                      <Menu className="w-6 h-6" />
+                      <Menu className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'}`} />
                     </motion.div>
                   )}
                 </AnimatePresence>
               </motion.button>
 
+              {/* Theme Toggle - Smaller on mobile */}
               <motion.button
                 onClick={toggleTheme}
                 aria-label="Toggle Theme"
-                className="p-2 rounded-full hover:bg-gold/10 transition-colors duration-200"
+                className="p-2 rounded-full hover:bg-gold/10 transition-colors duration-200 touch-manipulation"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -187,7 +241,7 @@ export default function Navbar() {
                       exit={{ rotate: 180, opacity: 0 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <Sun className="w-5 h-5 text-gold" />
+                      <Sun className={`text-gold ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
                     </motion.div>
                   ) : (
                     <motion.div
@@ -197,67 +251,89 @@ export default function Navbar() {
                       exit={{ rotate: -180, opacity: 0 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <Moon className="w-5 h-5 text-gold" />
+                      <Moon className={`text-gold ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
                     </motion.div>
                   )}
                 </AnimatePresence>
               </motion.button>
+
+              {/* Search Icon - Mobile Only */}
+              {isMobile && (
+                <motion.button
+                  className="p-2 rounded-full hover:bg-gold/10 transition-colors duration-200 touch-manipulation"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  aria-label="Search"
+                >
+                  <Search className="w-4 h-4" />
+                </motion.button>
+              )}
             </div>
 
-            {/* Center Logo */}
+            {/* Center Logo - Mobile Responsive */}
             <motion.div
               className="mx-auto"
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ scale: isMobile ? 1.02 : 1.05 }}
               transition={{ duration: 0.3 }}
             >
               <Link href="/" onClick={() => setMenuOpen(false)}>
                 <Image
                   src={resolvedTheme === "dark" ? "/logo-dark.png" : "/logo-light.png"}
                   alt="Jason & Co."
-                  width={220}
-                  height={110}
+                  width={isMobile ? 160 : 220}
+                  height={isMobile ? 80 : 110}
                   priority
                   className="h-auto"
                 />
               </Link>
             </motion.div>
 
-            {/* Right Actions */}
-            <div className="flex items-center space-x-4">
-              {/* Cart */}
+            {/* Right Actions - Mobile Optimized */}
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              {/* Cart with improved mobile touch targets */}
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Link href="/cart" className="relative p-2 rounded-full transition-colors duration-200">
-                  <ShoppingCart className="w-6 h-6" />
+                <Link
+                  href="/cart"
+                  className="relative p-2 rounded-full transition-colors duration-200 touch-manipulation"
+                  aria-label={`Cart with ${cartCount} items`}
+                >
+                  <ShoppingCart className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'}`} />
                   {cartCount > 0 && (
-                    <span className="absolute bottom-10 -right-7 bg-black dark:bg-white text-white dark:text-black text-xs font-bold px-1.5 py-0.5 rounded-full">
-                      {cartCount}
-                    </span>
+                    <motion.span
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className={`absolute ${isMobile ? '-top-1 -right-1' : 'bottom-10 -right-7'
+                        } bg-black dark:bg-white text-white dark:text-black text-xs font-bold ${isMobile ? 'px-1 py-0.5' : 'px-1.5 py-0.5'
+                        } rounded-full min-w-[18px] text-center`}
+                    >
+                      {cartCount > 99 ? '99+' : cartCount}
+                    </motion.span>
                   )}
                 </Link>
               </motion.div>
 
-              {/* Enhanced Auth Section with AccountDropdown */}
+              {/* Enhanced Auth Section */}
               <SignedOut>
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Link
                     href="/sign-in"
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium hover:text-gold transition-all duration-200 rounded-full hover:bg-gold/10 border border-transparent hover:border-gold/30"
+                    className={`flex items-center gap-2 ${isMobile ? 'px-2 py-1 text-xs' : 'px-4 py-2 text-sm'
+                      } font-medium hover:text-gold transition-all duration-200 rounded-full hover:bg-gold/10 border border-transparent hover:border-gold/30 touch-manipulation`}
                   >
-                    <User className="w-4 h-4" />
+                    <User className={`${isMobile ? 'w-4 h-4' : 'w-4 h-4'}`} />
                     <span className="hidden sm:inline">Sign In</span>
                   </Link>
                 </motion.div>
               </SignedOut>
 
               <SignedIn>
-                {/* Account Dropdown - Complete account management */}
                 <AccountDropdown />
               </SignedIn>
             </div>
           </div>
 
-          {/* Enhanced Bottom Navigation */}
-          {!menuOpen && (
+          {/* Enhanced Bottom Navigation - Desktop Only */}
+          {!menuOpen && !isMobile && (
             <motion.nav
               className="flex justify-center items-center space-x-12 py-3 text-sm tracking-widest font-medium border-t border-gold/10"
               onMouseLeave={handleMouseLeave}
@@ -266,7 +342,11 @@ export default function Navbar() {
               transition={{ delay: 0.2, duration: 0.4 }}
             >
               {/* Shop with Dropdown */}
-              <div className="relative" onMouseEnter={handleMouseEnter}>
+              <div
+                className="relative shop-dropdown"
+                onMouseEnter={handleMouseEnter}
+                onClick={handleDropdownToggle}
+              >
                 <motion.div
                   className="flex items-center space-x-1 cursor-pointer group"
                   whileHover={navHover}
@@ -290,16 +370,60 @@ export default function Navbar() {
                   whileHover={navHover}
                   onMouseEnter={handleOtherNavHover}
                 >
-                  <Link href={path} className="nav-link uppercase tracking-wider font-semibold hover:text-gold transition-colors duration-200">
+                  <Link
+                    href={path}
+                    className="nav-link uppercase tracking-wider font-semibold hover:text-gold transition-colors duration-200"
+                  >
                     {label}
                   </Link>
                 </motion.div>
               ))}
             </motion.nav>
           )}
+
+          {/* Mobile Navigation Bar - Shows when not in menu mode */}
+          {!menuOpen && isMobile && (
+            <motion.nav
+              className="flex justify-center items-center py-2 text-xs font-medium border-t border-gold/10 overflow-x-auto"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.1 }}
+            >
+              <div className="flex space-x-6 px-4 min-w-max">
+                {/* Shop with mobile dropdown */}
+                <div className="relative shop-dropdown">
+                  <motion.button
+                    onClick={handleDropdownToggle}
+                    className="flex items-center space-x-1 whitespace-nowrap touch-manipulation"
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <span className="uppercase tracking-wider font-semibold">Shop</span>
+                    <ChevronDown
+                      className={`w-3 h-3 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''
+                        }`}
+                    />
+                  </motion.button>
+                </div>
+
+                {[
+                  ["/gallery", "Gallery"],
+                  ["/about", "About"],
+                  ["/contact", "Contact"],
+                ].map(([path, label]) => (
+                  <Link
+                    key={path}
+                    href={path}
+                    className="uppercase tracking-wider font-semibold hover:text-gold transition-colors duration-200 whitespace-nowrap"
+                  >
+                    {label}
+                  </Link>
+                ))}
+              </div>
+            </motion.nav>
+          )}
         </div>
 
-        {/* Enhanced Mega Menu */}
+        {/* Enhanced Mobile-Responsive Mega Menu */}
         <AnimatePresence>
           {isDropdownOpen && (
             <motion.div
@@ -308,12 +432,13 @@ export default function Navbar() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -20, scale: 0.95 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
-              className="absolute left-0 right-0 top-full w-full bg-white/95 dark:bg-black/95 backdrop-blur-md text-black dark:text-white py-12 shadow-2xl border-t border-gold/20"
+              className={`absolute left-0 right-0 top-full w-full bg-white/95 dark:bg-black/95 backdrop-blur-md text-black dark:text-white shadow-2xl border-t border-gold/20 ${isMobile ? 'py-6' : 'py-12'
+                }`}
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
             >
               {/* Desktop Grid */}
-              <div className="hidden md:grid max-w-7xl mx-auto px-8 grid-cols-12 gap-12">
+              <div className={`hidden md:grid max-w-7xl mx-auto px-8 grid-cols-12 gap-12`}>
                 {/* Categories */}
                 <div className="col-span-3">
                   <h3 className="text-lg font-bold uppercase mb-6 text-gold tracking-wider">Categories</h3>
@@ -406,16 +531,16 @@ export default function Navbar() {
                 </div>
               </div>
 
-              {/* Mobile Layout */}
-              <div className="flex md:hidden w-full justify-between px-6">
-                <div className="w-[45%]">
-                  <h3 className="text-lg font-bold uppercase mb-4 text-gold">Categories</h3>
+              {/* Mobile Layout - Enhanced */}
+              <div className="flex md:hidden w-full justify-between px-4">
+                <div className="w-[48%]">
+                  <h3 className="text-base font-bold uppercase mb-4 text-gold">Categories</h3>
                   <ul className="space-y-3">
                     {categories.map((category) => (
                       <li key={category.name}>
                         <Link
                           href={category.path}
-                          className="text-base hover:text-gold transition-colors duration-200"
+                          className="text-sm hover:text-gold transition-colors duration-200 block py-1 touch-manipulation"
                           onClick={handleDropdownLinkClick}
                         >
                           {category.name}
@@ -424,14 +549,14 @@ export default function Navbar() {
                     ))}
                   </ul>
                 </div>
-                <div className="w-[45%]">
-                  <h3 className="text-lg font-bold uppercase mb-4 text-gold">Collections</h3>
+                <div className="w-[48%]">
+                  <h3 className="text-base font-bold uppercase mb-4 text-gold">Collections</h3>
                   <ul className="space-y-3">
                     {collections.map((collection) => (
                       <li key={collection.name}>
                         <Link
                           href={collection.path}
-                          className="text-base hover:text-gold transition-colors duration-200"
+                          className="text-sm hover:text-gold transition-colors duration-200 block py-1 touch-manipulation"
                           onClick={handleDropdownLinkClick}
                         >
                           {collection.name}
@@ -467,10 +592,17 @@ export default function Navbar() {
           .nav-link:hover::after {
             width: 100%;
           }
+
+          /* Mobile optimizations */
+          @media (max-width: 768px) {
+            .touch-manipulation {
+              touch-action: manipulation;
+            }
+          }
         `}</style>
       </motion.header>
 
-      {/* Fullscreen Menu - Separate from header to avoid z-index issues */}
+      {/* Fullscreen Menu with mobile optimizations */}
       {menuOpen && (
         <FullScreenMenu
           categories={categories}

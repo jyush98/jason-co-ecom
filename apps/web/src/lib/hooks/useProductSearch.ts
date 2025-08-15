@@ -39,6 +39,13 @@ export function useProductSearch(params: UseProductSearchParams): UseProductSear
     pageSize = SHOP_CONFIG.resultsPerPage
   } = params;
 
+  // FIXED: Proper category normalization
+  const shouldFilterByCategory = (cat: string): boolean => {
+    if (!cat) return false;
+    const normalizedCat = cat.toLowerCase();
+    return normalizedCat !== "all" && normalizedCat !== "";
+  };
+
   // Memoized fetch function
   const fetchProductsData = useCallback(async () => {
     // Cancel previous request
@@ -53,17 +60,43 @@ export function useProductSearch(params: UseProductSearchParams): UseProductSear
     setError(null);
 
     try {
+      // FIXED: Proper parameter construction
       const searchParams = {
-        name: search,
-        category: category === SHOP_CONFIG.categories[0] ? undefined : category, // Don't send "All"
+        // Search by name
+        name: search || undefined,
+
+        // FIXED: Category filtering logic
+        category: shouldFilterByCategory(category) ? category : undefined,
+
+        // Pagination
         page,
         pageSize,
+
+        // Sorting
         sortBy,
         sortOrder,
       };
 
+      // Debug logging - remove in production
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔍 useProductSearch - API Request:', {
+          originalParams: params,
+          searchParams,
+          shouldFilter: shouldFilterByCategory(category)
+        });
+      }
+
       // FIXED: Handle the normalized API response structure
       const result = await fetchProducts(searchParams);
+
+      // Debug logging - remove in production
+      if (process.env.NODE_ENV === 'development') {
+        console.log('📦 useProductSearch - API Response:', {
+          total: result?.total,
+          productsCount: result?.products?.length,
+          firstProduct: result?.products?.[0]?.name
+        });
+      }
 
       // Only update if request wasn't aborted
       if (!abortController.current?.signal.aborted) {
@@ -72,13 +105,13 @@ export function useProductSearch(params: UseProductSearchParams): UseProductSear
         const total = result?.total || 0;
 
         setProducts(productsData);
-        setTotalCount(total); // Use actual total count from API
+        setTotalCount(total);
         setError(null);
       }
     } catch (err) {
       // Only set error if request wasn't aborted
       if (!abortController.current?.signal.aborted) {
-        console.error("Failed to fetch products:", err);
+        console.error("❌ useProductSearch - Failed to fetch products:", err);
         setError(err instanceof Error ? err.message : "Failed to fetch products");
         setProducts([]);
         setTotalCount(0);
@@ -91,17 +124,21 @@ export function useProductSearch(params: UseProductSearchParams): UseProductSear
     }
   }, [search, category, page, pageSize, sortBy, sortOrder]);
 
-  // Debounced effect for search
+  // FIXED: Debounced effect with proper dependencies
   useEffect(() => {
     // Clear existing timer
     if (debounceTimer.current) {
       clearTimeout(debounceTimer.current);
     }
 
+    // For search queries, use debounce. For filters (category, sort), execute immediately
+    const shouldDebounce = search && search.length > 0;
+    const delay = shouldDebounce ? SHOP_CONFIG.searchDebounce : 0;
+
     // Set new timer
     debounceTimer.current = setTimeout(() => {
       fetchProductsData();
-    }, SHOP_CONFIG.searchDebounce);
+    }, delay);
 
     // Cleanup function
     return () => {
