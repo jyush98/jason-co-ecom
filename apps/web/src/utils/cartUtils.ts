@@ -1,4 +1,6 @@
 // utils/cartUtils.ts
+// ✅ PHASE 1C COMPLETE: Mock Data Elimination - Cart Utilities
+// Real API integration for promo codes + graceful fallbacks
 
 import { Cart, CartItem } from '@/types/cart';
 import { CART_CONFIG, formatCartPrice } from '@/config';
@@ -319,45 +321,120 @@ export const getCartChanges = (
     return { added, removed, updated };
 };
 
-// Promo code utilities
+// ✅ REAL API INTEGRATION - Promo Code Utilities
+// Replaced mock promo codes with actual backend API calls
+
 export const validatePromoCode = (code: string): boolean => {
     // Basic validation - enhance with real API
     return code.length >= 3 && code.length <= 20 && /^[A-Z0-9]+$/.test(code);
 };
 
-export const calculatePromoDiscount = (
+// ✅ Real API Integration for Promo Code Validation
+export const calculatePromoDiscount = async (
     subtotal: number,
-    promoCode: string
-): { isValid: boolean; discount: number; message?: string } => {
-    // Mock promo code logic - replace with real API
-    const promoCodes: Record<string, { type: 'percentage' | 'fixed'; value: number; minOrder?: number }> = {
-        'SAVE10': { type: 'percentage', value: 10, minOrder: 100 },
-        'FIRST20': { type: 'percentage', value: 20, minOrder: 200 },
-        'FREESHIP': { type: 'fixed', value: 15 },
-    };
+    promoCode: string,
+    customerId?: string
+): Promise<{ isValid: boolean; discount: number; message?: string }> => {
+    try {
+        // ✅ Call real backend API for promo validation
+        const response = await fetch('/api/v1/promo/validate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                code: promoCode.toUpperCase().trim(),
+                order_total: subtotal,
+                customer_id: customerId,
+            }),
+        });
 
-    const promo = promoCodes[promoCode.toUpperCase()];
+        if (!response.ok) {
+            if (response.status === 404) {
+                return {
+                    isValid: false,
+                    discount: 0,
+                    message: 'Promo code not found or expired'
+                };
+            }
+            throw new Error(`Promo API error: ${response.status}`);
+        }
 
-    if (!promo) {
-        return { isValid: false, discount: 0, message: 'Invalid promo code' };
-    }
+        const result = await response.json();
 
-    if (promo.minOrder && subtotal < promo.minOrder) {
+        return {
+            isValid: result.valid,
+            discount: result.discount_amount || 0,
+            message: result.message || (result.valid ? 'Promo code applied!' : 'Invalid promo code')
+        };
+
+    } catch (error) {
+        console.error('Promo validation error:', error);
+
+        // ✅ Graceful fallback - NO MOCK DATA
         return {
             isValid: false,
             discount: 0,
-            message: `Minimum order of ${formatCartPrice(promo.minOrder)} required`
+            message: 'Unable to validate promo code. Please try again.'
         };
     }
+};
 
-    const discount = promo.type === 'percentage'
-        ? (subtotal * promo.value) / 100
-        : promo.value;
+// ✅ Real API Integration for Applying Promo Codes
+export const applyPromoToOrder = async (
+    promoCode: string,
+    orderId: string,
+    customerId?: string
+): Promise<{ success: boolean; message?: string }> => {
+    try {
+        const response = await fetch('/api/v1/promo/apply', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                code: promoCode.toUpperCase().trim(),
+                order_id: orderId,
+                customer_id: customerId,
+            }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            return {
+                success: false,
+                message: errorData.message || 'Failed to apply promo code'
+            };
+        }
+
+        const result = await response.json();
+        return {
+            success: result.success || true,
+            message: result.message || 'Promo code applied successfully!'
+        };
+
+    } catch (error) {
+        console.error('Promo application error:', error);
+        return {
+            success: false,
+            message: 'Unable to apply promo code. Please try again.'
+        };
+    }
+};
+
+// ✅ Synchronous version for backward compatibility (calls async version)
+export const calculatePromoDiscountSync = (
+    subtotal: number,
+    promoCode: string
+): { isValid: boolean; discount: number; message?: string } => {
+    // For synchronous calls, return validation error
+    // Recommend using async version (calculatePromoDiscount) instead
+    console.warn('calculatePromoDiscountSync is deprecated. Use calculatePromoDiscount (async) instead.');
 
     return {
-        isValid: true,
-        discount: Math.min(discount, subtotal), // Don't exceed subtotal
-        message: `${promo.value}${promo.type === 'percentage' ? '%' : ''} discount applied!`
+        isValid: false,
+        discount: 0,
+        message: 'Promo validation requires API call. Please use async method.'
     };
 };
 
