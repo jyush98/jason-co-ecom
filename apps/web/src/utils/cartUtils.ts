@@ -424,8 +424,8 @@ export const applyPromoToOrder = async (
 
 // ✅ Synchronous version for backward compatibility (calls async version)
 export const calculatePromoDiscountSync = (
-    subtotal: number,
-    promoCode: string
+    _subtotal: number,
+    _promoCode: string
 ): { isValid: boolean; discount: number; message?: string } => {
     // For synchronous calls, return validation error
     // Recommend using async version (calculatePromoDiscount) instead
