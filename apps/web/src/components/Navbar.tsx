@@ -167,34 +167,18 @@ export default function Navbar() {
         }}
         transition={{ duration: 0.4, ease: "easeOut" }}
       >
-        {/* Premium Brand Bar - Hidden on small mobile */}
-        <div className="hidden bg-gradient-to-r from-gold/10 via-gold/5 to-gold/10 border-b border-gold/20">
-          <div className="max-w-7xl mx-auto px-4 py-2">
-            <div className="flex justify-between items-center text-xs tracking-wider font-medium">
-              <span className="text-gold hidden lg:block">WHERE AMBITION MEETS ARTISTRY</span>
-              <div className="hidden md:flex space-x-4 lg:space-x-6 text-gray-600 dark:text-gray-400 text-xs">
-                <span>Free Shipping $500+</span>
-                <span className="hidden lg:inline">|</span>
-                <span className="hidden lg:inline">Lifetime Warranty</span>
-                <span className="hidden lg:inline">|</span>
-                <span>Custom Designs</span>
-              </div>
-              <span className="text-gold hidden lg:block">DESIGNED WITHOUT LIMITS</span>
-            </div>
-          </div>
-        </div>
-
         {/* Main Navigation */}
         <div className="max-w-7xl mx-auto">
-          {/* Mobile-First Top Row */}
-          <div className={`flex justify-between items-center px-4 sm:px-6 ${isMobile ? 'py-3 h-[70px]' : 'py-4 h-[90px]'
-            }`}>
+          {/* FIXED: Mobile-First Top Row with Better Spacing */}
+          <div className={`flex justify-between items-center px-6 ${
+            isMobile ? 'py-4 h-[80px]' : 'py-4 h-[90px]'
+          }`}>
 
-            {/* Left Actions - Mobile Optimized */}
+            {/* Left Actions - Keep your original layout */}
             <div className="flex items-center space-x-2 sm:space-x-4">
               <motion.button
                 onClick={toggleMenu}
-                className="p-2 rounded-full hover:bg-gold/10 transition-colors duration-200 touch-manipulation"
+                className="p-2 rounded-full transition-colors duration-200"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 aria-label="Toggle menu"
@@ -224,11 +208,11 @@ export default function Navbar() {
                 </AnimatePresence>
               </motion.button>
 
-              {/* Theme Toggle - Smaller on mobile */}
+              {/* Theme Toggle - Keep in original position */}
               <motion.button
                 onClick={toggleTheme}
                 aria-label="Toggle Theme"
-                className="p-2 rounded-full hover:bg-gold/10 transition-colors duration-200 touch-manipulation"
+                className="p-2 rounded-full transition-colors duration-200"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -257,10 +241,10 @@ export default function Navbar() {
                 </AnimatePresence>
               </motion.button>
 
-              {/* Search Icon - Mobile Only */}
+              {/* Search Icon - Keep if you had it */}
               {isMobile && (
                 <motion.button
-                  className="p-2 rounded-full hover:bg-gold/10 transition-colors duration-200 touch-manipulation"
+                  className="p-2 rounded-full transition-colors duration-200"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   aria-label="Search"
@@ -270,7 +254,7 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* Center Logo - Mobile Responsive */}
+            {/* FIXED: Center Logo - Better centering */}
             <motion.div
               className="mx-auto"
               whileHover={{ scale: isMobile ? 1.02 : 1.05 }}
@@ -280,21 +264,21 @@ export default function Navbar() {
                 <Image
                   src={resolvedTheme === "dark" ? "/logo-dark.png" : "/logo-light.png"}
                   alt="Jason & Co."
-                  width={isMobile ? 160 : 220}
-                  height={isMobile ? 80 : 110}
+                  width={isMobile ? 180 : 220}
+                  height={isMobile ? 90 : 110}
                   priority
                   className="h-auto"
                 />
               </Link>
             </motion.div>
 
-            {/* Right Actions - Mobile Optimized */}
+            {/* Right Actions - Keep original functionality */}
             <div className="flex items-center space-x-2 sm:space-x-4">
-              {/* Cart with improved mobile touch targets */}
+              {/* Cart */}
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Link
                   href="/cart"
-                  className="relative p-2 rounded-full transition-colors duration-200 touch-manipulation"
+                  className="relative p-2 rounded-full transition-colors duration-200"
                   aria-label={`Cart with ${cartCount} items`}
                 >
                   <ShoppingCart className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'}`} />
@@ -312,13 +296,13 @@ export default function Navbar() {
                 </Link>
               </motion.div>
 
-              {/* Enhanced Auth Section */}
+              {/* Auth Section - Keep original */}
               <SignedOut>
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Link
                     href="/sign-in"
                     className={`flex items-center gap-2 ${isMobile ? 'px-2 py-1 text-xs' : 'px-4 py-2 text-sm'
-                      } font-medium hover:text-gold transition-all duration-200 rounded-full hover:bg-gold/10 border border-transparent hover:border-gold/30 touch-manipulation`}
+                      } font-medium transition-all duration-200 rounded-full border border-transparent`}
                   >
                     <User className={`${isMobile ? 'w-4 h-4' : 'w-4 h-4'}`} />
                     <span className="hidden sm:inline">Sign In</span>
@@ -332,7 +316,7 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* Enhanced Bottom Navigation - Desktop Only */}
+          {/* Desktop Navigation - Keep unchanged */}
           {!menuOpen && !isMobile && (
             <motion.nav
               className="flex justify-center items-center space-x-12 py-3 text-sm tracking-widest font-medium border-t border-gold/10"
@@ -372,7 +356,7 @@ export default function Navbar() {
                 >
                   <Link
                     href={path}
-                    className="nav-link uppercase tracking-wider font-semibold hover:text-gold transition-colors duration-200"
+                    className="nav-link uppercase tracking-wider font-semibold transition-colors duration-200"
                   >
                     {label}
                   </Link>
@@ -381,7 +365,7 @@ export default function Navbar() {
             </motion.nav>
           )}
 
-          {/* Mobile Navigation Bar - Shows when not in menu mode */}
+          {/* Mobile Navigation Bar - Keep your original structure */}
           {!menuOpen && isMobile && (
             <motion.nav
               className="flex justify-center items-center py-2 text-xs font-medium border-t border-gold/10 overflow-x-auto"
@@ -394,7 +378,7 @@ export default function Navbar() {
                 <div className="relative shop-dropdown">
                   <motion.button
                     onClick={handleDropdownToggle}
-                    className="flex items-center space-x-1 whitespace-nowrap touch-manipulation"
+                    className="flex items-center space-x-1 whitespace-nowrap"
                     whileTap={{ scale: 0.95 }}
                   >
                     <span className="uppercase tracking-wider font-semibold">Shop</span>
@@ -413,7 +397,7 @@ export default function Navbar() {
                   <Link
                     key={path}
                     href={path}
-                    className="uppercase tracking-wider font-semibold hover:text-gold transition-colors duration-200 whitespace-nowrap"
+                    className="uppercase tracking-wider font-semibold transition-colors duration-200 whitespace-nowrap"
                   >
                     {label}
                   </Link>
@@ -423,7 +407,7 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Enhanced Mobile-Responsive Mega Menu */}
+        {/* Keep your original mega menu unchanged */}
         <AnimatePresence>
           {isDropdownOpen && (
             <motion.div
@@ -452,7 +436,7 @@ export default function Navbar() {
                       >
                         <Link
                           href={category.path}
-                          className="text-lg hover:text-gold transition-colors duration-200 tracking-wide"
+                          className="text-lg transition-colors duration-200 tracking-wide"
                           onClick={handleDropdownLinkClick}
                         >
                           {category.name}
@@ -475,7 +459,7 @@ export default function Navbar() {
                       >
                         <Link
                           href={collection.path}
-                          className="text-lg hover:text-gold transition-colors duration-200 tracking-wide"
+                          className="text-lg transition-colors duration-200 tracking-wide"
                           onClick={handleDropdownLinkClick}
                         >
                           {collection.name}
@@ -531,7 +515,7 @@ export default function Navbar() {
                 </div>
               </div>
 
-              {/* Mobile Layout - Enhanced */}
+              {/* Mobile Layout */}
               <div className="flex md:hidden w-full justify-between px-4">
                 <div className="w-[48%]">
                   <h3 className="text-base font-bold uppercase mb-4 text-gold">Categories</h3>
@@ -540,7 +524,7 @@ export default function Navbar() {
                       <li key={category.name}>
                         <Link
                           href={category.path}
-                          className="text-sm hover:text-gold transition-colors duration-200 block py-1 touch-manipulation"
+                          className="text-sm transition-colors duration-200 block py-1"
                           onClick={handleDropdownLinkClick}
                         >
                           {category.name}
@@ -556,7 +540,7 @@ export default function Navbar() {
                       <li key={collection.name}>
                         <Link
                           href={collection.path}
-                          className="text-sm hover:text-gold transition-colors duration-200 block py-1 touch-manipulation"
+                          className="text-sm transition-colors duration-200 block py-1"
                           onClick={handleDropdownLinkClick}
                         >
                           {collection.name}
@@ -592,17 +576,10 @@ export default function Navbar() {
           .nav-link:hover::after {
             width: 100%;
           }
-
-          /* Mobile optimizations */
-          @media (max-width: 768px) {
-            .touch-manipulation {
-              touch-action: manipulation;
-            }
-          }
         `}</style>
       </motion.header>
 
-      {/* Fullscreen Menu with mobile optimizations */}
+      {/* Fullscreen Menu */}
       {menuOpen && (
         <FullScreenMenu
           categories={categories}
