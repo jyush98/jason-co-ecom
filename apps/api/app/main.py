@@ -23,13 +23,34 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        # Development
         "http://localhost:3000",
-        "https://jason-co-ecom-production.up.railway.app",
-        "https://jason-co-ecom-web.vercel.app",
-        ],
+        "http://127.0.0.1:3000",
+        
+        # Production
+        "https://www.jasonjewels.com",      # ✅ current production domain
+        "https://jasonjewels.com",          # Without www
+        
+        # Future domains
+        # "https://www.jasonandco.com",
+        # "https://jasonandco.com",
+        
+        # Vercel domains (if still using)
+        # "https://jason-co-ecom-web.vercel.app",
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allow_headers=[
+        "Authorization",
+        "Content-Type", 
+        "Accept",
+        "Origin",
+        "X-Requested-With",
+        "Access-Control-Allow-Origin",
+        "Access-Control-Allow-Headers",
+        "clerk-session-id",
+        "x-clerk-session-id",
+    ],
 )
 
 # In your main.py file, you already have:
