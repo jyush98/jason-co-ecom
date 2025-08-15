@@ -13,6 +13,7 @@ import {
     Star
 } from 'lucide-react';
 import Link from 'next/link';
+import { businessInfo, EMAIL_ADDRESSES } from '@/config/businessInfo';
 
 export default function CustomOrderThankYou() {
     const containerVariants = {
@@ -109,24 +110,24 @@ export default function CustomOrderThankYou() {
                             className="text-4xl md:text-5xl lg:text-6xl font-serif text-black dark:text-white mb-6"
                             variants={itemVariants}
                         >
-                            Your Vision is <span className="text-gold">Received</span>
+                            Your Vision is <span className="text-[#D4AF37]">Received</span>
                         </motion.h1>
 
                         <motion.p
                             className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-12 max-w-2xl mx-auto leading-relaxed"
                             variants={itemVariants}
                         >
-                            Thank you for choosing Jason & Co. Your custom order has been successfully submitted,
+                            Thank you for choosing {businessInfo.company.name}. Your custom order has been successfully submitted,
                             and our master artisans are ready to bring your vision to life.
                         </motion.p>
 
                         {/* Key Message */}
                         <motion.div
-                            className="bg-gold/10 border border-gold/20 rounded-2xl p-8 max-w-2xl mx-auto mb-12"
+                            className="bg-[#D4AF37]/10 border border-[#D4AF37]/20 rounded-2xl p-8 max-w-2xl mx-auto mb-12"
                             variants={itemVariants}
                         >
                             <h3 className="text-2xl font-serif text-black dark:text-white mb-4">
-                                Where Ambition Meets Artistry
+                                {businessInfo.company.tagline}
                             </h3>
                             <p className="text-gray-600 dark:text-gray-300 text-lg">
                                 Your custom jewelry journey begins now. We&apos;ll contact you within 24 hours
@@ -163,14 +164,14 @@ export default function CustomOrderThankYou() {
                                 variants={itemVariants}
                             >
                                 <div className="flex-shrink-0">
-                                    <div className="w-12 h-12 rounded-full bg-gold flex items-center justify-center text-black font-bold">
+                                    <div className="w-12 h-12 rounded-full bg-[#D4AF37] flex items-center justify-center text-black font-bold">
                                         {step.step}
                                     </div>
                                 </div>
                                 <div className="flex-1">
                                     <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-2">
                                         <h3 className="text-xl font-semibold text-black dark:text-white">{step.title}</h3>
-                                        <span className="text-sm text-gold font-medium">{step.timeframe}</span>
+                                        <span className="text-sm text-[#D4AF37] font-medium">{step.timeframe}</span>
                                     </div>
                                     <p className="text-gray-600 dark:text-gray-300">{step.description}</p>
                                 </div>
@@ -203,16 +204,16 @@ export default function CustomOrderThankYou() {
                             className="text-center p-6 bg-gray-50 dark:bg-gray-900 rounded-xl"
                             variants={itemVariants}
                         >
-                            <div className="w-16 h-16 bg-gold/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <Phone className="w-8 h-8 text-gold" />
+                            <div className="w-16 h-16 bg-[#D4AF37]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <Phone className="w-8 h-8 text-[#D4AF37]" />
                             </div>
                             <h3 className="text-lg font-semibold text-black dark:text-white mb-2">Call Us</h3>
                             <p className="text-gray-600 dark:text-gray-300 mb-3">Speak directly with our team</p>
                             <a
-                                href="tel:+1-555-0123"
-                                className="text-gold hover:text-gold/80 transition-colors font-medium"
+                                href={`tel:${businessInfo.contact.primary.phone.replace(/\D/g, '')}`}
+                                className="text-[#D4AF37] hover:text-[#FFD700] transition-colors font-medium"
                             >
-                                (555) 123-4567
+                                {businessInfo.contact.primary.phone}
                             </a>
                         </motion.div>
 
@@ -220,16 +221,16 @@ export default function CustomOrderThankYou() {
                             className="text-center p-6 bg-gray-50 dark:bg-gray-900 rounded-xl"
                             variants={itemVariants}
                         >
-                            <div className="w-16 h-16 bg-gold/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <Mail className="w-8 h-8 text-gold" />
+                            <div className="w-16 h-16 bg-[#D4AF37]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <Mail className="w-8 h-8 text-[#D4AF37]" />
                             </div>
                             <h3 className="text-lg font-semibold text-black dark:text-white mb-2">Email Us</h3>
                             <p className="text-gray-600 dark:text-gray-300 mb-3">Get detailed responses</p>
                             <a
-                                href="mailto:custom@jasonandco.com"
-                                className="text-gold hover:text-gold/80 transition-colors font-medium"
+                                href={`mailto:${EMAIL_ADDRESSES.CUSTOM}`}
+                                className="text-[#D4AF37] hover:text-[#FFD700] transition-colors font-medium"
                             >
-                                custom@jasonandco.com
+                                {EMAIL_ADDRESSES.CUSTOM}
                             </a>
                         </motion.div>
 
@@ -237,14 +238,48 @@ export default function CustomOrderThankYou() {
                             className="text-center p-6 bg-gray-50 dark:bg-gray-900 rounded-xl"
                             variants={itemVariants}
                         >
-                            <div className="w-16 h-16 bg-gold/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <MessageCircle className="w-8 h-8 text-gold" />
+                            <div className="w-16 h-16 bg-[#D4AF37]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <MessageCircle className="w-8 h-8 text-[#D4AF37]" />
                             </div>
                             <h3 className="text-lg font-semibold text-black dark:text-white mb-2">Live Chat</h3>
                             <p className="text-gray-600 dark:text-gray-300 mb-3">Instant assistance available</p>
-                            <span className="text-gold font-medium">Available 9 AM - 6 PM EST</span>
+                            <span className="text-[#D4AF37] font-medium">
+                                Available {businessInfo.locations.headquarters.hours.monday} - {businessInfo.locations.headquarters.hours.friday}
+                            </span>
                         </motion.div>
                     </div>
+
+                    {/* Additional Contact Info */}
+                    <motion.div
+                        className="mt-12 text-center p-6 bg-[#D4AF37]/5 border border-[#D4AF37]/20 rounded-xl"
+                        variants={itemVariants}
+                    >
+                        <h3 className="text-lg font-semibold text-black dark:text-white mb-3">
+                            VIP Custom Order Support
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-300 mb-4">
+                            For immediate assistance with your custom order, our dedicated custom team is available:
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                            <a
+                                href={`mailto:${EMAIL_ADDRESSES.CUSTOM}`}
+                                className="text-[#D4AF37] hover:text-[#FFD700] transition-colors font-medium flex items-center gap-2"
+                            >
+                                <Mail size={16} />
+                                {EMAIL_ADDRESSES.CUSTOM}
+                            </a>
+                            <span className="hidden sm:block text-gray-300">|</span>
+                            <a
+                                href={`https://wa.me/${businessInfo.contact.primary.whatsapp.replace(/\D/g, '')}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[#D4AF37] hover:text-[#FFD700] transition-colors font-medium flex items-center gap-2"
+                            >
+                                <MessageCircle size={16} />
+                                WhatsApp: {businessInfo.contact.primary.whatsapp}
+                            </a>
+                        </div>
+                    </motion.div>
                 </div>
             </motion.section>
 
@@ -259,7 +294,7 @@ export default function CustomOrderThankYou() {
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
                         <motion.div variants={itemVariants}>
-                            <Shield className="w-12 h-12 text-gold mx-auto mb-4" />
+                            <Shield className="w-12 h-12 text-[#D4AF37] mx-auto mb-4" />
                             <h3 className="text-lg font-semibold text-black dark:text-white mb-2">Lifetime Warranty</h3>
                             <p className="text-gray-600 dark:text-gray-300 text-sm">
                                 Every custom piece includes our comprehensive lifetime warranty
@@ -267,7 +302,7 @@ export default function CustomOrderThankYou() {
                         </motion.div>
 
                         <motion.div variants={itemVariants}>
-                            <Award className="w-12 h-12 text-gold mx-auto mb-4" />
+                            <Award className="w-12 h-12 text-[#D4AF37] mx-auto mb-4" />
                             <h3 className="text-lg font-semibold text-black dark:text-white mb-2">Master Craftsmen</h3>
                             <p className="text-gray-600 dark:text-gray-300 text-sm">
                                 Created by certified artisans with decades of experience
@@ -275,7 +310,7 @@ export default function CustomOrderThankYou() {
                         </motion.div>
 
                         <motion.div variants={itemVariants}>
-                            <Star className="w-12 h-12 text-gold mx-auto mb-4" />
+                            <Star className="w-12 h-12 text-[#D4AF37] mx-auto mb-4" />
                             <h3 className="text-lg font-semibold text-black dark:text-white mb-2">100% Satisfaction</h3>
                             <p className="text-gray-600 dark:text-gray-300 text-sm">
                                 We guarantee your complete satisfaction with every creation
@@ -314,14 +349,14 @@ export default function CustomOrderThankYou() {
                     >
                         <Link
                             href="/collections"
-                            className="inline-flex items-center gap-2 bg-gold text-black px-8 py-4 rounded-lg font-semibold hover:bg-gold/90 transition-colors"
+                            className="inline-flex items-center gap-2 bg-[#D4AF37] text-black px-8 py-4 rounded-lg font-semibold hover:bg-[#FFD700] transition-colors"
                         >
                             Browse Collections
                             <ArrowRight size={20} />
                         </Link>
                         <Link
                             href="/custom-orders"
-                            className="inline-flex items-center gap-2 border border-gold text-gold px-8 py-4 rounded-lg font-semibold hover:bg-gold/10 transition-colors"
+                            className="inline-flex items-center gap-2 border border-[#D4AF37] text-[#D4AF37] px-8 py-4 rounded-lg font-semibold hover:bg-[#D4AF37]/10 transition-colors"
                         >
                             Start Another Project
                         </Link>

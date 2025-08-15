@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Send, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
 import { submitContactInquiry } from '@/utils/api'
+import businessInfo from '@/config/businessInfo'
 
 interface ContactFormData {
     name: string
@@ -147,8 +148,8 @@ const ContactForm = () => {
                 <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed mb-6">
                     Thank you for reaching out. We typically respond within 2 hours during business hours.
                     For urgent custom order inquiries, call us directly at{' '}
-                    <a href="tel:+12125555GOLD" className="text-[#D4AF37] hover:text-[#FFD700] transition-colors">
-                        (212) 555-GOLD
+                    <a href={`tel:${businessInfo.contact.primary.phone}`} className="text-[#D4AF37] hover:text-[#FFD700] transition-colors">
+                        {businessInfo.contact.primary.phone}
                     </a>
                 </p>
                 <button

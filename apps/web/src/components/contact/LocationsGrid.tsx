@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { MapPin, Phone, Mail, Clock, ArrowRight, Bell, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
 import { useState } from 'react'
 import { subscribeLocationNotification } from '@/utils/api'
+import { businessInfo, EMAIL_ADDRESSES, formatAddress, getGoogleMapsLink, isBusinessOpen } from '@/config/businessInfo'
 
 interface Location {
     id: string
@@ -17,6 +18,7 @@ interface Location {
         city: string
         state: string
         zip: string
+        country: string
     }
     contact?: {
         phone: string
@@ -51,32 +53,20 @@ const LocationsGrid = () => {
         }
     }
 
+    // ✅ FIXED: Use centralized business information for all locations
     const locations: Location[] = [
         {
-            id: "nyc-atelier",
-            name: "Jason & Co. Atelier",
+            id: "headquarters",
+            name: businessInfo.locations.headquarters.name,
             status: "open",
-            city: "Manhattan",
-            state: "NY",
-            address: {
-                street: "123 Madison Avenue, Suite 456",
-                city: "New York",
-                state: "NY",
-                zip: "10016"
-            },
+            city: businessInfo.locations.headquarters.address.city,
+            state: businessInfo.locations.headquarters.address.state,
+            address: businessInfo.locations.headquarters.address,
             contact: {
-                phone: "(212) 555-GOLD",
-                email: "manhattan@jasonjewels.com"
+                phone: businessInfo.locations.headquarters.phone || businessInfo.contact.primary.phone,
+                email: businessInfo.locations.headquarters.email || EMAIL_ADDRESSES.INFO
             },
-            hours: {
-                "Monday": "10:00 AM - 7:00 PM",
-                "Tuesday": "10:00 AM - 7:00 PM",
-                "Wednesday": "10:00 AM - 7:00 PM",
-                "Thursday": "10:00 AM - 7:00 PM",
-                "Friday": "10:00 AM - 7:00 PM",
-                "Saturday": "10:00 AM - 6:00 PM",
-                "Sunday": "By Appointment Only"
-            },
+            hours: businessInfo.locations.headquarters.hours,
             features: [
                 "Private design consultations",
                 "Custom order showroom",
@@ -84,8 +74,29 @@ const LocationsGrid = () => {
                 "VIP client lounge"
             ]
         },
+        // ✅ FIXED: Update showrooms to use centralized data
+        ...businessInfo.locations.showrooms.map((showroom, index) => ({
+            id: `showroom-${index}`,
+            name: showroom.name,
+            status: "open" as const,
+            city: showroom.address.city,
+            state: showroom.address.state,
+            address: showroom.address,
+            contact: {
+                phone: showroom.phone || businessInfo.contact.primary.phone,
+                email: showroom.email || EMAIL_ADDRESSES.INFO
+            },
+            hours: showroom.hours,
+            features: [
+                "Luxury showroom experience",
+                "Personal shopping service",
+                "Expert consultation",
+                "Appointment scheduling"
+            ]
+        })),
+        // ✅ Future locations - updated with correct email domains
         {
-            id: "la-showroom",
+            id: "la-showroom-future",
             name: "Los Angeles Showroom",
             status: "coming_soon",
             city: "Beverly Hills",
@@ -157,110 +168,120 @@ const LocationsGrid = () => {
         }
     }
 
-    const renderCurrentLocation = (location: Location) => (
-        <motion.div
-            variants={itemVariants}
-            whileHover={{ scale: 1.02, y: -4 }}
-            className="bg-white dark:bg-black rounded-2xl p-8 border border-gray-200 dark:border-gray-800 hover:border-[#D4AF37] hover:shadow-xl transition-all duration-300"
-        >
-            {/* Location Header */}
-            <div className="flex items-start justify-between mb-6">
-                <div>
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                        {location.name}
-                    </h3>
-                    <div className="flex items-center gap-2 text-[#D4AF37] font-medium">
-                        <MapPin size={16} />
-                        <span>{location.city}, {location.state}</span>
-                    </div>
-                </div>
-                <div className="px-3 py-1 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-sm font-medium">
-                    Open Now
-                </div>
-            </div>
+    const renderCurrentLocation = (location: Location) => {
+        // ✅ FIXED: Use dynamic business hours check
+        const isOpen = location.id === 'headquarters'
+            ? isBusinessOpen(businessInfo.locations.headquarters)
+            : isBusinessOpen(businessInfo.locations.showrooms.find(s => s.name === location.name) || businessInfo.locations.headquarters)
 
-            {/* Address */}
-            {location.address && (
-                <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
-                    <div className="flex items-start gap-3">
-                        <MapPin size={18} className="text-[#D4AF37] mt-1 flex-shrink-0" />
-                        <div>
-                            <p className="text-gray-900 dark:text-white font-medium">
-                                {location.address.street}
-                            </p>
-                            <p className="text-gray-600 dark:text-gray-400">
-                                {location.address.city}, {location.address.state} {location.address.zip}
-                            </p>
-                            <a
-                                href={`https://maps.google.com/?q=${encodeURIComponent(`${location.address.street}, ${location.address.city}, ${location.address.state} ${location.address.zip}`)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-[#D4AF37] hover:text-[#FFD700] text-sm font-medium mt-2 transition-colors inline-flex items-center gap-1"
-                            >
-                                Get Directions <ArrowRight size={14} />
-                            </a>
+        return (
+            <motion.div
+                variants={itemVariants}
+                whileHover={{ scale: 1.02, y: -4 }}
+                className="bg-white dark:bg-black rounded-2xl p-8 border border-gray-200 dark:border-gray-800 hover:border-[#D4AF37] hover:shadow-xl transition-all duration-300"
+            >
+                {/* Location Header */}
+                <div className="flex items-start justify-between mb-6">
+                    <div>
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                            {location.name}
+                        </h3>
+                        <div className="flex items-center gap-2 text-[#D4AF37] font-medium">
+                            <MapPin size={16} />
+                            <span>{location.city}, {location.state}</span>
                         </div>
                     </div>
-                </div>
-            )}
-
-            {/* Contact Info */}
-            {location.contact && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <a
-                        href={`tel:${location.contact.phone.replace(/\D/g, '')}`}
-                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors group"
-                    >
-                        <Phone size={18} className="text-[#D4AF37] group-hover:scale-110 transition-transform" />
-                        <span className="text-gray-900 dark:text-white font-medium">
-                            {location.contact.phone}
-                        </span>
-                    </a>
-
-                    <a
-                        href={`mailto:${location.contact.email}`}
-                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors group"
-                    >
-                        <Mail size={18} className="text-[#D4AF37] group-hover:scale-110 transition-transform" />
-                        <span className="text-gray-900 dark:text-white font-medium">
-                            Email Us
-                        </span>
-                    </a>
-                </div>
-            )}
-
-            {/* Business Hours */}
-            {location.hours && (
-                <div className="mb-6">
-                    <div className="flex items-center gap-2 mb-3">
-                        <Clock size={18} className="text-[#D4AF37]" />
-                        <h4 className="font-semibold text-gray-900 dark:text-white">Business Hours</h4>
+                    <div className={`px-3 py-1 rounded-full text-sm font-medium ${isOpen
+                            ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400'
+                            : 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400'
+                        }`}>
+                        {isOpen ? 'Open Now' : 'Closed'}
                     </div>
-                    <div className="space-y-1">
-                        {Object.entries(location.hours).map(([day, hours]) => (
-                            <div key={day} className="flex justify-between items-center py-1">
-                                <span className="text-gray-600 dark:text-gray-400 font-medium">{day}</span>
-                                <span className="text-gray-900 dark:text-white">{hours}</span>
+                </div>
+
+                {/* Address */}
+                {location.address && (
+                    <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
+                        <div className="flex items-start gap-3">
+                            <MapPin size={18} className="text-[#D4AF37] mt-1 flex-shrink-0" />
+                            <div>
+                                <p className="text-gray-900 dark:text-white font-medium">
+                                    {location.address.street}
+                                </p>
+                                <p className="text-gray-600 dark:text-gray-400">
+                                    {formatAddress(location.address)}
+                                </p>
+                                <a
+                                    href={getGoogleMapsLink({ address: location.address } as any)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[#D4AF37] hover:text-[#FFD700] text-sm font-medium mt-2 transition-colors inline-flex items-center gap-1"
+                                >
+                                    Get Directions <ArrowRight size={14} />
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Contact Info */}
+                {location.contact && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <a
+                            href={`tel:${location.contact.phone.replace(/\D/g, '')}`}
+                            className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors group"
+                        >
+                            <Phone size={18} className="text-[#D4AF37] group-hover:scale-110 transition-transform" />
+                            <span className="text-gray-900 dark:text-white font-medium">
+                                {location.contact.phone}
+                            </span>
+                        </a>
+
+                        <a
+                            href={`mailto:${location.contact.email}`}
+                            className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors group"
+                        >
+                            <Mail size={18} className="text-[#D4AF37] group-hover:scale-110 transition-transform" />
+                            <span className="text-gray-900 dark:text-white font-medium">
+                                Email Us
+                            </span>
+                        </a>
+                    </div>
+                )}
+
+                {/* Business Hours */}
+                {location.hours && (
+                    <div className="mb-6">
+                        <div className="flex items-center gap-2 mb-3">
+                            <Clock size={18} className="text-[#D4AF37]" />
+                            <h4 className="font-semibold text-gray-900 dark:text-white">Business Hours</h4>
+                        </div>
+                        <div className="space-y-1">
+                            {Object.entries(location.hours).map(([day, hours]) => (
+                                <div key={day} className="flex justify-between items-center py-1">
+                                    <span className="text-gray-600 dark:text-gray-400 font-medium capitalize">{day}</span>
+                                    <span className="text-gray-900 dark:text-white">{hours}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Features */}
+                <div>
+                    <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Services Available</h4>
+                    <div className="space-y-2">
+                        {location.features.map((feature, index) => (
+                            <div key={index} className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-[#D4AF37] rounded-full flex-shrink-0" />
+                                <span className="text-gray-600 dark:text-gray-400">{feature}</span>
                             </div>
                         ))}
                     </div>
                 </div>
-            )}
-
-            {/* Features */}
-            <div>
-                <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Services Available</h4>
-                <div className="space-y-2">
-                    {location.features.map((feature, index) => (
-                        <div key={index} className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-[#D4AF37] rounded-full flex-shrink-0" />
-                            <span className="text-gray-600 dark:text-gray-400">{feature}</span>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </motion.div>
-    )
+            </motion.div>
+        )
+    }
 
     const renderFutureLocation = (location: Location) => {
         const status = notifyStatus[location.id] || 'idle'
@@ -375,14 +396,14 @@ const LocationsGrid = () => {
                         className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4"
                     >
                         Visit Our{' '}
-                        <span className="text-[#D4AF37]">Ateliers</span>
+                        <span className="text-[#D4AF37]">Locations</span>
                     </motion.h2>
                     <motion.p
                         variants={itemVariants}
                         className="text-xl text-gray-600 dark:text-gray-400 leading-relaxed max-w-3xl mx-auto"
                     >
                         Experience luxury jewelry design in our expertly crafted spaces.
-                        From our flagship NYC atelier to exciting new locations coming soon.
+                        From our flagship locations to exciting new showrooms coming soon.
                     </motion.p>
                 </motion.div>
 
@@ -394,7 +415,7 @@ const LocationsGrid = () => {
                     viewport={{ once: true, margin: "-50px" }}
                     className="grid grid-cols-1 md:grid-cols-2 gap-8"
                 >
-                    {/* Current Location - Full Details */}
+                    {/* Current Locations - Full Details */}
                     {locations
                         .filter(location => location.status === 'open')
                         .map(location => (
@@ -411,6 +432,43 @@ const LocationsGrid = () => {
                                 {renderFutureLocation(location)}
                             </div>
                         ))}
+                </motion.div>
+
+                {/* Contact Information Section */}
+                <motion.div
+                    variants={containerVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, margin: "-100px" }}
+                    className="mt-16"
+                >
+                    <motion.div
+                        variants={itemVariants}
+                        className="bg-white dark:bg-black rounded-2xl p-8 border border-gray-200 dark:border-gray-800 text-center"
+                    >
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                            Questions About Our Locations?
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-400 mb-6">
+                            Our team can help you plan your visit or answer questions about our services.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                            <a
+                                href={`tel:${businessInfo.contact.primary.phone.replace(/\D/g, '')}`}
+                                className="inline-flex items-center gap-2 bg-[#D4AF37] hover:bg-[#FFD700] text-black font-semibold px-6 py-3 rounded-lg transition-colors"
+                            >
+                                <Phone size={18} />
+                                {businessInfo.contact.primary.phone}
+                            </a>
+                            <a
+                                href={`mailto:${EMAIL_ADDRESSES.INFO}`}
+                                className="inline-flex items-center gap-2 border border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black font-semibold px-6 py-3 rounded-lg transition-colors"
+                            >
+                                <Mail size={18} />
+                                {EMAIL_ADDRESSES.INFO}
+                            </a>
+                        </div>
+                    </motion.div>
                 </motion.div>
 
                 {/* Expansion Vision */}
@@ -430,7 +488,7 @@ const LocationsGrid = () => {
                             <span className="text-[#D4AF37]">Worldwide</span>
                         </h3>
                         <p className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed mb-8">
-                            Our vision extends beyond borders. As we grow, we're bringing the Jason & Co.
+                            Our vision extends beyond borders. As we grow, we're bringing the {businessInfo.company.name}
                             experience to luxury markets worldwide, always maintaining our commitment to
                             exceptional craftsmanship and personalized service.
                         </p>
@@ -438,8 +496,10 @@ const LocationsGrid = () => {
                         {/* Global Stats */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div className="text-center">
-                                <div className="text-3xl md:text-4xl font-bold text-[#D4AF37] mb-2">4</div>
-                                <div className="text-gray-600 dark:text-gray-400">Planned Locations</div>
+                                <div className="text-3xl md:text-4xl font-bold text-[#D4AF37] mb-2">
+                                    {businessInfo.locations.showrooms.length + 3}
+                                </div>
+                                <div className="text-gray-600 dark:text-gray-400">Total Planned Locations</div>
                             </div>
                             <div className="text-center">
                                 <div className="text-3xl md:text-4xl font-bold text-[#D4AF37] mb-2">3</div>

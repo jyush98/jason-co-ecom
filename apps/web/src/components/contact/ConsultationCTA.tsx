@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Calendar, Video, MapPin, Star, ArrowRight, Clock, DollarSign, X, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
 import { bookConsultation } from '@/utils/api'
+import businessInfo from '@/config/businessInfo'
 
 interface ConsultationFormData {
     name: string
@@ -364,10 +365,10 @@ const ConsultationCTA = () => {
                                     <p className="text-center mt-4 text-gray-400 text-sm">
                                         Or call us directly at{' '}
                                         <a
-                                            href="tel:+12125554653"
+                                            href={`tel:${businessInfo.contact.primary.phone}`}
                                             className="text-[#D4AF37] hover:text-[#FFD700] font-medium transition-colors"
                                         >
-                                            (212) 555-GOLD
+                                            {businessInfo.contact.primary.phone}
                                         </a>
                                     </p>
                                 </div>

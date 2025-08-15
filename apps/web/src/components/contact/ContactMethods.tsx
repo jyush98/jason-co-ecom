@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { Phone, Mail, MessageCircle, Calendar, Clock, Copy, ExternalLink } from 'lucide-react'
 import { useState } from 'react'
+import { businessInfo, EMAIL_ADDRESSES, formatPhoneNumber } from '@/config/businessInfo'
 
 const ContactMethods = () => {
     const [copiedText, setCopiedText] = useState<string | null>(null)
@@ -40,9 +41,9 @@ const ContactMethods = () => {
             title: 'Call Direct',
             subtitle: 'Immediate assistance',
             icon: Phone,
-            primary: '(212) 555-GOLD',
-            secondary: 'Mon-Fri 10am-7pm EST',
-            action: 'tel:+12125554653',
+            primary: businessInfo.contact.primary.phone,
+            secondary: `${businessInfo.locations.headquarters.hours.monday} - ${businessInfo.locations.headquarters.hours.friday}`,
+            action: `tel:${businessInfo.contact.primary.phone.replace(/\D/g, '')}`,
             actionLabel: 'Call Now',
             availability: 'Available now',
             description: 'Speak directly with our design consultants for immediate assistance with custom orders, appointments, or general inquiries.'
@@ -52,9 +53,9 @@ const ContactMethods = () => {
             title: 'Email Inquiry',
             subtitle: 'Detailed correspondence',
             icon: Mail,
-            primary: 'jonathan@jasonjewels.com',
+            primary: EMAIL_ADDRESSES.INFO,
             secondary: 'Response within 2 hours',
-            action: 'mailto:jonathan@jasonjewels.com',
+            action: `mailto:${EMAIL_ADDRESSES.INFO}`,
             actionLabel: 'Send Email',
             availability: 'Always available',
             description: 'Send detailed project descriptions, inspiration images, and questions. Perfect for complex custom order discussions.'
@@ -64,9 +65,9 @@ const ContactMethods = () => {
             title: 'WhatsApp Business',
             subtitle: 'Instant messaging',
             icon: MessageCircle,
-            primary: '+1 (212) 555-4653',
+            primary: businessInfo.contact.primary.whatsapp,
             secondary: 'Quick responses',
-            action: 'https://wa.me/12125554653',
+            action: `https://wa.me/${businessInfo.contact.primary.whatsapp.replace(/\D/g, '')}`,
             actionLabel: 'Message Us',
             availability: 'Business hours',
             description: 'Get instant responses for quick questions, appointment scheduling, and order updates. Media sharing enabled.'
@@ -88,7 +89,7 @@ const ContactMethods = () => {
     const emergencyContact = {
         title: 'VIP Emergency Line',
         subtitle: 'For existing clients only',
-        phone: '+1 (212) 555-VIPS',
+        phone: businessInfo.contact.primary.phone,
         hours: '24/7 for orders $25K+',
         description: 'Dedicated line for high-value clients with urgent custom order needs or time-sensitive requests.'
     }
@@ -155,10 +156,10 @@ const ContactMethods = () => {
 
                                     {/* Availability Badge */}
                                     <div className={`px-3 py-1 rounded-full text-xs font-medium ${method.availability === 'Available now'
-                                            ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400'
-                                            : method.availability === 'Limited slots'
-                                                ? 'bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400'
-                                                : 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400'
+                                        ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400'
+                                        : method.availability === 'Limited slots'
+                                            ? 'bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400'
+                                            : 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400'
                                         }`}>
                                         {method.availability}
                                     </div>
@@ -210,6 +211,79 @@ const ContactMethods = () => {
                     })}
                 </motion.div>
 
+                {/* Department-Specific Contact Options */}
+                <motion.div
+                    variants={containerVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, margin: "-50px" }}
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16"
+                >
+                    <motion.div
+                        variants={itemVariants}
+                        className="bg-white dark:bg-black rounded-xl p-6 border border-gray-200 dark:border-gray-800 hover:border-[#D4AF37]/50 transition-colors"
+                    >
+                        <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Custom Orders</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                            Bespoke jewelry design and creation
+                        </p>
+                        <a
+                            href={`mailto:${EMAIL_ADDRESSES.CUSTOM}`}
+                            className="text-[#D4AF37] hover:text-[#FFD700] text-sm font-medium transition-colors"
+                        >
+                            {EMAIL_ADDRESSES.CUSTOM}
+                        </a>
+                    </motion.div>
+
+                    <motion.div
+                        variants={itemVariants}
+                        className="bg-white dark:bg-black rounded-xl p-6 border border-gray-200 dark:border-gray-800 hover:border-[#D4AF37]/50 transition-colors"
+                    >
+                        <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Sales Team</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                            Purchase inquiries and product information
+                        </p>
+                        <a
+                            href={`mailto:${EMAIL_ADDRESSES.SALES}`}
+                            className="text-[#D4AF37] hover:text-[#FFD700] text-sm font-medium transition-colors"
+                        >
+                            {EMAIL_ADDRESSES.SALES}
+                        </a>
+                    </motion.div>
+
+                    <motion.div
+                        variants={itemVariants}
+                        className="bg-white dark:bg-black rounded-xl p-6 border border-gray-200 dark:border-gray-800 hover:border-[#D4AF37]/50 transition-colors"
+                    >
+                        <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Customer Support</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                            Order assistance and general inquiries
+                        </p>
+                        <a
+                            href={`mailto:${EMAIL_ADDRESSES.SUPPORT}`}
+                            className="text-[#D4AF37] hover:text-[#FFD700] text-sm font-medium transition-colors"
+                        >
+                            {EMAIL_ADDRESSES.SUPPORT}
+                        </a>
+                    </motion.div>
+
+                    <motion.div
+                        variants={itemVariants}
+                        className="bg-white dark:bg-black rounded-xl p-6 border border-gray-200 dark:border-gray-800 hover:border-[#D4AF37]/50 transition-colors"
+                    >
+                        <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Returns & Exchanges</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                            Return process and exchange requests
+                        </p>
+                        <a
+                            href={`mailto:${EMAIL_ADDRESSES.RETURNS}`}
+                            className="text-[#D4AF37] hover:text-[#FFD700] text-sm font-medium transition-colors"
+                        >
+                            {EMAIL_ADDRESSES.RETURNS}
+                        </a>
+                    </motion.div>
+                </motion.div>
+
                 {/* VIP Emergency Contact */}
                 <motion.div
                     variants={containerVariants}
@@ -255,6 +329,37 @@ const ContactMethods = () => {
                                     Emergency Call
                                 </a>
                             </div>
+                        </div>
+                    </motion.div>
+                </motion.div>
+
+                {/* Business Information Footer */}
+                <motion.div
+                    variants={containerVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, margin: "-100px" }}
+                    className="mt-16 text-center"
+                >
+                    <motion.div
+                        variants={itemVariants}
+                        className="bg-white dark:bg-black rounded-xl p-8 border border-gray-200 dark:border-gray-800"
+                    >
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                            Visit Our Showroom
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-400 mb-4">
+                            {businessInfo.locations.headquarters.address.street}<br />
+                            {businessInfo.locations.headquarters.address.city}, {businessInfo.locations.headquarters.address.state} {businessInfo.locations.headquarters.address.zip}
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                            <span className="text-gray-600 dark:text-gray-400">
+                                Hours: {businessInfo.locations.headquarters.hours.monday} - {businessInfo.locations.headquarters.hours.friday}
+                            </span>
+                            <span className="hidden sm:block text-gray-300 dark:text-gray-600">|</span>
+                            <span className="text-gray-600 dark:text-gray-400">
+                                {businessInfo.locations.headquarters.hours.saturday} • {businessInfo.locations.headquarters.hours.sunday}
+                            </span>
                         </div>
                     </motion.div>
                 </motion.div>

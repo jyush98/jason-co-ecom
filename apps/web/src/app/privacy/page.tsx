@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import businessInfo from '@/config/businessInfo';
 
 export const metadata: Metadata = {
     title: 'Privacy Policy | Jason & Co.',
@@ -104,7 +105,7 @@ export default function PrivacyPolicyPage() {
                     </p>
                     <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg mt-6">
                         <p className="font-semibold">Jason & Co.</p>
-                        <p>Email: privacy@jasonandco.com</p>
+                        {`Email: ${businessInfo.contact.departments.privacy}`}
                         {/* <p>Phone: (555) 123-4567</p> */}
                     </div>
                 </div>

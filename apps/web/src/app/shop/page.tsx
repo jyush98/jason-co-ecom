@@ -8,13 +8,13 @@ import { Suspense } from 'react';
 
 /**
  * SEO-Optimized Shop Page for Jason & Co. Luxury Jewelry
- * 
+ *
  * Business Impact:
  * - Category-specific SEO for luxury jewelry keywords
  * - Rich search results with product collections
  * - Breadcrumb navigation for better UX and SEO
  * - Social media optimization for category sharing
- * 
+ *
  * Expected Results:
  * - Top 10 rankings for "luxury [category]" keywords
  * - Enhanced product discovery through category optimization

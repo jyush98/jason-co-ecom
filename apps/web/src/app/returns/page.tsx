@@ -1,8 +1,9 @@
+import { businessInfo, EMAIL_ADDRESSES, formatPhoneNumber } from '@/config/businessInfo';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-    title: 'Returns & Exchanges | Jason & Co.',
-    description: 'Returns and exchange policy for Jason & Co. luxury jewelry.',
+    title: `Returns & Exchanges | ${businessInfo.company.name}`,
+    description: `Returns and exchange policy for ${businessInfo.company.name} luxury jewelry.`,
     robots: {
         index: false,
         follow: true,
@@ -34,7 +35,7 @@ export default function ReturnsPage() {
                 <div className="prose prose-lg dark:prose-invert max-w-none">
                     <h2>Our Return Policy</h2>
                     <p>
-                        We want you to love your Jason & Co. jewelry. If you're not completely satisfied
+                        We want you to love your {businessInfo.company.name} jewelry. If you're not completely satisfied
                         with your purchase, we offer a comprehensive return and exchange policy to ensure
                         your complete satisfaction.
                     </p>
@@ -66,10 +67,10 @@ export default function ReturnsPage() {
                     </ul>
 
                     <h2>How to Return an Item</h2>
-                    <div className="bg-gold/5 border border-gold/20 rounded-lg p-6 my-6">
-                        <h3 className="text-lg font-semibold text-gold mb-4">Step-by-Step Return Process</h3>
+                    <div className="bg-[#D4AF37]/5 border border-[#D4AF37]/20 rounded-lg p-6 my-6">
+                        <h3 className="text-lg font-semibold text-[#D4AF37] mb-4">Step-by-Step Return Process</h3>
                         <ol>
-                            <li><strong>Contact Us:</strong> Email returns@jasonandco.com or call (555) 123-4567</li>
+                            <li><strong>Contact Us:</strong> Email <a href={`mailto:${EMAIL_ADDRESSES.RETURNS}`} className="text-[#D4AF37] hover:text-[#FFD700]">{EMAIL_ADDRESSES.RETURNS}</a> or call <a href={`tel:${businessInfo.contact.primary.phone.replace(/\D/g, '')}`} className="text-[#D4AF37] hover:text-[#FFD700]">{businessInfo.contact.primary.phone}</a></li>
                             <li><strong>Receive Authorization:</strong> We'll provide a return authorization number</li>
                             <li><strong>Package Securely:</strong> Include all original packaging and documentation</li>
                             <li><strong>Ship Safely:</strong> Use our prepaid return label for insured shipping</li>
@@ -95,12 +96,21 @@ export default function ReturnsPage() {
                     <p>
                         Custom and personalized jewelry orders are generally non-returnable. However,
                         if there's a manufacturing defect or the item doesn't match your specifications,
-                        we'll work with you to make it right.
+                        we'll work with you to make it right. Contact our custom orders team at{' '}
+                        <a href={`mailto:${EMAIL_ADDRESSES.CUSTOM}`} className="text-[#D4AF37] hover:text-[#FFD700]">
+                            {EMAIL_ADDRESSES.CUSTOM}
+                        </a> for assistance.
                     </p>
 
                     <h2>Damaged or Defective Items</h2>
                     <p>
-                        If you receive a damaged or defective item, please contact us immediately.
+                        If you receive a damaged or defective item, please contact us immediately at{' '}
+                        <a href={`mailto:${EMAIL_ADDRESSES.SUPPORT}`} className="text-[#D4AF37] hover:text-[#FFD700]">
+                            {EMAIL_ADDRESSES.SUPPORT}
+                        </a> or call{' '}
+                        <a href={`tel:${businessInfo.contact.primary.phone.replace(/\D/g, '')}`} className="text-[#D4AF37] hover:text-[#FFD700]">
+                            {businessInfo.contact.primary.phone}
+                        </a>.
                         We'll provide a replacement or full refund, including shipping costs, and
                         arrange for return of the defective item.
                     </p>
@@ -109,7 +119,10 @@ export default function ReturnsPage() {
                     <p>
                         International customers are responsible for return shipping costs unless the
                         return is due to our error. Additional customs fees may apply and are the
-                        customer's responsibility.
+                        customer's responsibility. For international return assistance, contact{' '}
+                        <a href={`mailto:${EMAIL_ADDRESSES.SUPPORT}`} className="text-[#D4AF37] hover:text-[#FFD700]">
+                            {EMAIL_ADDRESSES.SUPPORT}
+                        </a>.
                     </p>
 
                     <h2>Contact Our Returns Team</h2>
@@ -117,10 +130,19 @@ export default function ReturnsPage() {
                         Have questions about returning an item? Our customer service team is here to help:
                     </p>
                     <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg mt-6">
-                        <p className="font-semibold">Returns Department</p>
-                        <p>Email: returns@jasonandco.com</p>
-                        {/* <p>Phone: (555) 123-4567</p> */}
-                        <p>Hours: Monday-Friday, 9 AM - 6 PM EST</p>
+                        <p className="font-semibold text-gray-900 dark:text-white">Returns Department</p>
+                        <p className="text-gray-700 dark:text-gray-300">
+                            Email: <a href={`mailto:${EMAIL_ADDRESSES.RETURNS}`} className="text-[#D4AF37] hover:text-[#FFD700]">{EMAIL_ADDRESSES.RETURNS}</a>
+                        </p>
+                        <p className="text-gray-700 dark:text-gray-300">
+                            Phone: <a href={`tel:${businessInfo.contact.primary.phone.replace(/\D/g, '')}`} className="text-[#D4AF37] hover:text-[#FFD700]">{businessInfo.contact.primary.phone}</a>
+                        </p>
+                        <p className="text-gray-700 dark:text-gray-300">
+                            Hours: {businessInfo.locations.headquarters.hours.monday} - {businessInfo.locations.headquarters.hours.friday}
+                        </p>
+                        <p className="text-gray-700 dark:text-gray-300">
+                            Address: {businessInfo.locations.headquarters.address.street}, {businessInfo.locations.headquarters.address.city}, {businessInfo.locations.headquarters.address.state} {businessInfo.locations.headquarters.address.zip}
+                        </p>
                     </div>
 
                     <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6 mt-8">
@@ -130,7 +152,17 @@ export default function ReturnsPage() {
                         <p className="text-blue-800 dark:text-blue-200">
                             If you're unsure about size, style, or have any questions before purchasing,
                             our jewelry consultants are available to help you make the perfect choice.
-                            Contact us for personalized assistance.
+                            Contact us at <a href={`mailto:${EMAIL_ADDRESSES.SALES}`} className="text-blue-600 dark:text-blue-300 hover:underline">{EMAIL_ADDRESSES.SALES}</a> for personalized assistance.
+                        </p>
+                    </div>
+
+                    <div className="bg-[#D4AF37]/5 border border-[#D4AF37]/20 rounded-lg p-6 mt-8">
+                        <h3 className="text-lg font-semibold text-[#D4AF37] mb-2">
+                            {businessInfo.company.tagline}
+                        </h3>
+                        <p className="text-gray-700 dark:text-gray-300">
+                            At {businessInfo.company.name}, we stand behind every piece we create. Your satisfaction
+                            is our commitment, and we're here to ensure your jewelry experience exceeds all expectations.
                         </p>
                     </div>
                 </div>

@@ -16,6 +16,14 @@ import {
     AlertCircle
 } from 'lucide-react'
 import { getBusinessHours } from '@/utils/api'
+// ✅ FIXED: Import from centralized business configuration
+import {
+    businessInfo,
+    EMAIL_ADDRESSES,
+    formatPhoneNumber,
+    formatAddress,
+    isBusinessOpen
+} from '@/config/businessInfo'
 
 interface BusinessHours {
     [key: string]: string
@@ -59,17 +67,29 @@ const ContactInfo = () => {
                 const response: BusinessHoursResponse = await getBusinessHours()
                 if (response && response.hours) {
                     setBusinessHours(response.hours)
-                    setHolidayNotice(response.holiday_notice || businessInfo.hours.holiday)
-                    setEmergencyNotice(response.emergency_notice || businessInfo.hours.emergency)
+                    setHolidayNotice(response.holiday_notice || "Holiday hours may vary. Call ahead during major holidays.")
+                    setEmergencyNotice(response.emergency_notice || "VIP emergency line available 24/7 for orders $25,000+")
                 } else {
-                    // Fallback to static hours
-                    setBusinessHours(businessInfo.hours.regular)
+                    // ✅ FIXED: Use centralized business hours
+                    const staticHours = businessInfo.locations.headquarters.hours
+                    const formattedHours = {
+                        "Monday - Friday": `${staticHours.monday} - ${staticHours.friday}`,
+                        "Saturday": staticHours.saturday,
+                        "Sunday": staticHours.sunday
+                    }
+                    setBusinessHours(formattedHours)
                 }
             } catch (error) {
                 console.error('Failed to load business hours:', error)
                 setHoursError(true)
-                // Fallback to static hours
-                setBusinessHours(businessInfo.hours.regular)
+                // ✅ FIXED: Fallback to centralized business hours
+                const staticHours = businessInfo.locations.headquarters.hours
+                const formattedHours = {
+                    "Monday - Friday": `${staticHours.monday}`,
+                    "Saturday": staticHours.saturday,
+                    "Sunday": staticHours.sunday
+                }
+                setBusinessHours(formattedHours)
             } finally {
                 setHoursLoading(false)
             }
@@ -78,38 +98,17 @@ const ContactInfo = () => {
         loadBusinessHours()
     }, [])
 
-    const businessInfo = {
+    // ✅ FIXED: Updated business credentials with correct information
+    const businessCredentials = {
         legal: {
-            name: "Jason & Co. Fine Jewelry LLC",
-            registration: "NYC Business License #JWL-2024-001",
+            name: businessInfo.legal.businessName,
+            registration: businessInfo.legal.registrationNumber,
             insurance: "Fully insured and bonded",
             certifications: [
                 "Gemological Institute of America (GIA) Certified",
                 "Better Business Bureau A+ Rating",
-                "NYC Department of Consumer Affairs Licensed"
+                "Licensed Luxury Jewelry Retailer"
             ]
-        },
-        contact: {
-            primary: {
-                phone: "(212) 555-GOLD",
-                email: "jonathan@jasonjewels.com",
-                whatsapp: "+1 (212) 555-4653"
-            },
-            departments: {
-                sales: "sales@jasonjewels.com",
-                support: "support@jasonjewels.com",
-                custom: "custom@jasonjewels.com",
-                media: "press@jasonjewels.com"
-            }
-        },
-        hours: {
-            regular: {
-                "Monday - Friday": "10:00 AM - 7:00 PM EST",
-                "Saturday": "10:00 AM - 6:00 PM EST",
-                "Sunday": "By Appointment Only"
-            },
-            holiday: "Holiday hours may vary. Call ahead during major holidays.",
-            emergency: "VIP emergency line available 24/7 for orders $25,000+"
         },
         policies: {
             response: "We respond to all inquiries within 2 hours during business hours",
@@ -149,7 +148,7 @@ const ContactInfo = () => {
                         className="text-xl text-gray-600 dark:text-gray-400 leading-relaxed max-w-3xl mx-auto"
                     >
                         Transparency and trust are the foundation of every relationship.
-                        Here's everything you need to know about working with Jason & Co.
+                        Here's everything you need to know about working with {businessInfo.company.name}.
                     </motion.p>
                 </motion.div>
 
@@ -185,10 +184,10 @@ const ContactInfo = () => {
                                 <div className="flex items-center justify-between">
                                     <span className="text-gray-600 dark:text-gray-400">Email</span>
                                     <a
-                                        href={`mailto:${businessInfo.contact.primary.email}`}
+                                        href={`mailto:${EMAIL_ADDRESSES.INFO}`}
                                         className="text-[#D4AF37] hover:text-[#FFD700] font-medium transition-colors"
                                     >
-                                        {businessInfo.contact.primary.email}
+                                        {EMAIL_ADDRESSES.INFO}
                                     </a>
                                 </div>
                                 <div className="flex items-center justify-between">
@@ -331,15 +330,15 @@ const ContactInfo = () => {
                             <div className="space-y-4">
                                 <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
                                     <p className="font-semibold text-gray-900 dark:text-white mb-1">
-                                        {businessInfo.legal.name}
+                                        {businessCredentials.legal.name}
                                     </p>
                                     <p className="text-gray-600 dark:text-gray-400 text-sm">
-                                        {businessInfo.legal.registration}
+                                        {businessCredentials.legal.registration}
                                     </p>
                                 </div>
 
                                 <div className="space-y-3">
-                                    {businessInfo.legal.certifications.map((cert, index) => (
+                                    {businessCredentials.legal.certifications.map((cert, index) => (
                                         <div key={index} className="flex items-center gap-3">
                                             <CheckCircle size={16} className="text-[#D4AF37] flex-shrink-0" />
                                             <span className="text-gray-600 dark:text-gray-400">{cert}</span>
@@ -360,7 +359,7 @@ const ContactInfo = () => {
                             </h3>
 
                             <div className="space-y-4">
-                                {Object.entries(businessInfo.policies).map(([key, policy]) => (
+                                {Object.entries(businessCredentials.policies).map(([key, policy]) => (
                                     <div key={key} className="flex items-start gap-3">
                                         <CheckCircle size={16} className="text-[#D4AF37] flex-shrink-0 mt-1" />
                                         <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
@@ -390,11 +389,11 @@ const ContactInfo = () => {
                                         Emergency line for time-sensitive custom orders and VIP client needs.
                                     </p>
                                     <a
-                                        href="tel:+12125555847"
+                                        href={`tel:${businessInfo.contact.primary.phone.replace(/\D/g, '')}`}
                                         className="text-[#D4AF37] hover:text-[#FFD700] font-medium transition-colors flex items-center gap-2"
                                     >
                                         <Phone size={16} />
-                                        (212) 555-VIPS
+                                        {businessInfo.contact.primary.phone}
                                     </a>
                                 </div>
 
@@ -406,11 +405,11 @@ const ContactInfo = () => {
                                         White-glove delivery, insurance coordination, and personal shopping assistance.
                                     </p>
                                     <a
-                                        href="mailto:concierge@jasonjewels.com"
+                                        href={`mailto:${EMAIL_ADDRESSES.CUSTOM}`}
                                         className="text-[#D4AF37] hover:text-[#FFD700] font-medium transition-colors flex items-center gap-2"
                                     >
                                         <Mail size={16} />
-                                        concierge@jasonjewels.com
+                                        {EMAIL_ADDRESSES.CUSTOM}
                                     </a>
                                 </div>
                             </div>
@@ -455,7 +454,7 @@ const ContactInfo = () => {
                         </div>
 
                         <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-8">
-                            When you work with Jason & Co., you're not just getting exceptional jewelry –
+                            When you work with {businessInfo.company.name}, you're not just getting exceptional jewelry –
                             you're gaining a committed partner in bringing your vision to life. Every interaction
                             is designed to exceed your expectations.
                         </p>
@@ -475,10 +474,10 @@ const ContactInfo = () => {
                                 Terms of Service
                             </a>
                             <a
-                                href="/warranty"
+                                href="/returns"
                                 className="text-[#D4AF37] hover:text-[#FFD700] transition-colors"
                             >
-                                Warranty Information
+                                Returns Policy
                             </a>
                             <a
                                 href="/shipping"

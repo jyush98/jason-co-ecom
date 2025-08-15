@@ -32,7 +32,7 @@ export const metadata: Metadata = {
         images: ["/images/contact-twitter.jpg"]
     },
     alternates: {
-        canonical: "https://jasonjewels.com/contact"
+        canonical: `${process.env.NEXT_PUBLIC_BASE_URL}/contact`
     }
 }
 

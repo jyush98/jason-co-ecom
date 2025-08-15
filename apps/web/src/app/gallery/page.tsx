@@ -48,7 +48,7 @@ const galleryMetadata = {
 export default function GalleryPage() {
     // I'm using state to track when we're on the client
     const [isClient, setIsClient] = useState(false);
-    const [origin, setOrigin] = useState('https://jasonjewels.com'); // Default to production origin
+    const [origin, setOrigin] = useState('https://jasonjewels.com'); // Default to production origin // TODO: come up with a better solution for this
 
     // Generate breadcrumb items for SEO
     const breadcrumbItems = [

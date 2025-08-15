@@ -6,27 +6,29 @@ import { motion } from "framer-motion";
 import { FaInstagram, FaTiktok, FaEnvelope } from "react-icons/fa";
 import { useTheme } from "next-themes";
 
+import { businessInfo, EMAIL_ADDRESSES, SOCIAL_LINKS } from "@/config/businessInfo";
+
 export default function Footer() {
   const { resolvedTheme } = useTheme();
 
   const socialLinks = [
     {
       icon: FaInstagram,
-      href: "https://www.instagram.com/jasonjeweler",
+      href: SOCIAL_LINKS.instagram,
       label: "Instagram",
       username: "@jasonjeweler"
     },
     {
       icon: FaTiktok,
-      href: "https://www.tiktok.com/@jasonjeweler",
+      href: SOCIAL_LINKS.tiktok,
       label: "TikTok",
       username: "@jasonjeweler"
     },
     {
       icon: FaEnvelope,
-      href: "mailto:jonathan@jasonjewels.com",
+      href: `mailto:${EMAIL_ADDRESSES.INFO}`,
       label: "Email",
-      username: "jonathan@jasonjewels.com"
+      username: `${EMAIL_ADDRESSES.INFO}`
     }
   ];
 
@@ -101,10 +103,10 @@ export default function Footer() {
               Ready to Create Something Extraordinary?
             </p>
             <Link
-              href="mailto:jonathan@jasonjewels.com"
+              href={`mailto:${EMAIL_ADDRESSES.INFO}`}
               className="text-base font-medium text-gray-800 dark:text-gray-200 hover:text-gold dark:hover:text-gold transition-colors duration-200"
             >
-              jonathan@jasonjewels.com
+              {EMAIL_ADDRESSES.INFO}
             </Link>
           </motion.div>
 

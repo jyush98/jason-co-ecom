@@ -4,12 +4,7 @@ import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import AdminDashboard from "@/components/admin/AdminDashboard";
-
-const ADMIN_EMAILS = [
-  "jonathan@jasonjewels.com",
-  "jason@jasonjewels.com",
-  "jyushuvayev98@gmail.com",
-];
+import { ADMIN_EMAIL_ADDRESSES } from "@/config/businessInfo";
 
 export default function AdminPage() {
   const { user, isLoaded } = useUser();
@@ -19,7 +14,7 @@ export default function AdminPage() {
   useEffect(() => {
     if (isLoaded) {
       const email = user?.emailAddresses[0]?.emailAddress;
-      if (email && ADMIN_EMAILS.includes(email)) {
+      if (email && ADMIN_EMAIL_ADDRESSES.includes(email)) {
         setAuthorized(true);
       } else {
         router.replace("/");
