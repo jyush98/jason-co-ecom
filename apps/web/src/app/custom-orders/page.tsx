@@ -286,7 +286,7 @@ function MobileCustomOrdersPage({ onCustomOrderSubmit, _onSaveDraft, _onUseAsIns
               onClick={async () => {
                 try {
                   await onCustomOrderSubmit(formData);
-                } catch (error) {
+                } catch (_error) {
                   // Error handled by parent
                 }
               }}
@@ -428,7 +428,7 @@ function MobileDetailsStep({ formData, setFormData }: any) {
   );
 }
 
-function MobileInspirationStep({ formData, setFormData }: any) {
+function MobileInspirationStep({ _formData, _setFormData }: any) {
   return (
     <div className="space-y-6">
       <div>
