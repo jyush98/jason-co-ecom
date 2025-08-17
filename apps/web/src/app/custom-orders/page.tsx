@@ -286,7 +286,7 @@ function MobileCustomOrdersPage({ onCustomOrderSubmit, _onSaveDraft, _onUseAsIns
               onClick={async () => {
                 try {
                   await onCustomOrderSubmit(formData);
-                } catch (_error) {
+                } catch {
                   // Error handled by parent
                 }
               }}
