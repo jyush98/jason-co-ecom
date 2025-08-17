@@ -11,12 +11,12 @@ import {
   Clock,
   Star,
   ArrowRight,
-  Check,
+  // Check,
   Upload,
-  Phone,
-  Mail,
+  // Phone,
+  // Mail,
   Calendar,
-  X,
+  // X,
   ChevronLeft
 } from 'lucide-react';
 
