@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import {
   ChevronRight,
   ChevronDown,
-  Heart,
+  // Heart,
   Clock,
   Star,
   ArrowRight,
@@ -58,7 +58,7 @@ function useIsMobile() {
 }
 
 // Mobile Components
-function MobileCustomOrdersPage({ onCustomOrderSubmit, onSaveDraft, onUseAsInspiration }: any) {
+function MobileCustomOrdersPage({ onCustomOrderSubmit, _onSaveDraft, _onUseAsInspiration }: any) {
   const [currentView, setCurrentView] = useState<'landing' | 'form'>('landing');
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<Partial<CustomOrderFormState>>({});
