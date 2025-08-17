@@ -119,7 +119,7 @@ const FullscreenMenu = ({
                                                 {String(index + 1).padStart(2, '0')}
                                             </motion.span>
 
-                                            {/* Category Name */}
+                                            {/* Navigation Item Name */}
                                             <motion.h2
                                                 variants={textVariants}
                                                 className="text-4xl md:text-6xl lg:text-7xl font-serif leading-none tracking-tight transition-colors duration-300"

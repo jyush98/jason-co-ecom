@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, X, ShoppingCart, Sun, Moon, User, ChevronDown, Search } from "lucide-react";
+import { Menu, X, ShoppingCart, Sun, Moon, User, ChevronDown } from "lucide-react";
 import { SignedIn, SignedOut, useAuth } from "@clerk/nextjs";
 import { useCartStore } from "@/app/store/cartStore";
 import { getCart } from "@/utils/cart";
@@ -24,6 +24,15 @@ const collections = [
   { name: "Iced Out", path: "/shop?collection=iced" },
   { name: "Tennis Set", path: "/shop?collection=tennis" },
   { name: "Classics", path: "/shop?collection=classics" },
+];
+
+// Main navigation links for FullScreenMenu
+const mainNavigation = [
+  { name: "Shop", path: "/shop" },
+  { name: "Gallery", path: "/gallery" },
+  { name: "Custom Orders", path: "/custom-orders" },
+  { name: "About", path: "/about" },
+  { name: "Contact", path: "/contact" },
 ];
 
 interface CartItem {
@@ -157,8 +166,8 @@ export default function Navbar() {
     <>
       <motion.header
         className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${scrolled
-            ? 'bg-white/95 dark:bg-black/95 backdrop-blur-md shadow-2xl border-b border-gold/20'
-            : 'bg-white dark:bg-black'
+          ? 'bg-white/95 dark:bg-black/95 backdrop-blur-md shadow-2xl border-b border-gold/20'
+          : 'bg-white dark:bg-black'
           } text-black dark:text-white`}
         initial={{ y: -100 }}
         animate={{
@@ -169,12 +178,11 @@ export default function Navbar() {
       >
         {/* Main Navigation */}
         <div className="max-w-7xl mx-auto">
-          {/* FIXED: Mobile-First Top Row with Better Spacing */}
-          <div className={`flex justify-between items-center px-6 ${
-            isMobile ? 'py-4 h-[80px]' : 'py-4 h-[90px]'
-          }`}>
+          {/* CLEAN Mobile Header */}
+          <div className={`flex justify-between items-center px-6 ${isMobile ? 'py-4 h-[80px]' : 'py-4 h-[90px]'
+            }`}>
 
-            {/* Left Actions - Keep your original layout */}
+            {/* Left Actions - MINIMAL */}
             <div className="flex items-center space-x-2 sm:space-x-4">
               <motion.button
                 onClick={toggleMenu}
@@ -208,53 +216,43 @@ export default function Navbar() {
                 </AnimatePresence>
               </motion.button>
 
-              {/* Theme Toggle - Keep in original position */}
-              <motion.button
-                onClick={toggleTheme}
-                aria-label="Toggle Theme"
-                className="p-2 rounded-full transition-colors duration-200"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <AnimatePresence mode="wait">
-                  {resolvedTheme === "dark" ? (
-                    <motion.div
-                      key="sun"
-                      initial={{ rotate: -180, opacity: 0 }}
-                      animate={{ rotate: 0, opacity: 1 }}
-                      exit={{ rotate: 180, opacity: 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <Sun className={`text-gold ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="moon"
-                      initial={{ rotate: 180, opacity: 0 }}
-                      animate={{ rotate: 0, opacity: 1 }}
-                      exit={{ rotate: -180, opacity: 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <Moon className={`text-gold ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.button>
-
-              {/* Search Icon - Keep if you had it */}
-              {isMobile && (
+              {/* Theme Toggle - Keep on desktop, remove on mobile */}
+              {!isMobile && (
                 <motion.button
+                  onClick={toggleTheme}
+                  aria-label="Toggle Theme"
                   className="p-2 rounded-full transition-colors duration-200"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  aria-label="Search"
                 >
-                  <Search className="w-4 h-4" />
+                  <AnimatePresence mode="wait">
+                    {resolvedTheme === "dark" ? (
+                      <motion.div
+                        key="sun"
+                        initial={{ rotate: -180, opacity: 0 }}
+                        animate={{ rotate: 0, opacity: 1 }}
+                        exit={{ rotate: 180, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <Sun className="text-gold w-5 h-5" />
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="moon"
+                        initial={{ rotate: 180, opacity: 0 }}
+                        animate={{ rotate: 0, opacity: 1 }}
+                        exit={{ rotate: -180, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <Moon className="text-gold w-5 h-5" />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </motion.button>
               )}
             </div>
 
-            {/* FIXED: Center Logo - Better centering */}
+            {/* Center Logo - PROMINENT */}
             <motion.div
               className="mx-auto"
               whileHover={{ scale: isMobile ? 1.02 : 1.05 }}
@@ -272,7 +270,7 @@ export default function Navbar() {
               </Link>
             </motion.div>
 
-            {/* Right Actions - Keep original functionality */}
+            {/* Right Actions - CLEAN */}
             <div className="flex items-center space-x-2 sm:space-x-4">
               {/* Cart */}
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -296,7 +294,7 @@ export default function Navbar() {
                 </Link>
               </motion.div>
 
-              {/* Auth Section - Keep original */}
+              {/* Auth Section */}
               <SignedOut>
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Link
@@ -316,7 +314,7 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* Desktop Navigation - Keep unchanged */}
+          {/* Desktop Navigation ONLY */}
           {!menuOpen && !isMobile && (
             <motion.nav
               className="flex justify-center items-center space-x-12 py-3 text-sm tracking-widest font-medium border-t border-gold/10"
@@ -365,64 +363,24 @@ export default function Navbar() {
             </motion.nav>
           )}
 
-          {/* Mobile Navigation Bar - Keep your original structure */}
-          {!menuOpen && isMobile && (
-            <motion.nav
-              className="flex justify-center items-center py-2 text-xs font-medium border-t border-gold/10 overflow-x-auto"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.1 }}
-            >
-              <div className="flex space-x-6 px-4 min-w-max">
-                {/* Shop with mobile dropdown */}
-                <div className="relative shop-dropdown">
-                  <motion.button
-                    onClick={handleDropdownToggle}
-                    className="flex items-center space-x-1 whitespace-nowrap"
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <span className="uppercase tracking-wider font-semibold">Shop</span>
-                    <ChevronDown
-                      className={`w-3 h-3 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''
-                        }`}
-                    />
-                  </motion.button>
-                </div>
-
-                {[
-                  ["/gallery", "Gallery"],
-                  ["/about", "About"],
-                  ["/contact", "Contact"],
-                ].map(([path, label]) => (
-                  <Link
-                    key={path}
-                    href={path}
-                    className="uppercase tracking-wider font-semibold transition-colors duration-200 whitespace-nowrap"
-                  >
-                    {label}
-                  </Link>
-                ))}
-              </div>
-            </motion.nav>
-          )}
+          {/* NO Mobile Navigation Bar - Removed completely */}
         </div>
 
-        {/* Keep your original mega menu unchanged */}
+        {/* Desktop Mega Menu - UNCHANGED */}
         <AnimatePresence>
-          {isDropdownOpen && (
+          {isDropdownOpen && !isMobile && (
             <motion.div
               key="mega-menu"
               initial={{ opacity: 0, y: -20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -20, scale: 0.95 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
-              className={`absolute left-0 right-0 top-full w-full bg-white/95 dark:bg-black/95 backdrop-blur-md text-black dark:text-white shadow-2xl border-t border-gold/20 ${isMobile ? 'py-6' : 'py-12'
-                }`}
+              className="absolute left-0 right-0 top-full w-full bg-white/95 dark:bg-black/95 backdrop-blur-md text-black dark:text-white shadow-2xl border-t border-gold/20 py-12"
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
             >
               {/* Desktop Grid */}
-              <div className={`hidden md:grid max-w-7xl mx-auto px-8 grid-cols-12 gap-12`}>
+              <div className="max-w-7xl mx-auto px-8 grid grid-cols-12 gap-12">
                 {/* Categories */}
                 <div className="col-span-3">
                   <h3 className="text-lg font-bold uppercase mb-6 text-gold tracking-wider">Categories</h3>
@@ -514,42 +472,6 @@ export default function Navbar() {
                   </motion.div>
                 </div>
               </div>
-
-              {/* Mobile Layout */}
-              <div className="flex md:hidden w-full justify-between px-4">
-                <div className="w-[48%]">
-                  <h3 className="text-base font-bold uppercase mb-4 text-gold">Categories</h3>
-                  <ul className="space-y-3">
-                    {categories.map((category) => (
-                      <li key={category.name}>
-                        <Link
-                          href={category.path}
-                          className="text-sm transition-colors duration-200 block py-1"
-                          onClick={handleDropdownLinkClick}
-                        >
-                          {category.name}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="w-[48%]">
-                  <h3 className="text-base font-bold uppercase mb-4 text-gold">Collections</h3>
-                  <ul className="space-y-3">
-                    {collections.map((collection) => (
-                      <li key={collection.name}>
-                        <Link
-                          href={collection.path}
-                          className="text-sm transition-colors duration-200 block py-1"
-                          onClick={handleDropdownLinkClick}
-                        >
-                          {collection.name}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -579,10 +501,10 @@ export default function Navbar() {
         `}</style>
       </motion.header>
 
-      {/* Fullscreen Menu */}
+      {/* FullScreen Menu with Main Navigation */}
       {menuOpen && (
         <FullScreenMenu
-          categories={categories}
+          categories={mainNavigation}
           onClose={() => setMenuOpen(false)}
         />
       )}
