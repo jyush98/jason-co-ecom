@@ -33,7 +33,7 @@ out/
 /out/
 
 #Venv
-api/jason-co/
+apps/api/jason-co/
 
 # General builds
 build/
