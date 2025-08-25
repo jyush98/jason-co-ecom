@@ -20,6 +20,7 @@ import {
   LogOut,
   ChevronRight
 } from "lucide-react";
+import { backdropAnimation, createSidebarAnimation } from "@/lib/animations";
 
 interface AccountLayoutProps {
   children: React.ReactNode;
@@ -103,29 +104,9 @@ export default function AccountLayout({ children }: AccountLayoutProps) {
     return pathname.startsWith(href);
   };
 
-  const sidebarVariants = {
-    open: {
-      x: 0,
-      transition: {
-        type: "spring",
-        stiffness: 300,
-        damping: 40,
-      },
-    },
-    closed: {
-      x: "-100%",
-      transition: {
-        type: "spring",
-        stiffness: 300,
-        damping: 40,
-      },
-    },
-  };
+  const sidebarVariants = createSidebarAnimation();
+  const backdropVariants = backdropAnimation;
 
-  const backdropVariants = {
-    open: { opacity: 1 },
-    closed: { opacity: 0 },
-  };
 
   return (
     <div className="min-h-screen bg-white dark:bg-black pt-[var(--navbar-height)]">

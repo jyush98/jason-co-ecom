@@ -469,3 +469,40 @@ export const cardHover: TargetAndTransition = {
         ease: "easeOut" as const
     }
 };
+
+/**
+ * Sidebar slide animation with spring physics
+ * @param closedX - Position when closed (default "-100%" for left sidebar)
+ * @param stiffness - Spring stiffness (default 300)
+ * @param damping - Spring damping (default 40)
+ */
+export const createSidebarAnimation = (
+    closedX: string = "-100%",
+    stiffness: number = 300,
+    damping: number = 40
+): Variants => ({
+    open: {
+        x: 0,
+        transition: {
+            type: "spring" as const,
+            stiffness,
+            damping,
+        },
+    },
+    closed: {
+        x: closedX,
+        transition: {
+            type: "spring" as const,
+            stiffness,
+            damping,
+        },
+    },
+});
+
+/**
+ * Simple backdrop fade animation
+ */
+export const backdropAnimation: Variants = {
+    open: { opacity: 1 },
+    closed: { opacity: 0 },
+};
