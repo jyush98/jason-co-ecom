@@ -142,6 +142,7 @@ export const createStaggerContainer = (
     visible: {
         opacity: 1,
         transition: {
+            duration: duration,
             staggerChildren: staggerDelay,
             delayChildren
         }
