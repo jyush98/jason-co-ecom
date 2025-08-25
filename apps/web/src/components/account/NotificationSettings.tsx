@@ -21,6 +21,7 @@ import {
     // VolumeX,
     Info
 } from "lucide-react";
+import { createStaggerContainer, createEntranceAnimation } from "@/lib/animations";
 
 // Notification preferences interface
 interface NotificationPreferences {
@@ -353,25 +354,8 @@ export default function NotificationSettings() {
         }
     ];
 
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.1,
-                delayChildren: 0.2,
-            },
-        },
-    };
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: { duration: 0.5, ease: "easeOut" },
-        },
-    };
+    const containerVariants = createStaggerContainer(0.1, 0.2);  // Default duration
+    const itemVariants = createEntranceAnimation(20, 1, 0.5);
 
     if (isLoading) {
         return <NotificationSettingsSkeleton />;
@@ -505,8 +489,8 @@ export default function NotificationSettings() {
                                             className="sr-only peer"
                                         />
                                         <div className={`relative w-11 h-6 rounded-full transition-colors duration-300 ${isEnabled
-                                                ? 'bg-gold'
-                                                : 'bg-gray-200 dark:bg-gray-700'
+                                            ? 'bg-gold'
+                                            : 'bg-gray-200 dark:bg-gray-700'
                                             } ${item.required ? 'opacity-50 cursor-not-allowed' : ''}`}>
                                             <div className={`absolute top-0.5 left-0.5 bg-white rounded-full h-5 w-5 transition-transform duration-300 ${isEnabled ? 'translate-x-5' : 'translate-x-0'
                                                 }`} />

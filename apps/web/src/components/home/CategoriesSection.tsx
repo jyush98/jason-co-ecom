@@ -9,6 +9,7 @@ import { CategoriesSectionProps } from "@/types/home";
 import { defaultCategories } from "@/data/homepage";
 import { HOME_CONFIG } from "@/config";
 import { useInfiniteCarousel, useResponsiveCarousel } from "@/lib/hooks";
+import { createEntranceAnimation, createStaggerContainer } from "@/lib/animations";
 
 export default function CategoriesSection({
     categories = defaultCategories,
@@ -33,29 +34,9 @@ export default function CategoriesSection({
         }
     });
 
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: HOME_CONFIG.categories.animation.staggerDelay,
-                delayChildren: 0.3,
-            },
-        },
-    };
+    const containerVariants = createStaggerContainer(0.2, 0.3);
+    const itemVariants = createEntranceAnimation(40, 0.9, 0.7);
 
-    const itemVariants = {
-        hidden: { opacity: 0, y: 40, scale: 0.9 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            scale: 1,
-            transition: {
-                duration: HOME_CONFIG.categories.animation.duration,
-                ease: "easeOut",
-            },
-        },
-    };
 
     return (
         <section

@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Share2, Bookmark, Copy, Check } from "lucide-react";
 import { Product } from "@/types/product";
 import AddToWishlistButton from "../wishlist/AddToWishListButton";
+import { createDropdown } from "@/lib/animations";
 
 interface SocialShareProps {
     product: Product;
@@ -133,26 +134,8 @@ export default function SocialShare({ product }: SocialShareProps) {
         }
     };
 
-    const shareVariants = {
-        hidden: { opacity: 0, scale: 0.95, y: 10 },
-        visible: {
-            opacity: 1,
-            scale: 1,
-            y: 0,
-            transition: {
-                duration: 0.2,
-                ease: "easeOut",
-            },
-        },
-        exit: {
-            opacity: 0,
-            scale: 0.95,
-            y: 10,
-            transition: {
-                duration: 0.15,
-            },
-        },
-    };
+    const shareVariants = createDropdown(10, 0.95, 0.2, 0.15);
+
 
     // Generate SKU more reliably
     const generateSKU = (product: Product): string => {
@@ -302,8 +285,8 @@ export default function SocialShare({ product }: SocialShareProps) {
                     onClick={handleSaveToggle}
                     disabled={isLoadingSave}
                     className={`flex items-center gap-2 px-4 py-2 border transition-all duration-300 text-sm tracking-wide ${isSaved
-                            ? 'border-gold text-gold bg-gold/10'
-                            : 'border-gray-300 dark:border-gray-600 hover:border-gold hover:text-gold'
+                        ? 'border-gold text-gold bg-gold/10'
+                        : 'border-gray-300 dark:border-gray-600 hover:border-gold hover:text-gold'
                         } ${isLoadingSave ? 'opacity-50 cursor-not-allowed' : ''}`}
                     whileHover={!isLoadingSave ? { scale: 1.02 } : {}}
                     whileTap={!isLoadingSave ? { scale: 0.98 } : {}}

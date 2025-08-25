@@ -5,6 +5,7 @@ import { MapPin, Phone, Mail, Clock, ArrowRight, Bell, CheckCircle, AlertCircle,
 import { useState } from 'react'
 import { subscribeLocationNotification } from '@/utils/api'
 import { businessInfo, EMAIL_ADDRESSES, formatAddress, getGoogleMapsLink, isBusinessOpen } from '@/config/businessInfo'
+import { createEntranceAnimation, createStaggerContainer } from '@/lib/animations'
 
 interface Location {
     id: string
@@ -36,22 +37,8 @@ const LocationsGrid = () => {
     const [notifyEmails, setNotifyEmails] = useState<{ [key: string]: string }>({})
     const [notifyStatus, setNotifyStatus] = useState<{ [key: string]: 'idle' | 'loading' | 'success' | 'error' }>({})
 
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: { staggerChildren: 0.15, delayChildren: 0.3 }
-        }
-    }
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 30 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: { duration: 0.7, ease: "easeOut" }
-        }
-    }
+    const containerVariants = createStaggerContainer(0.15, 0.3);
+    const itemVariants = createEntranceAnimation(30, 1, 0.7);
 
     // ✅ FIXED: Use centralized business information for all locations
     const locations: Location[] = [
@@ -192,8 +179,8 @@ const LocationsGrid = () => {
                         </div>
                     </div>
                     <div className={`px-3 py-1 rounded-full text-sm font-medium ${isOpen
-                            ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400'
-                            : 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400'
+                        ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400'
+                        : 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400'
                         }`}>
                         {isOpen ? 'Open Now' : 'Closed'}
                     </div>

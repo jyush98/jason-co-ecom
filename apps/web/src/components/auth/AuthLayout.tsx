@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import AuthBackground from "./AuthBackground";
+import { createStaggerContainer, createEntranceAnimation } from "@/lib/animations";
 
 interface AuthLayoutProps {
     children: React.ReactNode;
@@ -20,25 +21,8 @@ export default function AuthLayout({
     showBackButton = true,
     backHref = "/"
 }: AuthLayoutProps) {
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                duration: 0.8,
-                staggerChildren: 0.2
-            }
-        }
-    };
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: { duration: 0.6, ease: "easeOut" }
-        }
-    };
+    const containerVariants = createStaggerContainer(0.2, 0, 0.8);  // No delay children, duration 0.8
+    const itemVariants = createEntranceAnimation(20, 1, 0.6);
 
     return (
         <AuthBackground variant="luxury">

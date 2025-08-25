@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Play, Pause, Volume2, VolumeX } from "lucide-react";
 import { JewelryImage } from "@/components/ui/OptimizedImage";
+import { createStaggerContainer, createEntranceAnimation } from "@/lib/animations";
 
 interface VideoHeroProps {
     videoSrc: string;
@@ -84,25 +85,8 @@ export default function VideoHero({
         setIsMuted(!isMuted);
     };
 
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                duration: 0.8,
-                staggerChildren: 0.2,
-            },
-        },
-    };
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 30 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: { duration: 0.6, ease: "easeOut" },
-        },
-    };
+    const containerVariants = createStaggerContainer(0.2, 0.3, 0.8);
+    const itemVariants = createEntranceAnimation(10, 1, 0.6);
 
     return (
         <section className="relative h-screen w-full overflow-hidden bg-black">

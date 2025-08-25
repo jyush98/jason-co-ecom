@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Product } from "@/types/product";
 import AddToCartButton from "@/components/cart/AddToCartButton";
 import { PRODUCT_CONFIG } from "@/config/productConfig";
+import { createStaggeredListItem } from "@/lib/animations";
 
 interface ProductInfoProps {
     product: Product;
@@ -21,18 +22,11 @@ export default function ProductInfo({ product }: ProductInfoProps) {
         }).format(price / 100);
     };
 
-    const infoVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: (i: number) => ({
-            opacity: 1,
-            y: 0,
-            transition: {
-                duration: PRODUCT_CONFIG.animations.infoSection.duration,
-                delay: i * PRODUCT_CONFIG.animations.infoSection.staggerDelay,
-                ease: "easeOut",
-            },
-        }),
-    };
+    const infoVariants = createStaggeredListItem(
+        PRODUCT_CONFIG.animations.infoSection.staggerDelay,
+        PRODUCT_CONFIG.animations.infoSection.duration,
+        20
+    );
 
     return (
         <div className="space-y-8">

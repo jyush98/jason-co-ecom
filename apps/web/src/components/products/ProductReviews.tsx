@@ -4,6 +4,7 @@
 import { useState, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { Star, ChevronLeft, ChevronRight, User } from "lucide-react";
+import { createStaggerContainer, createEntranceAnimation } from "@/lib/animations";
 
 interface Review {
     id: string;
@@ -93,28 +94,9 @@ export default function ProductReviews({
         );
     };
 
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.2,
-                delayChildren: 0.3,
-            },
-        },
-    };
 
-    const itemVariants = {
-        hidden: { opacity: 0, y: 30 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: {
-                duration: 0.6,
-                ease: "easeOut",
-            },
-        },
-    };
+    const containerVariants = createStaggerContainer(0.2, 0.3);
+    const itemVariants = createEntranceAnimation(30, 1, 0.6);
 
     return (
         <section ref={sectionRef} className="space-y-12">
@@ -218,8 +200,8 @@ export default function ProductReviews({
                                 key={index}
                                 onClick={() => setCurrentReviewIndex(index)}
                                 className={`w-2 h-2 rounded-full transition-all duration-300 ${currentReviewIndex === index
-                                        ? 'bg-gold scale-125'
-                                        : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
+                                    ? 'bg-gold scale-125'
+                                    : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
                                     }`}
                                 aria-label={`Go to review ${index + 1}`}
                             />

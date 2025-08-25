@@ -7,6 +7,7 @@ import { JewelryImage } from "@/components/ui/OptimizedImage";
 import { Product } from "@/types/product";
 import AddToCartButton from "@/components/cart/AddToCartButton";
 import { SHOP_CONFIG } from "@/config/shopConfig";
+import { createIndexedAnimation } from "@/lib/animations";
 
 interface ProductCardProps {
     product: Product;
@@ -57,23 +58,13 @@ export default function ProductCard({
         return "Jewelry";
     };
 
-    const itemVariants = {
-        hidden: {
-            opacity: 0,
-            y: 30,
-            scale: 0.95
-        },
-        visible: {
-            opacity: 1,
-            y: 0,
-            scale: 1,
-            transition: {
-                duration: SHOP_CONFIG.animation.itemDuration,
-                ease: "easeOut",
-                delay: index * SHOP_CONFIG.animation.staggerDelay,
-            },
-        },
-    };
+    const itemVariants = createIndexedAnimation(
+        30,
+        0.95,
+        SHOP_CONFIG.animation.itemDuration,
+        index,
+        SHOP_CONFIG.animation.staggerDelay
+    );
 
     // Don't render if no primary image
     if (!primary) {

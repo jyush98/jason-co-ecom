@@ -4,26 +4,13 @@ import { motion } from 'framer-motion'
 import { Phone, Mail, MessageCircle, Calendar, Clock, Copy, ExternalLink } from 'lucide-react'
 import { useState } from 'react'
 import { businessInfo, EMAIL_ADDRESSES } from '@/config/businessInfo'
+import { createEntranceAnimation, createStaggerContainer } from '@/lib/animations'
 
 const ContactMethods = () => {
     const [copiedText, setCopiedText] = useState<string | null>(null)
 
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: { staggerChildren: 0.1, delayChildren: 0.3 }
-        }
-    }
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: { duration: 0.6, ease: "easeOut" }
-        }
-    }
+    const containerVariants = createStaggerContainer(0.1, 0.3);
+    const itemVariants = createEntranceAnimation(20, 1, 0.6);
 
     const copyToClipboard = async (text: string, label: string) => {
         try {

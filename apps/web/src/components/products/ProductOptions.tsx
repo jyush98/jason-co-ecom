@@ -5,6 +5,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Product } from "@/types/product";
 import { PRODUCT_CONFIG } from "@/config/productConfig";
+import { createStaggeredListItem } from "@/lib/animations";
 
 interface ProductOptionsProps {
   product: Product;
@@ -55,18 +56,7 @@ export default function ProductOptions({ product: _product, isDark: _isDark = fa
     }));
   };
 
-  const optionVariants = {
-    hidden: { opacity: 0, y: 15 },
-    visible: (i: number) => ({
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.4,
-        delay: i * 0.1,
-        ease: "easeOut",
-      },
-    }),
-  };
+  const optionVariants = createStaggeredListItem(0.1, 0.4, 15);
 
   if (!PRODUCT_CONFIG.features.showProductOptions) {
     return null;

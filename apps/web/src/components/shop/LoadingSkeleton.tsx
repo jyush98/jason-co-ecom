@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { SHOP_CONFIG } from "@/config/shopConfig";
+import { createStaggerContainer, createEntranceAnimation } from "@/lib/animations";
 
 interface LoadingSkeletonProps {
     count?: number;
@@ -13,28 +14,8 @@ export default function LoadingSkeleton({
     showPrices = SHOP_CONFIG.showPrices
 }: LoadingSkeletonProps) {
 
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.1,
-                delayChildren: 0.1,
-            },
-        },
-    };
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: {
-                duration: 0.4,
-                ease: "easeOut",
-            },
-        },
-    };
+    const containerVariants = createStaggerContainer(0.1, 0.1);
+    const itemVariants = createEntranceAnimation(20, 1, 0.4);
 
     return (
         <motion.div

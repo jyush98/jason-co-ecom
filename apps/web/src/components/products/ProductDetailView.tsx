@@ -16,6 +16,7 @@ import {
     SocialShare
 } from "@/components/products";
 import { PRODUCT_CONFIG } from "@/config/productConfig";
+import { createEntranceAnimation, pageContainer } from "@/lib/animations";
 
 interface ProductDetailViewProps {
     product: Product;
@@ -72,28 +73,9 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
     }, [product.id, product.category]);
 
     // Page entrance animation variants
-    const pageVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                duration: PRODUCT_CONFIG.animations.pageEntrance.duration,
-                staggerChildren: PRODUCT_CONFIG.animations.pageEntrance.staggerDelay,
-            },
-        },
-    };
+    const pageVariants = pageContainer;
 
-    const sectionVariants = {
-        hidden: { opacity: 0, y: 30 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: {
-                duration: PRODUCT_CONFIG.animations.sectionEntrance.duration,
-                ease: "easeOut",
-            },
-        },
-    };
+    const sectionVariants = createEntranceAnimation(30, 1, 0.8);
 
     return (
         <motion.div

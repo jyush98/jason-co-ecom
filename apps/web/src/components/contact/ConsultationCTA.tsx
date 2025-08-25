@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Calendar, Video, MapPin, Star, ArrowRight, Clock, DollarSign, X, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
 import { bookConsultation } from '@/utils/api'
 import businessInfo from '@/config/businessInfo'
+import { createEntranceAnimation, createStaggerContainer } from '@/lib/animations'
 
 interface ConsultationFormData {
     name: string
@@ -33,22 +34,8 @@ const ConsultationCTA = () => {
         timeline: ''
     })
 
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: { staggerChildren: 0.1, delayChildren: 0.3 }
-        }
-    }
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: { duration: 0.6, ease: "easeOut" }
-        }
-    }
+    const containerVariants = createStaggerContainer(0.1, 0.3);
+    const itemVariants = createEntranceAnimation(20, 1, 0.6);
 
     const consultationTypes = [
         {

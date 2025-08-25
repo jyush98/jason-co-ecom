@@ -1,34 +1,15 @@
 'use client'
 
+import { createEntranceAnimation, createStaggerContainer } from '@/lib/animations';
 import { motion } from 'framer-motion'
 import { Phone, Mail, MapPin, Calendar } from 'lucide-react'
 
+
 const ContactHero = () => {
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: { staggerChildren: 0.1, delayChildren: 0.2 }
-        }
-    }
+    const containerVariants = createStaggerContainer(0.1, 0.2);
+    const itemVariants = createEntranceAnimation(20, 1, 0.6);
+    const iconVariants = createEntranceAnimation(0, 0.8, 0.5);
 
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: { duration: 0.6, ease: "easeOut" }
-        }
-    }
-
-    const iconVariants = {
-        hidden: { opacity: 0, scale: 0.8 },
-        visible: {
-            opacity: 1,
-            scale: 1,
-            transition: { duration: 0.5, ease: "easeOut" }
-        }
-    }
 
     return (
         <section className="relative h-[60vh] md:h-[70vh] flex items-center justify-center overflow-hidden">

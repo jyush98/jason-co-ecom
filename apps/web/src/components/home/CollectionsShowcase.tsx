@@ -5,6 +5,7 @@ import { motion, useInView } from "framer-motion";
 import Link from "next/link";
 import { JewelryImage } from "@/components/ui/OptimizedImage";
 import { defaultCollections } from "@/data/homepage";
+import { createStaggerContainer, createEntranceAnimation } from "@/lib/animations";
 
 interface Collection {
     name: string;
@@ -28,29 +29,8 @@ export default function CollectionsShowcase({
     const featuredCollection = collections.find(c => c.featured) || collections[0];
     const otherCollections = collections.filter(c => c !== featuredCollection);
 
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.2,
-                delayChildren: 0.3,
-            },
-        },
-    };
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 60, scale: 0.95 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            scale: 1,
-            transition: {
-                duration: 0.8,
-                ease: "easeOut",
-            },
-        },
-    };
+    const containerVariants = createStaggerContainer(0.2, 0.3);
+    const itemVariants = createEntranceAnimation(60, 0.95, 0.8); 
 
     const CollectionCard = ({
         collection,

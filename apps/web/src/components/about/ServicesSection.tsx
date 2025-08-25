@@ -3,27 +3,11 @@
 import { motion } from 'framer-motion'
 import { useRef } from 'react'
 import { Star, Award, Users } from 'lucide-react'
+import { createStaggerContainer, createEntranceAnimation } from '@/lib/animations';
 
 // Animation variants following established patterns
-const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-        opacity: 1,
-        transition: {
-            staggerChildren: 0.1,
-            delayChildren: 0.2
-        }
-    }
-}
-
-const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-        opacity: 1,
-        y: 0,
-        transition: { duration: 0.6, ease: "easeOut" }
-    }
-}
+const containerVariants = createStaggerContainer(0.1, 0.2);
+const itemVariants = createEntranceAnimation(20, 1, 0.6);
 
 export default function ServicesSection() {
     const ref = useRef(null)

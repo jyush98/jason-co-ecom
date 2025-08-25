@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { createHoverOpacity, createHoverTextStyle, createMenuItemStagger } from "@/lib/animations";
 
 interface FullscreenMenuProps {
     categories: { name: string; path: string }[];
@@ -45,43 +46,9 @@ const FullscreenMenu = ({
     };
 
     // Menu item variants for staggered animation
-    const menuItemVariants = {
-        hidden: {
-            opacity: 0,
-            y: 30,
-        },
-        visible: (i: number) => ({
-            opacity: 1,
-            y: 0,
-            transition: {
-                delay: i * 0.1,
-                duration: 0.6,
-                ease: "easeOut"
-            }
-        }),
-        exit: {
-            opacity: 0,
-            y: -20,
-            transition: {
-                duration: 0.3
-            }
-        }
-    };
-
-    const numberVariants = {
-        hidden: { opacity: 0.3 },
-        visible: { opacity: 0.5 },
-        hover: { opacity: 0.8 }
-    };
-
-    const textVariants = {
-        hidden: { fontStyle: "normal" },
-        visible: { fontStyle: "normal" },
-        hover: {
-            fontStyle: "italic",
-            transition: { duration: 0.3, ease: "easeInOut" }
-        }
-    };
+    const menuItemVariants = createMenuItemStagger(30, -20, 0.1, 0.6);
+    const numberVariants = createHoverOpacity(0.3, 0.5, 0.8);
+    const textVariants = createHoverTextStyle({ fontStyle: "italic" }, 0.3);
 
     return (
         <>

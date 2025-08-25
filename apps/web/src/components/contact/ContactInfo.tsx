@@ -21,6 +21,7 @@ import {
     businessInfo,
     EMAIL_ADDRESSES,
 } from '@/config/businessInfo'
+import { createEntranceAnimation, createStaggerContainer } from '@/lib/animations'
 
 interface BusinessHours {
     [key: string]: string
@@ -40,22 +41,8 @@ const ContactInfo = () => {
     const [holidayNotice, setHolidayNotice] = useState<string>('')
     const [emergencyNotice, setEmergencyNotice] = useState<string>('')
 
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: { staggerChildren: 0.1, delayChildren: 0.3 }
-        }
-    }
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: { duration: 0.6, ease: "easeOut" }
-        }
-    }
+    const containerVariants = createStaggerContainer(0.1, 0.3);
+    const itemVariants = createEntranceAnimation(20, 1, 0.6);
 
     // Load business hours from API
     useEffect(() => {

@@ -13,6 +13,7 @@ import {
     X,
     Filter
 } from "lucide-react";
+import { createDropdown } from "@/lib/animations";
 
 export interface ExportFormat {
     id: string;
@@ -263,21 +264,7 @@ export default function ExportButton({
         return `export-${date}.${formatExt}`;
     };
 
-    const dropdownVariants = {
-        hidden: { opacity: 0, scale: 0.95, y: -10 },
-        visible: {
-            opacity: 1,
-            scale: 1,
-            y: 0,
-            transition: { duration: 0.2, ease: "easeOut" }
-        },
-        exit: {
-            opacity: 0,
-            scale: 0.95,
-            y: -10,
-            transition: { duration: 0.15 }
-        }
-    };
+    const dropdownVariants = createDropdown(-10, 0.95, 0.2, 0.15);
 
     const isExporting = progress.status === 'preparing' || progress.status === 'exporting';
     const hasError = progress.status === 'error';

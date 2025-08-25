@@ -12,6 +12,7 @@ import {
     TrendingUp,
     RotateCcw
 } from "lucide-react";
+import { createDropdown } from "@/lib/animations";
 
 // Date range presets
 export interface DateRangePreset {
@@ -369,30 +370,7 @@ export default function DateRangePicker({
         lg: 'h-12 px-6 text-lg'
     };
 
-    const dropdownVariants = {
-        hidden: {
-            opacity: 0,
-            scale: 0.95,
-            y: -10
-        },
-        visible: {
-            opacity: 1,
-            scale: 1,
-            y: 0,
-            transition: {
-                duration: 0.2,
-                ease: "easeOut"
-            }
-        },
-        exit: {
-            opacity: 0,
-            scale: 0.95,
-            y: -10,
-            transition: {
-                duration: 0.15
-            }
-        }
-    };
+    const dropdownVariants = createDropdown(-10, 0.95, 0.2, 0.15);
 
     const hasValue = selectedRange.startDate || selectedRange.endDate;
 

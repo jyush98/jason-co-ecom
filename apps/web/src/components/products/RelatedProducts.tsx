@@ -8,6 +8,7 @@ import { Product } from "@/types/product";
 import { ProductCard } from "@/components/shop";
 import { useInfiniteCarousel } from "@/lib/hooks";
 import { PRODUCT_CONFIG } from "@/config/productConfig";
+import { createStaggerContainer, createEntranceAnimation } from "@/lib/animations";
 
 interface RelatedProductsProps {
   products: Product[];
@@ -33,28 +34,8 @@ export default function RelatedProducts({
   const itemWidth = PRODUCT_CONFIG.relatedProducts.itemWidth;
   const gap = PRODUCT_CONFIG.relatedProducts.gap;
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.6,
-        ease: "easeOut",
-      },
-    },
-  };
+  const containerVariants = createStaggerContainer(0.1, 0.2);
+  const itemVariants = createEntranceAnimation(30, 1, 0.6);
 
   if (isLoading) {
     return (
@@ -167,11 +148,10 @@ export default function RelatedProducts({
             <button
               key={index}
               onClick={() => goToSlide(index)}
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                currentIndex === index
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${currentIndex === index
                   ? 'bg-gold scale-125'
                   : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
-              }`}
+                }`}
               aria-label={`Go to product ${index + 1}`}
             />
           ))}

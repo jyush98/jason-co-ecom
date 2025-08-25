@@ -10,6 +10,7 @@ import { useSearchParams } from "next/navigation";
 import type { Order } from "@/types/order";
 import { CART_CONFIG, formatCartPrice } from "@/config";
 import { JewelryImage } from "../ui/OptimizedImage";
+import { createEntranceAnimation, createStaggerContainer } from "@/lib/animations";
 
 interface OrderConfirmationProps {
     orderNumber?: string;
@@ -40,11 +41,11 @@ export default function OrderConfirmation({
         try {
             setIsLoading(true);
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/orders/${orderNum}`);
-            
+
             if (!response.ok) {
                 throw new Error('Order not found');
             }
-            
+
             const orderData: Order = await response.json();
             setOrder(orderData);
         } catch (err) {
@@ -54,26 +55,8 @@ export default function OrderConfirmation({
         }
     };
 
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                duration: 0.6,
-                staggerChildren: 0.1,
-                delayChildren: 0.2
-            }
-        }
-    };
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: { duration: 0.5, ease: "easeOut" }
-        }
-    };
+    const containerVariants = createStaggerContainer(0.1, 0.2, 0.6);  // Note: duration is third parameter
+    const itemVariants = createEntranceAnimation(20, 1, 0.5);
 
     if (isLoading) {
         return <OrderConfirmationSkeleton />;
@@ -243,7 +226,7 @@ export default function OrderConfirmation({
                                     </div>
                                     <div>
                                         <p className="font-medium">
-                                            {order.payment_method_brand && order.payment_method_brand.charAt(0).toUpperCase() + order.payment_method_brand.slice(1)} 
+                                            {order.payment_method_brand && order.payment_method_brand.charAt(0).toUpperCase() + order.payment_method_brand.slice(1)}
                                             {order.payment_method_last4 && ` ending in ${order.payment_method_last4}`}
                                         </p>
                                         <p className="text-sm text-gray-600 dark:text-gray-400">

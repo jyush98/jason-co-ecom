@@ -14,6 +14,7 @@ import {
     Crown
 } from "lucide-react";
 import Link from "next/link";
+import { createEntranceAnimation, createStaggerContainer, scaleRotate, sparkleFloat } from "@/lib/animations";
 
 interface WishlistEmptyProps {
     className?: string;
@@ -22,59 +23,10 @@ interface WishlistEmptyProps {
 export default function WishlistEmpty({ className = "" }: WishlistEmptyProps) {
     const [hoveredCard, setHoveredCard] = useState<number | null>(null);
 
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.2,
-                delayChildren: 0.3,
-            },
-        },
-    };
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 30 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: { duration: 0.6, ease: "easeOut" },
-        },
-    };
-
-    const heartVariants = {
-        hidden: { scale: 0, rotate: -180 },
-        visible: {
-            scale: 1,
-            rotate: 0,
-            transition: {
-                type: "spring",
-                stiffness: 200,
-                damping: 15,
-                delay: 0.5,
-            },
-        },
-    };
-
-    const sparkleVariants = {
-        hidden: { opacity: 0, scale: 0 },
-        visible: {
-            opacity: 1,
-            scale: 1,
-            transition: {
-                delay: 1,
-                duration: 0.5,
-            },
-        },
-        animate: {
-            y: [0, -10, 0],
-            transition: {
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut",
-            },
-        },
-    };
+    const containerVariants = createStaggerContainer(0.2, 0.3);
+    const itemVariants = createEntranceAnimation(30, 1, 0.6);
+    const heartVariants = scaleRotate;
+    const sparkleVariants = sparkleFloat;
 
     // Sample featured products for suggestions
     const suggestedCategories = [
