@@ -2,11 +2,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 import { useSearchParams } from "next/navigation";
 import { Check, Package, Truck, CreditCard, Calendar, ArrowRight } from "lucide-react";
 import Link from "next/link";
-// import { formatCartPrice } from "@/config/cartConfig";
 
 export default function OrderConfirmationPage() {
     const searchParams = useSearchParams();
@@ -22,7 +21,7 @@ export default function OrderConfirmationPage() {
         return () => clearTimeout(timer);
     }, []);
 
-    const containerVariants = {
+    const containerVariants: Variants = {
         hidden: { opacity: 0 },
         visible: {
             opacity: 1,
@@ -33,7 +32,7 @@ export default function OrderConfirmationPage() {
         }
     };
 
-    const itemVariants = {
+    const itemVariants: Variants = {
         hidden: { opacity: 0, y: 30 },
         visible: {
             opacity: 1,
