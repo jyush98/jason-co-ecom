@@ -13,6 +13,7 @@ import { Product } from "@/types/product";
 import { formatCartPrice } from "@/config/cartConfig";
 import { useCartData, useCartActions } from "@/app/store/cartStore";
 import CartItem from "./CartItem";
+import { createStaggerContainer, createEntranceAnimation } from "@/lib/animations";
 
 interface CartPageProps {
     recentlyViewed?: Product[];
@@ -67,25 +68,8 @@ export default function CartPage({
         }
     };
 
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.1,
-                delayChildren: 0.2,
-            },
-        },
-    };
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: { duration: 0.5, ease: "easeOut" },
-        },
-    };
+    const containerVariants = createStaggerContainer(0.1, 0.2);
+    const itemVariants = createEntranceAnimation(20, 1, 0.5);
 
     if (isLoading) {
         return <CartPageSkeleton />;
@@ -370,7 +354,7 @@ function RecentlyViewedItem({ product }: { product: Product }) {
         <Link href={`/product/${product.id}`} className="group">
             <div className="relative aspect-square bg-gray-100 dark:bg-gray-800 rounded overflow-hidden mb-3">
                 <Image
-                    src={product.image_url? product.image_url : ''}
+                    src={product.image_url ? product.image_url : ''}
                     alt={product.name}
                     fill
                     className="object-contain p-3 group-hover:scale-110 transition-transform duration-300"
