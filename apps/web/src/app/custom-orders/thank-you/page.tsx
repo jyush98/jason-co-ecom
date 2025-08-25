@@ -1,7 +1,7 @@
 // app/custom-orders/thank-you/page.tsx
 "use client";
 
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 import {
     Check,
     Phone,
@@ -16,7 +16,7 @@ import Link from 'next/link';
 import { businessInfo, EMAIL_ADDRESSES } from '@/config/businessInfo';
 
 export default function CustomOrderThankYou() {
-    const containerVariants = {
+    const containerVariants: Variants = {
         hidden: { opacity: 0 },
         visible: {
             opacity: 1,
@@ -27,7 +27,7 @@ export default function CustomOrderThankYou() {
         }
     };
 
-    const itemVariants = {
+    const itemVariants: Variants = {
         hidden: { opacity: 0, y: 30 },
         visible: {
             opacity: 1,
@@ -36,7 +36,7 @@ export default function CustomOrderThankYou() {
         }
     };
 
-    const checkVariants = {
+    const checkVariants: Variants = {
         hidden: { scale: 0, rotate: -180 },
         visible: {
             scale: 1,
