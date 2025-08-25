@@ -506,3 +506,68 @@ export const backdropAnimation: Variants = {
     open: { opacity: 1 },
     closed: { opacity: 0 },
 };
+
+/**
+ * Drawer slide animation generator
+ * @param direction - 'left' or 'right' for drawer position
+ * @param duration - Animation duration in seconds
+ */
+export const createDrawerAnimation = (
+    direction: 'left' | 'right' = 'right',
+    duration: number = 0.3
+): Variants => ({
+    hidden: {
+        x: direction === 'left' ? '-100%' : '100%',
+        transition: {
+            duration,
+            ease: "easeInOut" as const
+        }
+    },
+    visible: {
+        x: 0,
+        transition: {
+            duration,
+            ease: "easeInOut" as const
+        }
+    }
+});
+
+/**
+ * Backdrop fade with customizable duration
+ * @param duration - Fade duration in seconds
+ */
+export const createBackdropAnimation = (
+    duration: number = 0.2
+): Variants => ({
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: { duration }
+    }
+});
+
+/**
+ * List item slide animation with exit state
+ * @param enterX - Initial X offset for entrance
+ * @param exitX - X offset for exit
+ * @param enterDuration - Entrance duration
+ * @param exitDuration - Exit duration
+ */
+export const createItemSlide = (
+    enterX: number = 20,
+    exitX: number = -20,
+    enterDuration: number = 0.3,
+    exitDuration: number = 0.2
+): Variants => ({
+    hidden: { opacity: 0, x: enterX },
+    visible: {
+        opacity: 1,
+        x: 0,
+        transition: { duration: enterDuration }
+    },
+    exit: {
+        opacity: 0,
+        x: exitX,
+        transition: { duration: exitDuration }
+    }
+});

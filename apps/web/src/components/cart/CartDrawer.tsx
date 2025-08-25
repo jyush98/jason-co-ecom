@@ -8,6 +8,7 @@ import Link from "next/link";
 import { CART_CONFIG } from "@/config/cartConfig";
 import { CartItem, Cart } from "@/types/cart";
 import { formatCartPrice } from "@/config/cartConfig";
+import { createDrawerAnimation, createBackdropAnimation, createItemSlide } from "@/lib/animations";
 
 interface CartDrawerProps {
     isOpen: boolean;
@@ -65,44 +66,9 @@ export default function CartDrawer({
     };
 
     // Animation variants
-    const drawerVariants = {
-        hidden: {
-            x: '100%',
-            transition: {
-                duration: CART_CONFIG.animations.drawerSlide / 1000,
-                ease: "easeInOut"
-            }
-        },
-        visible: {
-            x: 0,
-            transition: {
-                duration: CART_CONFIG.animations.drawerSlide / 1000,
-                ease: "easeInOut"
-            }
-        }
-    };
-
-    const backdropVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: { duration: 0.2 }
-        }
-    };
-
-    const itemVariants = {
-        hidden: { opacity: 0, x: 20 },
-        visible: {
-            opacity: 1,
-            x: 0,
-            transition: { duration: 0.3 }
-        },
-        exit: {
-            opacity: 0,
-            x: -20,
-            transition: { duration: 0.2 }
-        }
-    };
+    const drawerVariants = createDrawerAnimation('right', CART_CONFIG.animations.drawerSlide / 1000);
+    const backdropVariants = createBackdropAnimation(0.2);
+    const itemVariants = createItemSlide(20, -20, 0.3, 0.2);
 
     const isEmpty = cart.items.length === 0;
 
