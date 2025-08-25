@@ -1,7 +1,7 @@
 // apps/web/src/lib/animations.ts
 // Centralized, reusable animation variants for Framer Motion
 
-import { Variants } from 'framer-motion';
+import { TargetAndTransition, Variants } from 'framer-motion';
 
 /**
  * Staggered list item animation with index-based delays
@@ -402,3 +402,70 @@ export const createIndexedAnimation = (
         },
     },
 });
+
+/**
+ * Generator for hover animations with scale and movement
+ * @param scale - Scale factor on hover (default 1.05)
+ * @param x - X movement on hover (default 0)
+ * @param y - Y movement on hover (default -2)
+ * @param duration - Animation duration (default 0.2)
+ * @returns TargetAndTransition object for whileHover prop
+ */
+export const createHoverScale = (
+    scale: number = 1.05,
+    x: number = 0,
+    y: number = -2,
+    duration: number = 0.2
+): TargetAndTransition => ({
+    scale,
+    x,
+    y,
+    transition: {
+        duration,
+        ease: "easeOut" as const
+    }
+});
+
+/**
+ * Generator for hover animations with rotation
+ * @param rotate - Rotation degrees on hover
+ * @param scale - Scale factor on hover
+ * @param duration - Animation duration
+ */
+export const createHoverRotate = (
+    rotate: number = 5,
+    scale: number = 1.05,
+    duration: number = 0.2
+): TargetAndTransition => ({
+    rotate,
+    scale,
+    transition: {
+        duration,
+        ease: "easeOut" as const
+    }
+});
+
+/**
+ * Generator for button/link hover animations
+ * Common pattern for interactive elements
+ */
+export const buttonHover: TargetAndTransition = {
+    scale: 1.05,
+    y: -2,
+    transition: {
+        duration: 0.2,
+        ease: "easeOut" as const
+    }
+};
+
+/**
+ * Generator for card hover animations
+ * Subtle lift effect for cards
+ */
+export const cardHover: TargetAndTransition = {
+    y: -5,
+    transition: {
+        duration: 0.3,
+        ease: "easeOut" as const
+    }
+};

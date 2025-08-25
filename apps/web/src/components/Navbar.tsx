@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import FullScreenMenu from "@/components/FullScreenMenu";
 import { useTheme } from "next-themes";
 import { AccountDropdown } from "./navigation";
+import { createHoverScale } from "@/lib/animations";
 
 const categories = [
   { name: "All Jewelry", path: "/shop" },
@@ -39,11 +40,7 @@ interface CartItem {
   quantity: number;
 }
 
-const navHover = {
-  scale: 1.02,
-  y: -1,
-  transition: { duration: 0.2, ease: "easeOut" }
-};
+const navHover = createHoverScale();
 
 export default function Navbar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
