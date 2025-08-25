@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { Send, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
 import { submitContactInquiry } from '@/utils/api'
 import businessInfo from '@/config/businessInfo'
+import { createEntranceAnimation, createStaggerContainer } from '@/lib/animations'
 
 interface ContactFormData {
     name: string
@@ -37,22 +38,8 @@ const ContactForm = () => {
     const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
     const [errors, setErrors] = useState<Partial<ContactFormData>>({})
 
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: { staggerChildren: 0.1, delayChildren: 0.3 }
-        }
-    }
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: { duration: 0.6, ease: "easeOut" }
-        }
-    }
+    const containerVariants = createStaggerContainer(0.2, 0, 0.6);
+    const itemVariants = createEntranceAnimation(30, 1, 0.6);
 
     const validateForm = () => {
         const newErrors: Partial<ContactFormData> = {}
