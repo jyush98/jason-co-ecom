@@ -1,0 +1,31 @@
+# Testing Dependencies for Jason & Co. API
+# Core testing framework
+pytest>=7.4.3
+pytest-asyncio>=0.21.1
+pytest-cov>=4.1.0
+pytest-mock>=3.12.0
+pytest-xdist>=3.5.0  # Parallel test execution
+
+# HTTP testing
+httpx>=0.25.0
+requests-mock>=1.11.0
+responses>=0.24.1
+
+# Database testing
+pytest-postgresql>=5.0.0
+factory-boy>=3.3.0
+faker>=20.1.0
+
+# Performance testing
+pytest-benchmark>=4.0.0
+pytest-timeout>=2.2.0
+
+# Test utilities
+freezegun>=1.2.2  # Time mocking
+hypothesis>=6.88.0  # Property-based testing
+parameterized>=0.9.0  # Parameterized tests
+
+# Code quality
+pytest-clarity>=1.0.1  # Better test output
+pytest-sugar>=0.9.7  # Better test formatting
+pytest-html>=4.1.1  # HTML reports

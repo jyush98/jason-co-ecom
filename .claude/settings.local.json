@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(pip install:*)",
+      "Bash(python -m pytest tests/ -v --tb=short)",
+      "Bash(python -m pytest --collect-only)",
+      "Bash(python -m pytest tests/unit/ -v --tb=short)",
+      "Bash(python -m pytest tests/unit/test_products_api.py::TestProductsAPI::test_get_all_products_success -v --tb=short)",
+      "Bash(python -m pytest tests/unit/test_products_api.py::TestProductsAPI::test_get_all_products_success -v)",
+      "Bash(python -m pytest tests/unit/test_products_api.py::TestProductsAPI::test_get_all_products_success -v -s)",
+      "Bash(python -m pytest tests/unit/test_simple_api.py -v)",
+      "Bash(npm install)",
+      "Bash(npm run test:*)",
+      "Bash(python -m pytest tests/unit/test_products_api.py -v --tb=short)",
+      "Bash(python -m pytest tests/unit/test_cart_api.py::TestCartAPI::test_add_to_cart_success -v --tb=short)",
+      "Bash(python -m pytest tests/integration/test_complete_purchase_flow.py::TestCompletePurchaseFlow::test_complete_luxury_jewelry_purchase -v --tb=short)",
+      "Bash(python -m pytest tests/performance/test_luxury_ecommerce_performance.py::TestLuxuryEcommercePerformance::test_api_endpoint_response_times -v --tb=short)",
+      "Bash(python -m pytest tests/unit/test_cart_api.py::TestCartAPI::test_cart_requires_authentication -v --tb=short)",
+      "Bash(python -m pytest tests/unit/ -k \"requires_authentication or not_found or invalid\" -v --tb=no)",
+      "Bash(python -m pytest tests/unit/test_simple_api.py tests/unit/test_products_api.py::TestProductsAPI::test_get_product_by_id_not_found tests/unit/test_cart_api.py::TestCartAPI::test_cart_requires_authentication tests/unit/test_auth_api.py::TestAuthAPI::test_get_user_profile_without_auth -v --tb=no)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
