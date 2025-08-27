@@ -18,7 +18,14 @@
       "Bash(python -m pytest tests/performance/test_luxury_ecommerce_performance.py::TestLuxuryEcommercePerformance::test_api_endpoint_response_times -v --tb=short)",
       "Bash(python -m pytest tests/unit/test_cart_api.py::TestCartAPI::test_cart_requires_authentication -v --tb=short)",
       "Bash(python -m pytest tests/unit/ -k \"requires_authentication or not_found or invalid\" -v --tb=no)",
-      "Bash(python -m pytest tests/unit/test_simple_api.py tests/unit/test_products_api.py::TestProductsAPI::test_get_product_by_id_not_found tests/unit/test_cart_api.py::TestCartAPI::test_cart_requires_authentication tests/unit/test_auth_api.py::TestAuthAPI::test_get_user_profile_without_auth -v --tb=no)"
+      "Bash(python -m pytest tests/unit/test_simple_api.py tests/unit/test_products_api.py::TestProductsAPI::test_get_product_by_id_not_found tests/unit/test_cart_api.py::TestCartAPI::test_cart_requires_authentication tests/unit/test_auth_api.py::TestAuthAPI::test_get_user_profile_without_auth -v --tb=no)",
+      "Bash(python -m pytest tests/integration_production/test_production_database.py::TestProductionDatabaseIntegration::test_production_models_table_creation -v)",
+      "Bash(python -m pytest tests/integration_production/test_production_database.py::TestProductionDatabaseIntegration::test_production_models_table_creation -v -s)",
+      "Bash(python -m pytest tests/integration_production/test_production_database.py::TestProductionDatabaseIntegration::test_production_user_creation -v -s)",
+      "Bash(python -m pytest tests/integration_production/test_production_database.py::TestProductionDatabaseIntegration::test_production_product_creation -v -s)",
+      "Bash(python -m pytest tests/integration_production/test_production_database.py -v -m \"production\" --tb=short)",
+      "Bash(python -m pytest tests/integration_production/test_production_database.py::TestProductionDatabaseIntegration::test_production_api_endpoints_with_database -v -s)",
+      "Bash(python -m pytest tests/integration_production/test_production_database.py -v --tb=line -q)"
     ],
     "deny": [],
     "ask": []

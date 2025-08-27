@@ -1,0 +1,38 @@
+# Coverage configuration for Jason & Co. API testing
+[run]
+source = app
+omit = 
+    */tests/*
+    */venv/*
+    */jason-co/*
+    */migrations/*
+    */alembic/*
+    */__pycache__/*
+    */.*
+    app/scripts/*
+
+[report]
+# Targets for luxury e-commerce quality standards
+fail_under = 80
+show_missing = true
+skip_covered = false
+
+# Detailed reporting
+precision = 2
+sort = -cover
+
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise AssertionError
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    class .*\(Protocol\):
+    @(abc\.)?abstractmethod
+
+[html]
+directory = htmlcov
+title = Jason & Co. API Test Coverage
+
+[xml]
+output = coverage.xml
